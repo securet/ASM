@@ -1,4 +1,4 @@
-package com.securet.asm.components.sms;
+package com.securet.ssm.components.sms;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -12,7 +12,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import com.securet.asm.utils.FTLUtil;
+import com.securet.ssm.utils.FTLUtil;
 
 public class SMSService {
 

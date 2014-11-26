@@ -1,4 +1,4 @@
-package com.securet.asm.spring;
+package com.securet.ssm.spring;
 
 import java.util.Date;
 

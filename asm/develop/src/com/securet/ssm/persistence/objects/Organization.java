@@ -1,20 +1,34 @@
-package com.securet.asm.persistence.objects;
+package com.securet.ssm.persistence.objects;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 @Entity
-public class Organization {
+@NamedQueries({
+	@NamedQuery(name = "getOrganization.count", query = "SELECT COUNT(organizationId) from Organization"),
+	@NamedQuery(name = "getOrganizationById", query = "SELECT o from Organization o where o.organizationId=:id"),
+	@NamedQuery(name = "getOrganizationForView", query = "SELECT o from Organization o")
+})
+public class Organization extends SecureTObject{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int organizationId;
 	
+	@NotNull
+	@Size(min=1,message="Name cannot be empty")
 	private String name;
+	@NotNull
+	@Size(min=1,message="Type cannot be empty")
 	private String type;
 	private String logo;
+	@NotNull
 	private String shortDesc;
 	
 	public int getOrganizationId() {

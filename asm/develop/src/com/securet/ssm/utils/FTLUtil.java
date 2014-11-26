@@ -1,4 +1,4 @@
-package com.securet.asm.utils;
+package com.securet.ssm.utils;
 
 import java.io.File;
 import java.io.IOException;

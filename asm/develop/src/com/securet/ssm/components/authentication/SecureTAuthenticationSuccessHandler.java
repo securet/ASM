@@ -1,4 +1,4 @@
-package com.securet.asm.components.authentication;
+package com.securet.ssm.components.authentication;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.securet.asm.status;
+package com.securet.ssm.status;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,9 +16,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.securet.asm.components.mail.MailService;
-import com.securet.asm.persistence.objects.Organization;
-import com.securet.asm.services.admin.OrganizationService;
+import com.securet.ssm.components.mail.MailService;
+import com.securet.ssm.persistence.objects.Organization;
+import com.securet.ssm.services.admin.OrganizationService;
 
 @Controller
 @RequestMapping("/status")
@@ -79,7 +79,7 @@ public class Ping{
 		_logger.debug("persist data");
 		organization.setName("securet");
 		organizationService.setOrganization(organization);
-		organizationService.createOrganization();
+		//organizationService.createOrganization();
 		return "ping";
 	}
 	

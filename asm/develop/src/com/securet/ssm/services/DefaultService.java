@@ -1,4 +1,4 @@
-package com.securet.asm.services;
+package com.securet.ssm.services;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class DefaultService {
+
+	public static final String ADMIN = "admin/";
 
 	@RequestMapping("/login")
 	public String login(Model model){

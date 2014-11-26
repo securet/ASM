@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
     <wb-module deploy-name="asm">
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/config"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/develop/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/develop/config"/>
         <wb-resource deploy-path="/" source-path="/develop/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/develop/src"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/develop/config"/>
         <property name="context-root" value="asm"/>
-        <property name="java-output-path" value="/asm/build/classes"/>
+        <property name="java-output-path" value="/asm/develop/build/classes"/>
     </wb-module>
 </project-modules>

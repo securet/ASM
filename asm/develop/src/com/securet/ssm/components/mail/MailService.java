@@ -1,4 +1,4 @@
-package com.securet.asm.components.mail;
+package com.securet.ssm.components.mail;
 
 import java.util.Map;
 import java.util.Properties;
@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
-import com.securet.asm.utils.FTLUtil;
+import com.securet.ssm.utils.FTLUtil;
 
 public class MailService {
 	

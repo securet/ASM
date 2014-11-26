@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <decorators defaultdir="/decorator">
 	<decorator name="standard" page="adminlayout.ftl">
-		<pattern>/*</pattern>
+		<pattern>/admin/*</pattern>
+	</decorator>
+	<decorator name="nolayout" page="nolayout.ftl">
+		<pattern>/login</pattern>
 	</decorator>
 </decorators>
