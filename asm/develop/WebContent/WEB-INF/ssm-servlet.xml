@@ -18,7 +18,16 @@
 
 	<context:component-scan base-package="com.securet.ssm" />
 	<util:properties id="mailProperties" location="classpath:mail.properties" ignore-resource-not-found="true"  local-override="false"/>
-	<mvc:annotation-driven />
+	<mvc:annotation-driven >
+	    	<mvc:message-converters>
+				<!-- Use the HibernateAware mapper instead of the default -->
+				<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				    <property name="objectMapper">
+				        <bean class="com.securet.ssm.spring.HibernateAwareObjectMapper" />
+				    </property>
+				</bean>
+	    	</mvc:message-converters>
+	</mvc:annotation-driven>    
 	<context:annotation-config/>
 	<mvc:resources mapping="/assets/**" location="/assets/" />
 			
@@ -58,7 +67,7 @@
 
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/asm"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/asm_jpa"/>
         <property name="username" value="asm"/>
         <property name="password" value="shabhu"/>
     </bean>
@@ -71,7 +80,7 @@
 	   </property>
 	   <property name="jpaProperties">
 	      <props>
-	         <prop key="hibernate.hbm2ddl.auto">create-drop</prop>
+	         <prop key="hibernate.hbm2ddl.auto">validate</prop>
 	         <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
 	      </props>
 	   </property>
@@ -83,5 +92,16 @@
 	<tx:annotation-driven transaction-manager="transactionManager" />
 	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
 	<bean class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
-	
+
+	<bean id="dateFormat" class="java.text.SimpleDateFormat">
+  			<constructor-arg value="dd-MM-yyyy" />
+	</bean>
+	<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	    <property name="propertyEditorRegistrars">
+	        <list>
+	            <bean class="com.securet.ssm.spring.DateEditorRegistrar"/>
+	        </list>
+	    </property>
+	</bean>
+			
 </beans>

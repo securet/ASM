@@ -17,7 +17,7 @@
 		<security:intercept-url pattern="/reports/**" access="hasRole('ADMIN','CONTROLLER')" />
 				
 		<!-- access denied page -->
-		<security:access-denied-handler error-page="/403" />
+		<security:access-denied-handler error-page="/error/403" />
  
 		<security:form-login 
 		    login-page="/login" 
@@ -36,7 +36,7 @@
 	    <security:password-encoder ref="bcryptEncoder"/>	
 		<security:jdbc-user-service data-source-ref="dataSource"
 		  users-by-username-query="select userId username,password, enabled from user_login where userId=?"
-		  authorities-by-username-query="select userId username, role from user_role where userId =?  " />
+		  authorities-by-username-query="SELECT ur.User_userId username, rt.roleType role FROM user_role ur INNER JOIN role_type rt ON ur.roles_roleTypeId=roleTypeId WHERE ur.User_userId =?  " />
 	  </security:authentication-provider>
 	</security:authentication-manager>	
     

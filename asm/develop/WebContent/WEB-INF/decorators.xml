@@ -2,6 +2,7 @@
 <decorators defaultdir="/decorator">
 	<decorator name="standard" page="adminlayout.ftl">
 		<pattern>/admin/*</pattern>
+   		<pattern>/error/*</pattern>
 	</decorator>
 	<decorator name="nolayout" page="nolayout.ftl">
 		<pattern>/login</pattern>

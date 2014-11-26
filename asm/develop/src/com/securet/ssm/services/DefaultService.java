@@ -21,8 +21,12 @@ public class DefaultService {
 		return "admin/home";
 	}
 	
-	@RequestMapping("/403")
+	@RequestMapping("error/403")
 	public String forbidden(Model model){
 		return "error/error.403";
+	}
+	@RequestMapping("error/404")
+	public String notFound(Model model){
+		return "error/error.404";
 	}
 }

@@ -139,3 +139,15 @@ header{
 	background-color: #337ab7;
 	padding-top: 10px;
 }
+.pageoptions{
+	margin-bottom: 10px;
+}
+.radio input[type="radio"], .radio-inline input[type="radio"], .checkbox input[type="checkbox"], .checkbox-inline input[type="checkbox"] {
+	margin: 0;
+}
+.multiselect-container .radio input[type="radio"],.multiselect-container .radio-inline input[type="radio"],.multiselect-container .checkbox input[type="checkbox"],.multiselect-container .checkbox-inline input[type="checkbox"] {
+	position: relative;
+}
+.mappingforms label{
+	padding-left: 0;
+}

@@ -1,5 +1,6 @@
 package com.securet.ssm.utils;
 
+import java.beans.Introspector;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,9 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Organization;
+
+import freemarker.template.utility.StringUtil;
 
 public class SecureTUtils {
 
@@ -90,7 +94,7 @@ public class SecureTUtils {
 			
 			String fieldType = customFieldTypes!=null?customFieldTypes.get(field.getName()):null;
 			if(fieldType==null){
-				fieldType = field.getType().getSimpleName().toLowerCase();
+				fieldType = decapitalize(field.getType().getSimpleName());
 			}
 			fieldList.add(new SecureTUtils.FormField(fieldName,fieldType,canDisplay,null));
 		}
@@ -99,7 +103,26 @@ public class SecureTUtils {
 		}
 		return fieldList;
 	}
-	
+
+	/**
+	 * Implementation copied  from javax.beans.Introspector.decapitalize(String name)
+	 * @param name
+	 * @return
+	 */
+			
+    public static String decapitalize(String name) {
+        if (name == null || name.length() == 0) {
+            return name;
+        }
+        if (name.length() > 1 && Character.isUpperCase(name.charAt(1)) &&
+                        Character.isUpperCase(name.charAt(0))){
+            return name;
+        }
+        char chars[] = name.toCharArray();
+        chars[0] = Character.toLowerCase(chars[0]);
+        return new String(chars);
+    }
+
 	public static int getFieldsCount(Class<? extends Object> clazz) {
 		int count = clazz.getDeclaredFields().length;
 		if(clazz.getSuperclass()!=null){
