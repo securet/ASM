@@ -77,6 +77,7 @@ public class SiteService extends SecureTService{
 			dataViewNames=new ArrayList<String>();
 			dataViewNames.add("getOrganizationForView");
 			dataViewNames.add("getStateForView");
+			dataViewNames.add("getCityForView");
 		}
 		return dataViewNames;
 	}

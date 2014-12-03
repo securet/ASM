@@ -35,6 +35,7 @@ public class UserLogin extends SecureTObject {
 	private User user;
 	
 	@NotNull
+	@JsonIgnore
 	@Size(min=1,message="Password cannot be empty")
 	private String password;
 

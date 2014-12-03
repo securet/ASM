@@ -15,7 +15,9 @@ import javax.validation.constraints.Size;
 @NamedQueries({
 	@NamedQuery(name = "getSite.count", query = "SELECT COUNT(siteId) from Site"),
 	@NamedQuery(name = "getSiteById", query = "SELECT o from Site o where o.siteId=:id"),
-	@NamedQuery(name = "getSiteForView", query = "SELECT o from Site o")
+	@NamedQuery(name = "getSiteForView", query = "SELECT o from Site o"),
+	@NamedQuery(name = "getCityWithSitesForView", query = "SELECT distinct o.city from Site o JOIN o.city city"),
+	@NamedQuery(name = "getSitesForCity", query = "SELECT o from Site o JOIN o.city city WHERE city.geoId=:cityGeoId")
 })
 public class Site extends SecureTObject{
 
@@ -33,7 +35,10 @@ public class Site extends SecureTObject{
 	private Organization organization;
 	
 	private String area;
-	private String city;
+	
+	@ManyToOne
+	@JoinColumn(name="city",referencedColumnName="geoId")
+	private Geo city;
 
 	@ManyToOne
 	@JoinColumn(name="state",referencedColumnName="geoId")
@@ -60,10 +65,10 @@ public class Site extends SecureTObject{
 	public void setArea(String area) {
 		this.area = area;
 	}
-	public String getCity() {
+	public Geo getCity() {
 		return city;
 	}
-	public void setCity(String city) {
+	public void setCity(Geo city) {
 		this.city = city;
 	}
 	public Geo getState() {

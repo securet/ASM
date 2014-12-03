@@ -22,7 +22,7 @@
 			<#if mode!="edit">
 				<@formInputSSM path="formObject.userLogin.password" field={"fieldName":"Password"} fieldType="password"/>
 				<@formInputSSM path="formObject.userLogin.verifyPassword" field={"fieldName":"Verify Password"} fieldType="password"/>
-				<@formCheckboxSSM path="formObject.userLogin.enabled" field={"fieldName":"enabled"} fieldType="checkbox" attributes="checked"/>
+				<@formCheckboxSSM path="formObject.userLogin.enabled" field={"fieldName":"enabled"}  attributes="checked"/>
 			</#if>
 			<@formInputSSM path="formObject.emailId" field={"fieldName":"Email"} fieldType="text"/>
 			<@formInputSSM path="formObject.mobile" field={"fieldName":"Mobile"} fieldType="text"/>

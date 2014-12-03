@@ -119,5 +119,12 @@ public class AdminService extends SecureTService{
 		return DefaultService.ADMIN+"viewObjects";
 	}
 
+	@RequestMapping(value="/admin/getSitesForCity",produces="application/json")
+	public @ResponseBody List<SecureTObject> getSitesForCity(@RequestParam String cityGeoId){
+		String namedQuery = "getSitesForCity";
+		String namedParameter = "cityGeoId";
+		return fetchQueriedObjects(namedQuery, namedParameter,cityGeoId);
+	}
+
 
 }

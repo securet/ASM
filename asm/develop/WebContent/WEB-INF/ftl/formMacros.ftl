@@ -29,20 +29,38 @@
 	</#if>	
 </#macro>
 
-<#macro formSingleSelectSSM path field options attributes="">
+<#macro formSingleSelectSSM path field options attributes="" includeLabelInline=true>
 	<div class="form-group">
-		<label class="col-sm-3 control-label" for="${field.fieldName}.${field.fieldName}Id">${field.fieldName?cap_first}</label>
+		<#if includeLabelInline>
+			<label class="col-sm-3 control-label" for="${field.fieldName}.${field.fieldName}Id">${field.fieldName?cap_first}</label>
+		</#if>
 		<div class="col-sm-9">
+			<#if !includeLabelInline>
+				<@spring.bind path/>
+				<#if spring.status.errorCodes?exists && (spring.status.errorCodes?size >0) >
+					<div class="alert alert-danger" role="alert">
+					  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+					  <span class="sr-only">Error:</span>
+					  <@spring.showErrors "spring.status.expression"/>
+					</div>
+				</#if>	
+				<div><label class="control-label" for="${field.fieldName}">${field.label}</label></div>
+			</#if>
 			<#assign attributesStr> class="form-control" ${attributes}</#assign>	
 			<@spring.formSingleSelect path=path options=options attributes=attributesStr/>
 		</div>
 	</div>
 </#macro>
 
-<#macro formMultiSelectSSM path field options attributes="">
+<#macro formMultiSelectSSM path field options attributes="" includeLabelInline=true>
 	<div class="form-group">
-		<label class="col-sm-3 control-label" for="${field.fieldName}.${field.fieldName}Id">${field.fieldName?cap_first}</label>
+		<#if includeLabelInline>
+			<label class="col-sm-3 control-label" for="${field.fieldName}.${field.fieldName}Id">${field.fieldName?cap_first}</label>
+		</#if>	
 		<div class="col-sm-9">
+			<#if !includeLabelInline>
+				<label class="control-label" for="${field.fieldName}">${field.label}</label>
+			</#if>
 			<#assign attributesStr> class="form-control" ${attributes}</#assign>	
 			<@spring.formMultiSelect path=path options=options attributes=attributesStr/>
 		</div>
@@ -64,4 +82,15 @@
 			<@spring.formCheckbox path />
 		</div>
 	</div>	
+</#macro>
+
+<#macro showErrorsSSM path>
+	<@spring.bind path />
+	<#if spring.status.errorCodes?exists && (spring.status.errorCodes?size >0) >
+		<div class="alert alert-danger" role="alert">
+		  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+		  <span class="sr-only">Error:</span>
+		  <@spring.showErrors "spring.status.expression"/>
+		</div>
+	</#if>	
 </#macro>

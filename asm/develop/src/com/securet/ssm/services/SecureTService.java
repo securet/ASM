@@ -9,6 +9,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.PersistenceUnit;
+import javax.persistence.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
@@ -17,11 +18,13 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.services.admin.AssetService;
 import com.securet.ssm.services.admin.AssetTypeService;
+import com.securet.ssm.services.admin.ClientUserSiteMappingService;
 import com.securet.ssm.services.admin.IssueTypeService;
 import com.securet.ssm.services.admin.OrganizationService;
 import com.securet.ssm.services.admin.ServiceTypeService;
 import com.securet.ssm.services.admin.SiteService;
 import com.securet.ssm.services.admin.UserService;
+import com.securet.ssm.services.admin.VendorAssetMappingService;
 import com.securet.ssm.utils.SecureTUtils;
 
 import freemarker.ext.beans.BeansWrapper;
@@ -58,7 +61,15 @@ public abstract class SecureTService {
 		uiFieldConfig.put("userExcludeInDisplay",UserService.getFieldsToExcludeInDisplay());
 		uiFieldConfig.put("userCustomFieldTypes",UserService.getCustomFieldTypes());
 		uiFieldConfig.put("userDataViews",UserService.getDataViewNames());
-}
+
+		uiFieldConfig.put("clientUserSiteExcludeInDisplay",ClientUserSiteMappingService.getFieldsToExcludeInDisplay());
+		uiFieldConfig.put("clientUserSiteCustomFieldTypes",ClientUserSiteMappingService.getCustomFieldTypes());
+		uiFieldConfig.put("clientUserSiteDataViews",ClientUserSiteMappingService.getDataViewNames());
+
+		uiFieldConfig.put("vendorServiceAssetExcludeInDisplay",VendorAssetMappingService.getFieldsToExcludeInDisplay());
+		uiFieldConfig.put("vendorServiceAssetCustomFieldTypes",VendorAssetMappingService.getCustomFieldTypes());
+		uiFieldConfig.put("vendorServiceAssetDataViews",VendorAssetMappingService.getDataViewNames());
+	}
 
 	
 	@Autowired
@@ -89,6 +100,10 @@ public abstract class SecureTService {
 
 	public void makeUIData(EntityManager entityManager, SecureTObject ssmObject, Model model) {
 		String entityName = ssmObject.getClass().getSimpleName();
+		makeUIData(entityManager, model, entityName);
+	}
+
+	public void makeUIData(EntityManager entityManager, Model model, String entityName) {
 		List<String> dataViews = (List<String>) uiFieldConfig.get(SecureTUtils.decapitalize(entityName)+SecureTService.DATA_VIEWS);
 		if(dataViews!=null){
 			for(String viewName:dataViews){
@@ -97,6 +112,7 @@ public abstract class SecureTService {
 			}
 		}
 	}
+	
 	@SuppressWarnings("unchecked")
 	public void makeModel(Model model,SecureTObject ssmObject) {
 		String entityName = ssmObject.getClass().getSimpleName();
@@ -108,4 +124,12 @@ public abstract class SecureTService {
 		model.addAttribute("formField", fieldList);
 		model.addAttribute("formObject", ssmObject);
 	}
+	
+	public List<SecureTObject> fetchQueriedObjects(String namedQuery, String namedParameter,Object fieldValue) {
+		Query userQuery = entityManager.createNamedQuery(namedQuery);
+		userQuery.setParameter(namedParameter, fieldValue);
+		List<SecureTObject> ssmObjects = userQuery.getResultList();
+		return ssmObjects;
+	}
+	
 }

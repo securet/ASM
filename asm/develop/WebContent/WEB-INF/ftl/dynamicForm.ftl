@@ -11,7 +11,7 @@
 		<#assign uiObjects = .data_model["get"+field.fieldName?cap_first+"ForView"]>
 		<#assign fieldStr = ("uiObject.${field.fieldName}Id")>
 		<#assign fieldIdPrefix = field.fieldName>
-		<#if field.fieldName='state'>
+		<#if field.fieldType='geo'>
 			<#assign fieldIdPrefix = "geo">
 			<#assign fieldStr = ("uiObject.geoId")>
 		</#if>

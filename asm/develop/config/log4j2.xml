@@ -8,7 +8,8 @@
 	<Loggers>
 		<Logger name="org.springframework.web" level="debug"></Logger>
 	    <Logger name="com.securet.ssm" level="trace"></Logger>
-		<Root level="info">
+	    <Logger name="org.hibernate.type" level="trace"></Logger>
+	    <Root level="info">
 			<AppenderRef ref="Console" />
 		</Root>
 	</Loggers>

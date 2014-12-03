@@ -9,6 +9,7 @@ import javax.persistence.NamedQuery;
 @Entity
 @NamedQueries({
 		@NamedQuery(name = "getStateForView", query = "SELECT o from Geo o where o.geoType=1"),
+		@NamedQuery(name = "getCityForView", query = "SELECT o from Geo o where o.geoType=2"),
 })
 public class Geo extends SecureTObject {
 	public enum GeoType {

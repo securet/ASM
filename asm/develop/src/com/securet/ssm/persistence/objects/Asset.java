@@ -25,7 +25,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 	@NamedQuery(name = "getAssetByAssetTag", query = "SELECT o from Asset o where o.assetTag=:assetTag"),
 	@NamedQuery(name = "getAssetByAssetIdAndTag", query = "SELECT o from Asset o where o.assetId=:assetId and o.assetTag=:assetTag"),
 	@NamedQuery(name = "getAssetByAssetTagAndNotId", query = "SELECT o from Asset o where o.assetId<>:assetId and o.assetTag=:assetTag"),
-	@NamedQuery(name = "getAssetForView", query = "SELECT o from Asset o")
+	@NamedQuery(name = "getAssetForView", query = "SELECT o from Asset o"),
+	@NamedQuery(name = "getAssetsForSite", query = "SELECT o from Asset o WHERE o.site.siteId=:siteId")
 })
 @Table(
 	name="Asset",
