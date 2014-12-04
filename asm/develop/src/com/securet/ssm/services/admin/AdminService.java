@@ -65,6 +65,7 @@ public class AdminService extends SecureTService{
 		}else{
 			ssmObject = makeDefaultInstance(entityName);
 		}
+		
 		makeUIData(entityManager,ssmObject,model);
 		makeModel(model,ssmObject);
 		return DefaultService.ADMIN+"createEditObject";

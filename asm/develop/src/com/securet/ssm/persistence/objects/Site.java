@@ -37,12 +37,13 @@ public class Site extends SecureTObject{
 	private String area;
 	
 	@ManyToOne
+	@JoinColumn(name="state",referencedColumnName="geoId")
+	private Geo state;
+
+	@ManyToOne
 	@JoinColumn(name="city",referencedColumnName="geoId")
 	private Geo city;
 
-	@ManyToOne
-	@JoinColumn(name="state",referencedColumnName="geoId")
-	private Geo state;
 	private double latitude;
 	private double longitude;
 	private String siteType;

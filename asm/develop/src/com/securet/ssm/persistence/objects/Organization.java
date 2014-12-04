@@ -15,6 +15,8 @@ import javax.validation.constraints.Size;
 	@NamedQuery(name = "getOrganization.count", query = "SELECT COUNT(organizationId) from Organization"),
 	@NamedQuery(name = "getOrganizationById", query = "SELECT o from Organization o where o.organizationId=:id"),
 	@NamedQuery(name = "getOrganizationForView", query = "SELECT o from Organization o"),
+	@NamedQuery(name = "getClientOrganizationForView", query = "SELECT o from Organization o WHERE o.organizationType='CLIENT'"),
+	@NamedQuery(name = "getVendorOrganizationForView", query = "SELECT o from Organization o WHERE o.organizationType='VENDOR'")
 })
 public class Organization extends SecureTObject{
 
@@ -26,12 +28,11 @@ public class Organization extends SecureTObject{
 	@NotNull
 	@Size(min=1,message="Name cannot be empty")
 	private String name;
-	@NotNull
-	@Size(min=1,message="Type cannot be empty")
-	private String type;
+
+	private String organizationType;
 	private String logo;
 	private String shortDesc;
-	
+
 	public int getOrganizationId() {
 		return organizationId;
 	}
@@ -44,11 +45,11 @@ public class Organization extends SecureTObject{
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getType() {
-		return type;
+	public String getOrganizationType() {
+		return organizationType;
 	}
-	public void setType(String type) {
-		this.type = type;
+	public void setOrganizationType(String type) {
+		this.organizationType = type;
 	}
 	public String getLogo() {
 		return logo;
@@ -65,7 +66,7 @@ public class Organization extends SecureTObject{
 	
 	@Override
 	public String toString() {
-		return "Organization [organizationId=" + organizationId + ", name=" + name + ", type=" + type + ", logo=" + logo + ", shortDesc=" + shortDesc + "]";
+		return "Organization [organizationId=" + organizationId + ", name=" + name + ", type=" + organizationType + ", logo=" + logo + ", shortDesc=" + shortDesc + "]";
 	}	
 	
 }

@@ -19,9 +19,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.securet.ssm.persistence.objects.Organization;
 import com.securet.ssm.services.SecureTService;
+import com.securet.ssm.utils.SecureTUtils;
 
 @Service
 @Repository
@@ -29,6 +32,8 @@ import com.securet.ssm.services.SecureTService;
 public class OrganizationService extends SecureTService{
 
 	private static final Logger _logger = LoggerFactory.getLogger(OrganizationService.class);
+
+	private static final String VENDOR = "VENDOR";
 
 	private static List<String> excludeInDisplay = null;  
 	private static Map<String,String> customFieldTypes = null;
@@ -42,6 +47,8 @@ public class OrganizationService extends SecureTService{
 		}
 		if(excludeInDisplay.isEmpty()){
 			excludeInDisplay = new ArrayList<String>();
+			excludeInDisplay.add("organizationType");
+			excludeInDisplay.add("logoFile");
 			excludeInDisplay.add("organizationId");
 			excludeInDisplay.add("createdTimestamp");
 			excludeInDisplay.add("lastUpdatedTimestamp");
@@ -70,9 +77,26 @@ public class OrganizationService extends SecureTService{
 	
 	@RequestMapping(value="/admin/saveOrganization",method=RequestMethod.POST)
 	@Transactional
-	public String saveOrganization(@Valid @ModelAttribute("formObject") Organization formObject,BindingResult result,Model model){
+	public String saveOrganization(@RequestParam(value="logoFile",required=false)MultipartFile logoFile , @Valid @ModelAttribute("formObject") Organization formObject,BindingResult result,Model model){
 		boolean createNew = (formObject.getOrganizationId()==0);//default is 0..
-		return adminService.saveObject(formObject, result, model,createNew);
+		_logger.debug("organization name: "+formObject.getName());
+		// we will only create VENDOR as of now.. so if type is null assign VENDOR 
+		if(formObject.getOrganizationType()==null || formObject.getOrganizationType().isEmpty()){
+			formObject.setOrganizationType(VENDOR);
+		}
+		String savedStatus = adminService.saveObject(formObject, result, model,createNew);
+		if(!result.hasErrors() && logoFile!=null && !logoFile.isEmpty()){
+			_logger.debug("file uploaded with logoFile.isEmpty()"+ logoFile.isEmpty());
+			_logger.debug("file uploaded with contentType"+ SecureTUtils.getFileExtension(logoFile.getContentType()));
+			String fileName = formObject.getOrganizationId()+SecureTUtils.getFileExtension(logoFile.getContentType());
+			String logoPath = SecureTService.ASSETS_SSMUPLOADS_LOGOS+fileName;
+			String savedPath = SecureTUtils.saveToFile(logoFile, SecureTService.ASSETS_SSMUPLOADS_LOGOS,fileName);
+			if(savedPath!=null){
+				formObject.setLogo(logoPath);
+				entityManager.merge(formObject);
+			}
+		}
+		return savedStatus;
 	}
 
 	public static Object getDataViewNames() {

@@ -17,6 +17,7 @@ import javax.validation.constraints.Size;
 @NamedQueries({
 	@NamedQuery(name = "getIssueType.count", query = "SELECT COUNT(issueTypeId) from IssueType"),
 	@NamedQuery(name = "getIssueTypeById", query = "SELECT o from IssueType o where o.issueTypeId=:id"),
+	@NamedQuery(name = "getIssueTypeForService", query = "SELECT o from IssueType o where o.serviceType.serviceTypeId=:serviceTypeId"),
 	@NamedQuery(name = "getIssueTypeForView", query = "SELECT o from IssueType o")
 })
 public class IssueType extends SecureTObject{

@@ -77,7 +77,7 @@ public class ClientUserSiteMappingService extends SecureTService{
 	public static List<String> getDataViewNames() {
 		if(dataViewNames==null){
 			dataViewNames=new ArrayList<String>();
-			dataViewNames.add("getOrganizationWithUsersForView");
+			dataViewNames.add("getClientOrganizationForView");
 			dataViewNames.add("getCityWithSitesForView");
 		}
 		return dataViewNames;

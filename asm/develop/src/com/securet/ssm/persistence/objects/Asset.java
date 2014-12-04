@@ -52,10 +52,10 @@ public class Asset extends SecureTObject{
 	private AssetType assetType;
 	
 	@NotNull
-	@Size(min=1,message="Name cannot be empty")
+	@Size(min=1,message="Asset Tag cannot be empty")
 	private String assetTag; 
 
-	@NotNull
+	@NotNull(message="Installed Date cannot be null")
 	@JsonFormat(pattern="dd-MM-yyyy")
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date installedDate;

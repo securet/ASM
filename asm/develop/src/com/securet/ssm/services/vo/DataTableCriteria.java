@@ -112,13 +112,22 @@ public class DataTableCriteria implements Serializable{
     		if(textToSearch!=null & !textToSearch.isEmpty() & !dataTableCriteria.getColumns().isEmpty()){
     			baseQuery.append(WHERE);
     			Iterator<Map<ColumnCriterias, String>> dataTableIterator = dataTableCriteria.getColumns().iterator();
-	    		while(dataTableIterator.hasNext()){
-	    			Map<ColumnCriterias,String> columnCriteriasMapping = dataTableIterator.next();
+    			boolean hasNext=dataTableIterator.hasNext(); 
+    			Map<ColumnCriterias,String> columnCriteriasMapping = dataTableIterator.next();
+	    		while(hasNext){
 	    			String columnName = columnCriteriasMapping.get(ColumnCriterias.data);
+	    			boolean isSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
     				_logger.debug("found column name -> "+ColumnCriterias.data+ ",  value->" + columnName);
-    				baseQuery.append(aliasName).append(DOT).append(columnName).append(LIKE).append(QUOTE).append(PERCENTILE).append(textToSearch).append(PERCENTILE).append(QUOTE);
-    				if(dataTableIterator.hasNext()){
-    					baseQuery.append(SPACE).append(operator).append(SPACE);
+    				if(isSearchable){
+	    				baseQuery.append(aliasName).append(DOT).append(columnName).append(LIKE).append(QUOTE).append(PERCENTILE).append(textToSearch).append(PERCENTILE).append(QUOTE);
+    				}
+    				hasNext=dataTableIterator.hasNext();
+    				if(hasNext){
+        				columnCriteriasMapping = dataTableIterator.next();
+    	    			boolean isNextSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
+    	    			if(isNextSearchable){
+    	    				baseQuery.append(SPACE).append(operator).append(SPACE);
+    	    			}
     				}
 	    		}
     		}

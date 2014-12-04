@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.securet.ssm.persistence.objects.Asset;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.ServiceType;
@@ -78,7 +77,7 @@ public class VendorAssetMappingService extends SecureTService{
 	public static List<String> getDataViewNames() {
 		if(dataViewNames==null){
 			dataViewNames=new ArrayList<String>();
-			dataViewNames.add("getOrganizationWithUsersForView");
+			dataViewNames.add("getVendorOrganizationForView");
 			dataViewNames.add("getServiceTypeForView");
 			dataViewNames.add("getCityWithSitesForView");
 		}

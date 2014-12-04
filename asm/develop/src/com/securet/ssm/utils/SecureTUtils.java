@@ -1,22 +1,22 @@
 package com.securet.ssm.utils;
 
-import java.beans.Introspector;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Organization;
-
-import freemarker.template.utility.StringUtil;
+import com.securet.ssm.persistence.objects.SecureTObject;
 
 public class SecureTUtils {
 
@@ -131,6 +131,32 @@ public class SecureTUtils {
 		return count;
 	}
 	
+	public static String saveToFile(MultipartFile inputFile, String path,String fileName){
+		URL url = Thread.currentThread().getContextClassLoader().getResource("../../"+path);
+		if(url!=null){
+			String filePath = url.getPath()+fileName;
+			_logger.debug("destPath  :  "+filePath);
+			File destFile = new File(filePath);
+			try {
+				FileUtils.writeByteArrayToFile(destFile, inputFile.getBytes());
+				//FileUtils.copyFile(inputFile, destFile);
+				return filePath;
+			} catch (IOException e) {
+				_logger.error("Could not file to path : "+filePath,e);
+			}
+		}
+		return null;
+	}
+
+	public static String getFileExtension(String contentType){
+		String[] contentTypeParts = contentType.split("/");
+		if(contentTypeParts.length>0){
+			return "."+contentTypeParts[1];
+		}else{
+			_logger.warn("Could not make out a extension for given content type..");
+			return ""; 
+		}
+	}
 	public static void main(String[] args) {
 		_logger.debug("password 'shabhu' = "+bCryptText("shabhu"));
 		//field test

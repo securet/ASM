@@ -2,6 +2,8 @@ var userOptionTemplate = null;
 var siteOptionTemplate = null;
 var serviceTypeOptionTemplate = null;
 var assetOptionTemplate = null;
+var imgTemplate = null;
+var logoPreviewTemplate = null;
 var allSites=null;
 var allAssets=null;
 var userSites=new Array();
@@ -20,17 +22,26 @@ $(document).ready(function () {
 	if($("#assetOptionTmpl").size()>0){
 		assetOptionTemplate = $.templates("#assetOptionTmpl");
 	}
+	if($("#imgTmpl").size()>0){
+		imgTemplate = $.templates("#imgTmpl");
+	}
 
+	if($("#logoPreviewTemplate").size()>0){
+		logoPreviewTemplate = $.templates("#logoPreviewTemplate");
+	}
 	$('[data-toggle="offcanvas"]').click(function () {
 		$('.row-offcanvas').toggleClass('active')
 	});
 	if($(".asminputfile").size()>0){
-		$(".asminputfile").fileinput({'showUpload':false, 'previewFileType':'any',allowedFileExtensions: ["jpg", "gif", "png"]});
+		$(".asminputfile").fileinput({'showUpload':false, 'previewFileType':'any',previewSettings:{'image': {width: "100%", height: "auto"}},allowedFileExtensions: ["jpg", "gif", "png"]});
 	}
 
 	if($("#asmdatatable").size()>0){
 		$('#asmdatatable').dataTable( {
 			"processing": true,
+			"language": {
+			     "processing": "<img src='assets/images/loading-b.gif' alt='loading'/>"
+			 },
 			"serverSide": true,
 			ajax: {
 				"url": dataUrl,
@@ -49,6 +60,22 @@ $(document).ready(function () {
 	if($("#vendorAssetMapId").size()>0){
 		initVendorAssetMapping();
 	}
+	if($("#city\\.geoId").size()>0){
+		initMultiSelect("city\\.geoId");
+	}
+	if($("#state\\.geoId").size()>0){
+		initMultiSelect("state\\.geoId");
+	}
+	if($("input[name='logoFile']").size()>0){
+		var imagePath = $("input[name='logoFile']").attr("value");
+		if(imagePath!=""){
+			$("#logo .file-preview").show();
+			if(typeof imagePath!='undefined' && imagePath!=""){
+				$(".file-preview-thumbnails").append(logoPreviewTemplate.render({path:imagePath}));
+			}
+		}
+	}
+	
 });
 
 
@@ -115,6 +142,7 @@ function initClientSiteMapping(){
 	if($("#siteId").size()>0){
 		initMultiSelect("siteId");
 	}
+	
 }
 
 function initVendorAssetMapping(){
@@ -206,7 +234,6 @@ function initMultiSelect(elementId){
 		numberDisplayed: 1
 	});
 }
-
 function planify(data) {
 	for (var i = 0; i < data.columns.length; i++) {
 		column = data.columns[i];
@@ -270,3 +297,7 @@ function makeAssetsOptions(){
 	}
 	addMultiSelectOptions("assets",assetOptionTemplate,allAssets);
 } 
+
+function logoDisplay( data, type, full, meta ){
+	return imgTemplate.render({imgclass:"tablelogo",path:data});
+}

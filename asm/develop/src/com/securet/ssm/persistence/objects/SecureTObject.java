@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
+@MappedSuperclass
 public class SecureTObject implements Serializable{
 
 	//default implementations for all objects..

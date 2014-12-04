@@ -40,6 +40,7 @@ public class ServiceTypeService extends SecureTService {
 		}
 		if(excludeInDisplay.isEmpty()){
 			excludeInDisplay = new ArrayList<String>();
+			excludeInDisplay.add("organization");
 			excludeInDisplay.add("serviceTypeId");
 			excludeInDisplay.add("createdTimestamp");
 			excludeInDisplay.add("lastUpdatedTimestamp");

@@ -6,11 +6,16 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
 @Table(name="vendor_service_asset")
+@NamedQueries({
+	@NamedQuery(name="getVendorServiceAssetByServiceType",query="SELECT o FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId")
+})
 public class VendorServiceAsset extends SecureTObject{
 
 	@Id

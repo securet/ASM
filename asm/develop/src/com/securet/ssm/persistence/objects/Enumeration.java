@@ -2,8 +2,13 @@ package com.securet.ssm.persistence.objects;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 
 @Entity
+@NamedQueries({
+	@NamedQuery(name = "getSiteTypeForView", query = "SELECT o.enumerationId as siteTypeId,o.enumDescription as name FROM Enumeration o WHERE o.enumTypeId='SITE_TYPE'")
+})
 public class Enumeration extends SecureTObject {
 
 	@Id

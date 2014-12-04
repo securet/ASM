@@ -9,7 +9,7 @@
 		<Logger name="org.springframework.web" level="debug"></Logger>
 	    <Logger name="com.securet.ssm" level="trace"></Logger>
 	    <Logger name="org.hibernate.type" level="trace"></Logger>
-	    <Root level="info">
+	    <Root level="debug">
 			<AppenderRef ref="Console" />
 		</Root>
 	</Loggers>

@@ -30,6 +30,8 @@ import com.securet.ssm.utils.SecureTUtils;
 import freemarker.ext.beans.BeansWrapper;
 
 public abstract class SecureTService {
+
+	public static final String ASSETS_SSMUPLOADS_LOGOS = "assets/ssmuploads/logos/";
 	public static String EXCLUDE_IN_DISPLAY_SUFFIX = "ExcludeInDisplay";
 	public static String CUSTOM_FIELD_TYPE_SUFFIX = "CustomFieldTypes";
 	private static final String DATA_VIEWS = "DataViews";
@@ -104,6 +106,9 @@ public abstract class SecureTService {
 	}
 
 	public void makeUIData(EntityManager entityManager, Model model, String entityName) {
+		if(!model.containsAttribute("statics")){
+			model.addAttribute("statics",((BeansWrapper)freemarkerConfig.getConfiguration().getObjectWrapper()).getStaticModels());
+		}
 		List<String> dataViews = (List<String>) uiFieldConfig.get(SecureTUtils.decapitalize(entityName)+SecureTService.DATA_VIEWS);
 		if(dataViews!=null){
 			for(String viewName:dataViews){
@@ -125,6 +130,7 @@ public abstract class SecureTService {
 		model.addAttribute("formObject", ssmObject);
 	}
 	
+
 	public List<SecureTObject> fetchQueriedObjects(String namedQuery, String namedParameter,Object fieldValue) {
 		Query userQuery = entityManager.createNamedQuery(namedQuery);
 		userQuery.setParameter(namedParameter, fieldValue);
