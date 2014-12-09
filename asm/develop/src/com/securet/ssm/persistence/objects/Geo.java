@@ -5,8 +5,10 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 
 @Entity
+@Table(name="geo")
 @NamedQueries({
 		@NamedQuery(name = "getStateForView", query = "SELECT o from Geo o where o.geoType=1"),
 		@NamedQuery(name = "getCityForView", query = "SELECT o from Geo o where o.geoType=2"),

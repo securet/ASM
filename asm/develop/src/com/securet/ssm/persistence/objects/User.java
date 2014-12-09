@@ -16,6 +16,7 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -23,6 +24,7 @@ import javax.validation.constraints.Size;
 import org.hibernate.validator.constraints.Email;
 
 @Entity
+@Table(name="user")
 @NamedQueries({
 	@NamedQuery(name = "getUserById", query = "SELECT o FROM User o WHERE o.userId=:id"),
 	@NamedQuery(name = "getOrganizationWithUsersForView", query = "SELECT DISTINCT o.organization FROM User o JOIN o.organization org WHERE org.organizationId IS NOT NULL"),

@@ -158,7 +158,7 @@ public class SecureTUtils {
 		}
 	}
 	public static void main(String[] args) {
-		_logger.debug("password 'shabhu' = "+bCryptText("shabhu"));
+		_logger.debug("password 'shabhu' = "+bCryptText("admin"));
 		//field test
 		List<FormField> fields = getFieldsFromClass(Organization.class);
 		System.out.println(fields);

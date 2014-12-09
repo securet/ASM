@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 	@NamedQuery(name = "getAssetsForSite", query = "SELECT o from Asset o WHERE o.site.siteId=:siteId")
 })
 @Table(
-	name="Asset",
+	name="asset",
 	uniqueConstraints=
 		@UniqueConstraint(columnNames={"assetTag"})
 )

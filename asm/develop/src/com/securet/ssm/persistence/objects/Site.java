@@ -8,10 +8,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
+@Table(name="site")
 @NamedQueries({
 	@NamedQuery(name = "getSite.count", query = "SELECT COUNT(siteId) from Site"),
 	@NamedQuery(name = "getSiteById", query = "SELECT o from Site o where o.siteId=:id"),

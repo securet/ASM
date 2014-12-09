@@ -6,11 +6,13 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.Table;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Entity
+@Table(name="organization")
 @NamedQueries({
 	@NamedQuery(name = "getOrganization.count", query = "SELECT COUNT(organizationId) from Organization"),
 	@NamedQuery(name = "getOrganizationById", query = "SELECT o from Organization o where o.organizationId=:id"),
