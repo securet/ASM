@@ -24,14 +24,14 @@ public class SecureTAuthenticationSuccessHandler extends SavedRequestAwareAuthen
 	public static enum  Authorities {ADMIN,CLIENT_USER,RESOLVER,CLIENT_CONTROLLER};
 	private static final Logger _logger = LoggerFactory.getLogger(SecureTAuthenticationSuccessHandler.class);
     private RequestCache requestCache = new HttpSessionRequestCache();
+    public static final GrantedAuthority adminAuthority = new SimpleGrantedAuthority(Authorities.ADMIN.toString());
+    public static final GrantedAuthority clientUserAuthority = new SimpleGrantedAuthority(Authorities.CLIENT_USER.toString());
+    public static final GrantedAuthority resolverAuthority = new SimpleGrantedAuthority(Authorities.RESOLVER.toString());
+    public static final GrantedAuthority clientControllerAuthority = new SimpleGrantedAuthority(Authorities.CLIENT_CONTROLLER.toString());
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws ServletException, IOException {
         SavedRequest savedRequest = requestCache.getRequest(request, response);
-        GrantedAuthority adminAuthority = new SimpleGrantedAuthority(Authorities.ADMIN.toString());
-        GrantedAuthority clientUserAuthority = new SimpleGrantedAuthority(Authorities.CLIENT_USER.toString());
-        GrantedAuthority resolverAuthority = new SimpleGrantedAuthority(Authorities.RESOLVER.toString());
-        GrantedAuthority clientControllerAuthority = new SimpleGrantedAuthority(Authorities.CLIENT_CONTROLLER.toString());
         if(savedRequest!=null){
 			if(_logger.isDebugEnabled())_logger.debug("redirecting to target url "+savedRequest.getRedirectUrl());
 			super.onAuthenticationSuccess(request, response, authentication);

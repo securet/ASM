@@ -8,6 +8,9 @@ body, div, span, object, iframe, p, blockquote, pre, a, abbr, acronym, address, 
     padding: 0;
     vertical-align: baseline;
 }
+html,body{
+  	height:100%;
+}
 html,
 body {
   overflow-x: hidden; /* Prevent scroll on narrow devices */
@@ -59,6 +62,11 @@ body {
 }
 
 /* off canvas*/
+.toggleleftmenu {
+    height: 31px;
+    margin-left: -15px;
+    width: 11px;
+}
 
 header{
 	height: 50px;
@@ -77,6 +85,12 @@ header{
 	width:90%;
 	margin-top:10%;
 	float: none;
+}
+.login-row .box-start{
+	vertical-align: middle;
+}
+.login-row .box-end{
+	vertical-align: top;
 }
 @media (min-width: 600px) { 
 	.login-row{
@@ -144,6 +158,9 @@ header{
 	margin-top:0px;
 	font-size: 20px;
 }
+.jumbotron p{
+	font-size: inherit;
+}
 #asmdatatable_processing{
 	padding-top: 10px;
 }
@@ -189,4 +206,18 @@ div.dataTables_filter input{
 }
 .tablelogo{
 	width:50px;	
+}
+
+.normaltext, .leftcolumns .form-horizontal .normaltext{
+	font-weight: normal;
+	text-align: left;
+	font-size: inherit;
+	margin-bottom: 0;
+	
+}
+.labelblock{
+	margin-bottom: 0px;
+}
+#map-canvas{
+	height:200px;	
 }

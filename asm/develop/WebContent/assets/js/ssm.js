@@ -10,6 +10,11 @@ var userSites=new Array();
 var vendorServiceAsset=new Array();
 
 $(document).ready(function () {
+	//$.fn.dataTableExt.sErrMode = 'throw';
+	if($("form[name='loginForm']").size()>0){
+		$("form[name='loginForm'] input[name='username']").focus();
+	}
+	
 	if($("#userOptionTmpl").size()>0){
 		userOptionTemplate = $.templates("#userOptionTmpl");
 	}
@@ -75,7 +80,6 @@ $(document).ready(function () {
 			}
 		}
 	}
-	
 });
 
 

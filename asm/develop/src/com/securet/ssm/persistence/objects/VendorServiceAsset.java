@@ -14,22 +14,23 @@ import javax.persistence.Table;
 @Entity
 @Table(name="vendor_service_asset")
 @NamedQueries({
-	@NamedQuery(name="getVendorServiceAssetByServiceType",query="SELECT o FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId")
+	@NamedQuery(name="getVendorServiceAssetByServiceType",query="SELECT o FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId"),
+	@NamedQuery(name="getVendorByServiceType",query="SELECT o.vendorUser FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId")
 })
 public class VendorServiceAsset extends SecureTObject{
 
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="userId",referencedColumnName="userId")
 	private User vendorUser;
 	
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="serviceTypeId",referencedColumnName="serviceTypeId")
 	private ServiceType serviceType;
 	
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="assetId",referencedColumnName="assetId")
 	private Asset asset;
 

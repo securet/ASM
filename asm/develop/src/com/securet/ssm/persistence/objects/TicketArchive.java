@@ -28,6 +28,10 @@ public class TicketArchive extends SecureTObject{
 	@JoinColumn(name="resolverUserId",referencedColumnName="userId")
 	private User resolver;
 	
+	@OneToOne
+	@JoinColumn(name="modifiedBy",referencedColumnName="userId")
+	private User modifiedBy;
+
 	private String description;
 
 	public int getTicketArchiveId() {
@@ -76,6 +80,14 @@ public class TicketArchive extends SecureTObject{
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public User getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(User modifiedBy) {
+		this.modifiedBy = modifiedBy;
 	}
 	
 }

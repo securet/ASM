@@ -21,7 +21,7 @@ public class FTLUtil {
 	public static final Logger _logger = LoggerFactory.getLogger(FTLUtil.class);
 	
 	static{
-	//	initConfig();
+		initConfig();
 	}
 	
 	public static  void initConfig(){
@@ -73,7 +73,9 @@ public class FTLUtil {
 		System.out.println("url: "+Thread.currentThread().getContextClassLoader().getResource("com/securet"));
 		Map<String,Object> mailContext = new HashMap<String,Object>();
 		mailContext.put("from","sharadbhushank@gmail.com");
-		mailContext.put("to","sharad@securet.in");
+		//String[] to = {"1","2"}; 
+		String to = "1"; 
+		mailContext.put("to",to);
 		mailContext.put("subject","Test Mail!");
 		mailContext.put("template","test.ftl");
 		Map<String,Object> bodyParameters = new HashMap<String, Object>();
@@ -81,6 +83,7 @@ public class FTLUtil {
 		bodyParameters.put("company", "securet");
 		//String templateString = processTemplate("test.ftl", bodyParameters);
 		//System.out.println(templateString);
+		System.out.println(mailContext.get("to").getClass().isArray());
 
 	}
 }

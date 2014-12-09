@@ -2,17 +2,24 @@ package com.securet.ssm.persistence.objects;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Ticket extends SecureTObject {
@@ -21,12 +28,11 @@ public class Ticket extends SecureTObject {
 	private String ticketId;
 
 	@Column(unique=true)
-	@GeneratedValue(generator="TicketIdGenerator")
-	@GenericGenerator(name = "TicketIdGenerator",strategy = "com.securet.ssm.persistence.SequenceGenerator",
-    	parameters = {
-			@Parameter(name = "entity", value = "TicketMaster")
-    })
 	private String ticketMasterId;
+	
+	@OneToOne
+	@JoinColumn(name="ticketType",referencedColumnName="enumerationId")
+	private Enumeration ticketType;
 	
 	@OneToOne
 	@JoinColumn(name="reporterUserId",referencedColumnName="userId")
@@ -36,6 +42,7 @@ public class Ticket extends SecureTObject {
 	@JoinColumn(name="resolverUserId",referencedColumnName="userId")
 	private User resolver;
 
+	@NotNull(message="Please Select a Service Type")
 	@OneToOne
 	@JoinColumn(name="serviceTypeId",referencedColumnName="serviceTypeId")
 	private ServiceType serviceType;
@@ -50,6 +57,8 @@ public class Ticket extends SecureTObject {
 	
 	private String shortDesc;
 	
+	@Size(min=1,message="Description cannot be empty")
+	@Column(columnDefinition = "TEXT")
 	private String description;
 	
 	@OneToOne
@@ -64,12 +73,15 @@ public class Ticket extends SecureTObject {
 	@JoinColumn(name="createdBy",referencedColumnName="userId")
 	private User createdBy;
 
-	@NotNull(message="Please select an site")
+	@OneToOne
+	@JoinColumn(name="modifiedBy",referencedColumnName="userId")
+	private User modifiedBy;
+
+	@NotNull(message="Please Select a Site")
 	@OneToOne
 	@JoinColumn(name="siteId",referencedColumnName="siteId")
 	private Site site;
 	
-	@NotNull(message="Please select an asset")
 	@OneToOne
 	@JoinColumn(name="assetId",referencedColumnName="assetId")
 	private Asset asset;
@@ -78,7 +90,8 @@ public class Ticket extends SecureTObject {
 	@JoinColumn(name="ticketId",referencedColumnName="ticketId")
 	private List<TicketExt> ticketExtensions;
 
-	@OneToMany
+	@JsonIgnore
+	@OneToMany(fetch=FetchType.EAGER)
 	@JoinColumn(name="ticketId",referencedColumnName="ticketId")
 	private List<TicketAttachment> attachments;
 	
@@ -184,6 +197,14 @@ public class Ticket extends SecureTObject {
 		this.createdBy = createdBy;
 	}
 
+	public User getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(User modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
 	public Site getSite() {
 		return site;
 	}
@@ -239,5 +260,13 @@ public class Ticket extends SecureTObject {
 
 	public void setSource(String source) {
 		this.source = source;
+	}
+
+	public Enumeration getTicketType() {
+		return ticketType;
+	}
+
+	public void setTicketType(Enumeration ticketType) {
+		this.ticketType = ticketType;
 	}
 }

@@ -4,6 +4,13 @@
 	http://www.springframework.org/schema/context
 	http://www.springframework.org/schema/context/spring-context-4.0.xsd">
 	
+	<bean id="mailService" class="com.securet.ssm.components.mail.MailService"></bean>
+	<bean id="smsService" class="com.securet.ssm.components.sms.SMSService">
+	    <property name="apiURL" value="http://api.mvaayoo.com/mvaayooapi/MessageCompose"></property>
+	    <property name="userName" value="rmalhotra@securet.in"></property>
+	    <property name="password" value="asmsms"></property>
+	    <property name="sender" value="TEST SMS"></property>
+	</bean>
 	<bean id="adminService" class="com.securet.ssm.services.admin.AdminService"></bean>
-    
+   
 </beans>

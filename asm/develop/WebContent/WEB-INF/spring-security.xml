@@ -12,9 +12,10 @@
     <!-- enable use-expressions -->
 	<security:http auto-config="true" use-expressions="true" name="securet" >
  		<security:intercept-url pattern="/assets/**" access="permitAll" />
+		<security:intercept-url pattern="/uploads/**" access="hasAnyRole('ADMIN','CLIENT_USER','RESOLVER','CLIENT_CONTROLLER')" />
 		<security:intercept-url pattern="/admin/**" access="hasRole('ADMIN')" />
-		<security:intercept-url pattern="/tickets/**" access="hasAnyRole('ADMIN','CLIENT_USER','RESOLVER','CONTROLLER')" />
-		<security:intercept-url pattern="/reports/**" access="hasRole('ADMIN','CONTROLLER')" />
+		<security:intercept-url pattern="/tickets/**" access="hasAnyRole('ADMIN','CLIENT_USER','RESOLVER','CLIENT_CONTROLLER')" />
+		<security:intercept-url pattern="/reports/**" access="hasRole('ADMIN','CLIENT_CONTROLLER')" />
 				
 		<!-- access denied page -->
 		<security:access-denied-handler error-page="/error/403" />

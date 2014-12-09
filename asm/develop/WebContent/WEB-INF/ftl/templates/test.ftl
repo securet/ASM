@@ -1,3 +1,1 @@
-This is test mail from ${name!} 
-
-- ${company!}
+wdada dad as

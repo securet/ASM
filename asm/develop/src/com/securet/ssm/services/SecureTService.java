@@ -32,6 +32,7 @@ import freemarker.ext.beans.BeansWrapper;
 public abstract class SecureTService {
 
 	public static final String ASSETS_SSMUPLOADS_LOGOS = "assets/ssmuploads/logos/";
+	public static final String ASSETS_SSMUPLOADS_TICKETATTACHMENTS = "uploads/ticketattachments/";
 	public static String EXCLUDE_IN_DISPLAY_SUFFIX = "ExcludeInDisplay";
 	public static String CUSTOM_FIELD_TYPE_SUFFIX = "CustomFieldTypes";
 	private static final String DATA_VIEWS = "DataViews";

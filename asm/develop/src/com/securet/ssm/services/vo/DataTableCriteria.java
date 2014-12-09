@@ -14,6 +14,8 @@ import com.securet.ssm.utils.SecureTUtils;
 
 public class DataTableCriteria implements Serializable{
 
+	private static final String AND = "and";
+	private static final String EQUALS = "=";
 	public static final String DATA_QUERY = "dataQuery";
 	public static final String COUNT_QUERY = "countQuery";
 	private static final String SELECT = "select ";
@@ -107,32 +109,61 @@ public class DataTableCriteria implements Serializable{
     	StringBuilder dataQuery = new StringBuilder();
     	String aliasName = SecureTUtils.decapitalize(entityName);
     	baseQuery.append(" from ").append(entityName).append(SPACE).append(aliasName).append(SPACE);
+		StringBuilder andQuery = new StringBuilder();
+		StringBuilder orQuery = new StringBuilder();
+		Iterator<Map<ColumnCriterias, String>> columnsIterator = dataTableCriteria.getColumns().iterator();
+		//let us also check if there are any column criterias - field filters will  "and" filters,   any text search will be "or" regex
+		String textToSearch = null;
     	if(dataTableCriteria.search!=null && dataTableCriteria.search.size()>0){
-    		String textToSearch = dataTableCriteria.search.get(SearchCriterias.value);
-    		if(textToSearch!=null & !textToSearch.isEmpty() & !dataTableCriteria.getColumns().isEmpty()){
-    			baseQuery.append(WHERE);
-    			Iterator<Map<ColumnCriterias, String>> dataTableIterator = dataTableCriteria.getColumns().iterator();
-    			boolean hasNext=dataTableIterator.hasNext(); 
-    			Map<ColumnCriterias,String> columnCriteriasMapping = dataTableIterator.next();
-	    		while(hasNext){
-	    			String columnName = columnCriteriasMapping.get(ColumnCriterias.data);
-	    			boolean isSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
-    				_logger.debug("found column name -> "+ColumnCriterias.data+ ",  value->" + columnName);
-    				if(isSearchable){
-	    				baseQuery.append(aliasName).append(DOT).append(columnName).append(LIKE).append(QUOTE).append(PERCENTILE).append(textToSearch).append(PERCENTILE).append(QUOTE);
-    				}
-    				hasNext=dataTableIterator.hasNext();
-    				if(hasNext){
-        				columnCriteriasMapping = dataTableIterator.next();
-    	    			boolean isNextSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
-    	    			if(isNextSearchable){
-    	    				baseQuery.append(SPACE).append(operator).append(SPACE);
-    	    			}
-    				}
-	    		}
-    		}
+    		textToSearch = dataTableCriteria.search.get(SearchCriterias.value);
     	}
-    	if(dataTableCriteria.order!=null && dataTableCriteria.order.size()>0){
+		boolean hasNext=columnsIterator.hasNext(); 
+		Map<ColumnCriterias,String> columnCriteriasMapping = columnsIterator.next();
+		while(hasNext){
+			String columnName = columnCriteriasMapping.get(ColumnCriterias.data);
+			String columnFilter = columnCriteriasMapping.get(ColumnCriterias.searchValue);
+			
+			boolean isSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
+			_logger.debug("found column name -> "+ColumnCriterias.data+ ",  value->" + columnName);
+			if(isSearchable){
+				if(textToSearch!=null && !textToSearch.isEmpty()){
+					orQuery.append(aliasName).append(DOT).append(columnName).append(LIKE).append(QUOTE).append(PERCENTILE).append(textToSearch).append(PERCENTILE).append(QUOTE);
+				}
+				if(columnFilter!=null && !columnFilter.isEmpty()){
+					andQuery.append(aliasName).append(DOT).append(columnName).append(EQUALS).append(QUOTE).append(columnFilter).append(QUOTE);
+				}
+			}
+
+			hasNext=columnsIterator.hasNext();
+			if(hasNext){
+				columnCriteriasMapping = columnsIterator.next();
+    			boolean isNextSearchable = Boolean.valueOf(columnCriteriasMapping.get(ColumnCriterias.searchable));
+    			if(isNextSearchable){
+    				if(textToSearch!=null && !textToSearch.isEmpty() && orQuery.length()>0){
+        				orQuery.append(SPACE).append(operator).append(SPACE);
+    				}
+    				if(columnFilter!=null && !columnFilter.isEmpty()  && andQuery.length()>0){
+        				andQuery.append(SPACE).append(AND).append(SPACE);
+    				}
+    			}
+			}
+		}
+		if(orQuery.length()>0){
+			orQuery.insert(0, START_BRACKET).append(END_BRACKET);
+		}
+		if(andQuery.length()>0){
+			andQuery.insert(0, START_BRACKET).append(END_BRACKET);
+		}
+		
+		if(orQuery.length()>0 || andQuery.length()>0){
+			baseQuery.append(WHERE).append(SPACE).append(andQuery.toString());
+			if(andQuery.length()>0 && orQuery.length()>0){
+				baseQuery.append(SPACE).append(AND).append(SPACE);
+			}
+			baseQuery.append(orQuery.toString());
+		}
+		
+		if(dataTableCriteria.order!=null && dataTableCriteria.order.size()>0){
 			baseQuery.append(ORDER_BY);//incase column arre not found.. query will fail.. 
     		for(Map<OrderCriterias, String> orderByField :dataTableCriteria.order){
     			String indexStr = orderByField.get(OrderCriterias.column);
@@ -184,7 +215,19 @@ public class DataTableCriteria implements Serializable{
 		List<Map<ColumnCriterias, String>>  columnDefs = new ArrayList<Map<ColumnCriterias,String>>();
 		Map<ColumnCriterias, String> columns = makeColumns("type");
 		columnDefs.add(columns);
+		
 		columns = makeColumns("name");
+		columns.put(ColumnCriterias.searchable, "true");
+		columnDefs.add(columns);
+
+		columns = makeColumns("status");
+		columns.put(ColumnCriterias.searchable, "true");
+		//columns.put(ColumnCriterias.searchValue, "1234");
+		columnDefs.add(columns);
+
+		columns = makeColumns("issue");
+		columns.put(ColumnCriterias.searchable, "true");
+		//columns.put(ColumnCriterias.searchValue, "8888");
 		columnDefs.add(columns);
 		dataTableCriteria.setColumns(columnDefs);
 

@@ -27,10 +27,14 @@
 				    </property>
 				</bean>
 	    	</mvc:message-converters>
+	    	<mvc:argument-resolvers>
+	    	     <bean class="org.springframework.security.web.bind.support.AuthenticationPrincipalArgumentResolver" />	    	    
+	    	</mvc:argument-resolvers>
 	</mvc:annotation-driven>    
 	<context:annotation-config/>
 	<mvc:resources mapping="/assets/**" location="/assets/" />
-			
+	<mvc:resources mapping="/uploads/**" location="/uploads/" />
+				
   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 		<property name="maxUploadSize" value="100000000" />
 	</bean>        
@@ -66,8 +70,6 @@
     	<property name="port" value="${mail.smtp.port}"/>
     </bean>
 
-	<bean id="mailService" class="com.securet.ssm.components.mail.MailService">
-	</bean>
 
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>

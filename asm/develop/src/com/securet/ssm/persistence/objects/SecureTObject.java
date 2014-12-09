@@ -32,6 +32,7 @@ public class SecureTObject implements Serializable{
 	@PrePersist
 	public void setCreateTimestamp(){
 		setCreatedTimestamp(new Timestamp(new Date().getTime()));
+		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
 	}
 	
 

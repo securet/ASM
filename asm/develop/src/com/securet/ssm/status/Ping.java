@@ -68,6 +68,7 @@ public class Ping{
 		mailContext.put("from","sharad@securet.in");
 		mailContext.put("subject","Test Mail from ${name!}!");
 		mailContext.put("template","test.ftl");
+		mailContext.put("contentType","text/html");
 		Map<String,Object> bodyParameters = new HashMap<String, Object>();
 		bodyParameters.put("name", "sharad");
 		bodyParameters.put("company", "securet");

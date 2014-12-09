@@ -1,9 +1,12 @@
 package com.securet.ssm.persistence.objects;
 
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -14,7 +17,15 @@ public class TicketAttachment extends SecureTObject {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int attachmentId;
 	
-	public int getAttachmentId() {
+	private String attachmentName;
+	
+	private String attachmentPath;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "ticketId", nullable = false)
+	private Ticket ticket;
+	
+  	public int getAttachmentId() {
 		return attachmentId;
 	}
 
@@ -22,19 +33,6 @@ public class TicketAttachment extends SecureTObject {
 		this.attachmentId = attachmentId;
 	}
 
-	private String ticketId;
-	
-	private String attachmentName;
-	
-	private String attachmentPath;
-
-	public String getTicketId() {
-		return ticketId;
-	}
-
-	public void setTicketId(String ticketId) {
-		this.ticketId = ticketId;
-	}
 
 	public String getAttachmentName() {
 		return attachmentName;
@@ -50,6 +48,14 @@ public class TicketAttachment extends SecureTObject {
 
 	public void setAttachmentPath(String attachmentPath) {
 		this.attachmentPath = attachmentPath;
+	}
+
+	public Ticket getTicket() {
+		return ticket;
+	}
+
+	public void setTicket(Ticket ticket) {
+		this.ticket = ticket;
 	}
 	
 }

@@ -5,9 +5,13 @@
 <#setting number_format="0.##">
 <#list formField as field>
 	<#if !field.canDisplay && field.fieldType=='multipartFile'>
-		<#-- do nothing these field have maskeelsejects -->
+		<#-- do nothing these field have a file binding -->
 	<#elseif !field.canDisplay && !field.fieldName?contains("Timestamp")>
-		<@formInputSSM path="formObject.${field.fieldName}" field=field fieldType="hidden"/>
+		<#if fieldTypeMapping[field.fieldType]?exists>
+			<@formInputSSM path="formObject.${field.fieldName}" field=field fieldType="hidden"/>		
+		<#else>
+			<@formInputSSM path="formObject.${field.fieldName}.${field.fieldName}Id" field=field fieldType="hidden"/>
+		</#if>
 	<#elseif fieldTypeMapping[field.fieldType]?exists && (fieldTypeMapping[field.fieldType]='text'|| fieldTypeMapping[field.fieldType]='file' || fieldTypeMapping[field.fieldType]='datetime' || fieldTypeMapping[field.fieldType]='date')>
 	    <@formInputSSM path="formObject.${field.fieldName}" field=field fieldType=fieldTypeMapping[field.fieldType]/>
 	<#elseif .data_model["get"+field.fieldName?cap_first+"ForView"]?exists>

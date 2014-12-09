@@ -7,7 +7,7 @@
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><@decorator.title/></title>
-		<base href="http://192.168.0.53:8080${springMacroRequestContext.contextPath}/"/>
+		<base href="http://192.168.1.53:8080${springMacroRequestContext.contextPath}/"/>
 		<!-- Latest compiled and minified CSS -->
 		<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 		

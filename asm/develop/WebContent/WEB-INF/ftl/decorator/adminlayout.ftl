@@ -8,7 +8,7 @@
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><@decorator.title/></title>
-		<base href="http://192.168.0.53:8080${springMacroRequestContext.contextPath}/"/>
+		<base href="http://192.168.1.53:8080${springMacroRequestContext.contextPath}/"/>
 		<script type="text/javascript">
 			var contextPath="${springMacroRequestContext.contextPath}";
 		</script>
@@ -32,7 +32,7 @@
 		<link rel="stylesheet" href="assets/css/ssm.css">
 		<script src="assets/js/jquery.jsrender.min.js"></script>
 		<script src="assets/js/ssm.js"></script>
-
+		<script src="assets/js/ticket.js"></script>
 	</head>
 	<body>
 		<nav class="navbar navbar-default navbar-static-top" role="navigation">
@@ -65,7 +65,7 @@
 			    </div><!--/.sidebar-offcanvas-->
 			    <div class="col-xs-12 col-sm-10">
 			    	<p class="pull-left visible-xs">
-			        	<button type="button" class="btn glyphicon glyphicon-th-list" data-toggle="offcanvas"></button>
+			        	<button type="button" class="toggleleftmenu btn glyphicon glyphicon-th-list" data-toggle="offcanvas"></button>
 			    	</p>
 					<div class="jumbotron">
 			      		<div>

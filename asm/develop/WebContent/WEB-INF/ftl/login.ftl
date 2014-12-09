@@ -11,7 +11,7 @@
 <div>
  	<div class="row">
 		<div class="col-sm-4 login-row center-block">
-			<img src="assets/images/wrapper_top.png" width="100%"/>			
+			<img class="box-start" src="assets/images/wrapper_top.png" width="100%"/>			
 			<div id="login-box">				
 				<h1 class="login">SecureT Service Management</h1>		 
 				<#if error?exists>
@@ -37,7 +37,7 @@
 					</form>
 				</div>
 			</div>
-			<img src="assets/images/wrapper_bottom.png" width="100%"/>			
+			<img class="box-end" src="assets/images/wrapper_bottom.png" width="100%"/>			
 		</div>	
 	</div>
 </div> 
