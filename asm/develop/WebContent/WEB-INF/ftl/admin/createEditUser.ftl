@@ -30,7 +30,7 @@
 					</#if>
 					<@formInputSSM path="formObject.emailId" field={"fieldName":"Email"} fieldType="text"/>
 					<@formInputSSM path="formObject.mobile" field={"fieldName":"Mobile"} fieldType="text"/>
-					<@formInputSSM path="formObject.enableNotifications" field={"fieldName":"Enable Notification"} fieldType="checkbox"/>
+					<@formCheckboxSSM path="formObject.enableNotifications" field={"fieldName":"Enable Notification"}/>
 					<#assign organizationsList = .data_model["getOrganizationForView"]>
 					<#assign options>{<#list organizationsList as uiObject>"${uiObject.organizationId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 					<@formSingleSelectSSM path="formObject.organization.organizationId" field={"fieldName":"Organization"} options=options?eval/>

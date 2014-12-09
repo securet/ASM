@@ -25,9 +25,16 @@
 						$(cellToModify).html('<a href="<@spring.url relativeUrl="/admin/${editPath}?entityName=${entityName}&id="/>'+data.${entityName?uncap_first}Id+'">'+text+'</a>');
 					}				
 				</script>
-					<#assign bindingResult = .data_model["org.springframework.validation.BindingResult.formObject"]>
-				<#if formObject.name?exists && bindingResult?exists && !bindingResult.hasErrors()>
-					<div class="alert alert-info asmnotification" role="alert"><#if createNew>Created<#else>Saved</#if> ${entityName} successfully : ${formObject.name!}</div>
+				<#assign bindingResult = .data_model["org.springframework.validation.BindingResult.formObject"]>
+				<#if bindingResult?exists && !bindingResult.hasErrors()>
+					<#if formObject.name?exists>
+						<#assign message><#if createNew>Created<#else>Saved</#if> ${entityName} successfully : ${formObject.name!}</#assign>
+					<#elseif saved?exists>
+						<#assign message=saved>
+					</#if>
+					<#if message?exists && message?has_content>	
+						<div class="alert alert-info asmnotification" role="alert">${message!}</div>
+					</#if>
 				</#if>
 				<div class="pageoptions">
 					<div class="btn-group">

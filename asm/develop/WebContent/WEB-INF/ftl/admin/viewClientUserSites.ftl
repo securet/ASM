@@ -35,9 +35,8 @@
 			        	</div>
 				        <div class="col-xs-12 col-sm-6 col-lg-7">
 							<#assign citiesList = .data_model["getCityWithSitesForView"]>
-							<#assign options>{"":"Select Region",<#list citiesList as uiObject>"${uiObject.geoId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#assign options>{"":"Select Region"<#list citiesList as uiObject>,"${uiObject.geoId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 							<@formSingleSelectSSM path="formObject.cityGeoId" field={"fieldName":"cityGeoId","label":"Select Region"} options=options?eval  includeLabelInline=false/>
-		
 							<div class="form-group">
 								<div class="col-sm-9">
 									<@showErrorsSSM "formObject.sites"/>							

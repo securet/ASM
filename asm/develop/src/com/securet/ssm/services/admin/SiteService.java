@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.Query;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
+import com.securet.ssm.persistence.objects.Organization;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.services.SecureTService;
 
@@ -73,6 +75,14 @@ public class SiteService extends SecureTService{
 		validateSite(formObject,result);
 		if(!result.hasErrors()){
 			//set the client organization - we will have only one as of now.. 
+			Query clientOrganizationQuery = entityManager.createNamedQuery("getClientOrganizationForView");
+			List<Organization> organizations = clientOrganizationQuery.getResultList();
+			if(organizations!=null){
+				formObject.setOrganization(organizations.get(0));
+			}else{
+				FieldError fieldError = new FieldError("formObject", "organization.organizationId", "Could not find any client organization, please create one");
+				result.addError(fieldError);
+			}
 		}
 		return adminService.saveObject(formObject, result, model,createNew);
 	}

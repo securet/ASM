@@ -144,6 +144,14 @@ public class UserService extends SecureTService {
 		}
 		
 		adminService.saveObject(formObject, result, model,createNew);
+		StringBuilder savedMessage = new StringBuilder();//we should start using resource bundles...
+		if(createNew){
+			savedMessage.append("Created");
+		}else{
+			savedMessage.append("Saved");
+		}
+		savedMessage.append(" User successfully: ").append(formObject.getUserId());
+		model.addAttribute("saved", savedMessage.toString());
 		return  DefaultService.ADMIN+"viewObjects";
 	}
 
