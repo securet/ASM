@@ -68,7 +68,7 @@ public class Organization extends SecureTObject{
 	
 	@Override
 	public String toString() {
-		return "Organization [organizationId=" + organizationId + ", name=" + name + ", type=" + organizationType + ", logo=" + logo + ", shortDesc=" + shortDesc + "]";
+		return "Organization [organizationId=" + organizationId + ", name=" + name + ", type=" + organizationType + ", logo=" + logo + ",   shortDesc=" + shortDesc + "]";
 	}	
 	
 }
