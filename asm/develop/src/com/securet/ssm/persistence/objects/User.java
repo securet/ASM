@@ -29,7 +29,7 @@ import org.hibernate.validator.constraints.Email;
 	@NamedQuery(name = "getUserById", query = "SELECT o FROM User o WHERE o.userId=:id"),
 	@NamedQuery(name = "getOrganizationWithUsersForView", query = "SELECT DISTINCT o.organization FROM User o JOIN o.organization org WHERE org.organizationId IS NOT NULL"),
 	@NamedQuery(name = "getUsersForOrganization", query = "SELECT o FROM User o WHERE o.organization.organizationId=:organizationId"),
-	@NamedQuery(name = "getVendorsForOrganization", query = "SELECT o FROM User o JOIN o.roles role WHERE o.organization.organizationId=:organizationId and role.roleType IN ('VENDOR')")
+	@NamedQuery(name = "getVendorsForOrganization", query = "SELECT o FROM User o JOIN o.roles role WHERE o.organization.organizationId=:organizationId and role.roleType IN ('RESOLVER')")
 })
 public class User extends SecureTObject {
 
