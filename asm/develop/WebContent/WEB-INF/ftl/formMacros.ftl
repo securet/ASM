@@ -54,7 +54,7 @@
 				</#if>	
 				<div><label class="control-label" for="${spring.status.expression}"><#if field.label?exists>${field.label}<#else>${field.fieldName?cap_first}</#if></label></div>
 			</#if>
-			<#assign attributesStr> class="form-control" ${attributes}</#assign>	
+			<#assign attributesStr> class="form-control" ${attributes} data-default="${spring.stringStatusValue}" </#assign>
 			<@spring.formSingleSelect path=path options=options attributes=attributesStr/>
 		</div>
 	</div>

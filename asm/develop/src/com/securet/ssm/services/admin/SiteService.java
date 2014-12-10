@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.securet.ssm.persistence.objects.Organization;
+import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.services.SecureTService;
 
@@ -83,7 +84,15 @@ public class SiteService extends SecureTService{
 				FieldError fieldError = new FieldError("formObject", "organization.organizationId", "Could not find any client organization, please create one");
 				result.addError(fieldError);
 			}
+			
 		}
+/*		if(formObject.getState()!=null && formObject.getState().getGeoId()!=null){
+			String namedQuery = "getRelatedGeos";
+			String namedParameter = "geoIdFrom";
+			List<SecureTObject> geoCities = fetchQueriedObjects(namedQuery, namedParameter,formObject.getState().getGeoId());
+			model.addAttribute("getCityForView", geoCities);
+		}
+*/		
 		return adminService.saveObject(formObject, result, model,createNew);
 	}
 
@@ -108,7 +117,7 @@ public class SiteService extends SecureTService{
 			dataViewNames=new ArrayList<String>();
 			//dataViewNames.add("getOrganizationForView");
 			dataViewNames.add("getStateForView");
-			dataViewNames.add("getCityForView");
+			//dataViewNames.add("getCityForView");
 			dataViewNames.add("getSiteTypeForView");
 		}
 		return dataViewNames;

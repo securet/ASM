@@ -127,5 +127,14 @@ public class AdminService extends SecureTService{
 		return fetchQueriedObjects(namedQuery, namedParameter,cityGeoId);
 	}
 
+	@Transactional
+	@RequestMapping(value="/admin/getCitiesForState",produces="application/json")
+	public @ResponseBody List<SecureTObject> getCitiesForState(@RequestParam String stateGeoId){
+		String namedQuery = "getRelatedGeos";
+		String namedParameter = "geoIdFrom";
+		List<SecureTObject> geoCities = fetchQueriedObjects(namedQuery, namedParameter,stateGeoId);
+		return geoCities;
+	}
 
+	
 }

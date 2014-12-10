@@ -2,7 +2,9 @@ var userOptionTemplate = null;
 var siteOptionTemplate = null;
 var serviceTypeOptionTemplate = null;
 var assetOptionTemplate = null;
+var selectBoxTemplate = null;
 var imgTemplate = null;
+var geoTemplate = null;
 var logoPreviewTemplate = null;
 var allSites=null;
 var allAssets=null;
@@ -18,6 +20,9 @@ $(document).ready(function () {
 	if($("#userOptionTmpl").size()>0){
 		userOptionTemplate = $.templates("#userOptionTmpl");
 	}
+	if($("#geoTmpl").size()>0){
+		geoTemplate = $.templates("#geoTmpl");
+	}
 	if($("#siteOptionTmpl").size()>0){
 		siteOptionTemplate = $.templates("#siteOptionTmpl");
 	}
@@ -31,6 +36,9 @@ $(document).ready(function () {
 		imgTemplate = $.templates("#imgTmpl");
 	}
 
+	if($("#selectBoxTmpl").size()>0){
+		selectBoxTemplate = $.templates("#selectBoxTmpl");
+	}
 	if($("#logoPreviewTemplate").size()>0){
 		logoPreviewTemplate = $.templates("#logoPreviewTemplate");
 	}
@@ -65,11 +73,19 @@ $(document).ready(function () {
 	if($("#vendorAssetMapId").size()>0){
 		initVendorAssetMapping();
 	}
-	if($("#city\\.geoId").size()>0){
-		initMultiSelect("city\\.geoId");
-	}
 	if($("#state\\.geoId").size()>0){
+		if($("#SiteForm #city\\.geoId").size()==0){
+			//initialize the city option
+			$("#state\\.geoId").parents(".form-group").after(selectBoxTemplate.render({elementId:"city.geoId",elementLabel:"City",options:[]}));
+		}	
+		$("#state\\.geoId").change(function(eventData){
+			getCitiesForState("state\\.geoId","city\\.geoId");
+		});
 		initMultiSelect("state\\.geoId");
+	}
+	if($("#city\\.geoId").size()>0){
+		getCitiesForState("state\\.geoId","city\\.geoId");
+		initMultiSelect("city\\.geoId");
 	}
 	if($("input[name='logoFile']").size()>0){
 		var imagePath = $("input[name='logoFile']").attr("value");
@@ -267,6 +283,27 @@ function addMultiSelectOptions(elementId,templateObj,dataObj){
 	 $("#"+elementId).html("");
 	 $("#"+elementId).append(templateObj.render(dataObj));
 	 $("#"+elementId).multiselect('rebuild'); 
+}
+
+function getCitiesForState(stateElementId,cityElementId){
+	if($("#"+stateElementId).val()!=""){
+		var stateId = $("#"+stateElementId).val();
+		$.ajax({
+			 url:contextPath+"/admin/getCitiesForState?stateGeoId="+stateId,
+			 success:function(data){
+				 addMultiSelectOptions(cityElementId,geoTemplate,data);
+				 $("#default-"+cityElementId).data("default");
+				 if($("#default-"+cityElementId).size()>0 && $("#default-"+cityElementId).data("default")!=""){
+					 // keep the default selected..
+					 $("#"+cityElementId + " option[value='"+ $("#default-"+cityElementId).data("default") +"']").attr("selected","selected");
+					 $("#"+cityElementId).multiselect("rebuild");
+				 }
+			 },
+			 error: function(){
+				 alert("No cities found");
+			 }
+		});	
+	}
 }
 
 function fetchAndMapVendorAssets(){

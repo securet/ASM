@@ -18,7 +18,7 @@ import javax.validation.constraints.Size;
 	@NamedQuery(name = "getOrganizationById", query = "SELECT o from Organization o where o.organizationId=:id"),
 	@NamedQuery(name = "getOrganizationForView", query = "SELECT o from Organization o"),
 	@NamedQuery(name = "getClientOrganizationForView", query = "SELECT o from Organization o WHERE o.organizationType='CLIENT'"),
-	@NamedQuery(name = "getVendorOrganizationForView", query = "SELECT o from Organization o WHERE o.organizationType='VENDOR'")
+	@NamedQuery(name = "getVendorOrganizationForView", query = "SELECT o from Organization o WHERE o.organizationType='RESOLVER'")
 })
 public class Organization extends SecureTObject{
 
