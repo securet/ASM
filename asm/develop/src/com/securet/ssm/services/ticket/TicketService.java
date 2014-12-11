@@ -16,6 +16,7 @@ import javax.xml.crypto.Data;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailSendException;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
@@ -500,6 +501,7 @@ public class TicketService extends SecureTService {
 
 	private void saveAttachments(Ticket formObject, List<MultipartFile> ticketAttachments,boolean refresh) {
 		int index = 0;
+		boolean savedAttachments = false;
 		if(formObject.getAttachments()!=null){
 			index = formObject.getAttachments().size();
 		}else{
@@ -517,10 +519,11 @@ public class TicketService extends SecureTService {
 					ticketAttachment.setAttachmentName(attachment.getOriginalFilename());
 					ticketAttachment.setAttachmentPath(attachmentPath);
 					entityManager.persist(ticketAttachment);
+					savedAttachments=true;
 				}
 			}
 		}
-		if(refresh){
+		if(refresh && savedAttachments){
 			entityManager.refresh(formObject);
 		}
 		_logger.debug("formObject: "+formObject.getAttachments());
@@ -587,8 +590,17 @@ public class TicketService extends SecureTService {
 	private void sendEmail(Ticket formObject,String templateName) {
 		//get the user email... this can run in background.. 
 		Map<String,Object> mailContext = new HashMap<String,Object>();
-		StringBuilder toAddress = new StringBuilder(); 
-		toAddress.append(formObject.getReporter().getEmailId()).append(",").append(formObject.getResolver().getEmailId());
+		StringBuilder toAddress = new StringBuilder();
+		if(formObject.getReporter().getEmailId()!=null){
+			toAddress.append(formObject.getReporter().getEmailId()).append(",");
+		}
+		if(formObject.getResolver().getEmailId()!=null){
+			toAddress.append(formObject.getResolver().getEmailId());
+		}
+		if(toAddress.length()>0){
+			_logger.error("No email address found.. so not notifying for ticket: "+ formObject.getTicketId());
+			return;
+		}
 		Query mailTemplateQuery = entityManager.createNamedQuery("getMailTemplateByName");
 		mailTemplateQuery.setParameter("templateName", templateName);
 		MailTemplate mailTemplate = (MailTemplate)mailTemplateQuery.getSingleResult();
@@ -602,8 +614,11 @@ public class TicketService extends SecureTService {
 		Map<String,Object> bodyParameters = new HashMap<String, Object>();
 		bodyParameters.put("ticket", formObject);
 		mailContext.put("bodyParameters",bodyParameters);
-
-		mailService.sendMail(mailContext);
+		try{
+			mailService.sendMail(mailContext);
+		}catch(MailSendException e){
+			_logger.error("Could not send email for ticket :"+formObject.getTicketId() +" check the stack trace", e);
+		}
 	}
 
 	public static void fetchTicketStats(EntityManager entityManager, org.springframework.security.core.userdetails.User customUser, ModelMap map) {

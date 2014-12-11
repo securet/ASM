@@ -54,10 +54,13 @@
 			    <div class="col-xs-6 col-sm-2 sidebar-offcanvas" id="sidebar" role="navigation">
 					<div class="list-group">
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=OPEN"/>" class="list-group-item ">Open <span class="badge badge-danger">${openTicketsCount!}</span></a>
-						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=WORK_IN_PROGRESS"/>"class="list-group-item ">Work in Progress <span class="badge badge-info">${work_in_progressTicketsCount!}</span></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=WORK_IN_PROGRESS"/>" class="list-group-item ">Work in Progress <span class="badge badge-info">${work_in_progressTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=RESOLVED"/>" class="list-group-item ">Resolved <span class="badge badge-warning">${resolvedTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=CLOSED"/>" class="list-group-item ">Closed <span class="badge badge-success">${closedTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets"/>" class="list-group-item ">All Tickets <span class="badge badge-primary">${openTicketsCount?default(0)+work_in_progressTicketsCount?default(0)+resolvedTicketsCount?default(0)+closedTicketsCount?default(0)}</span></a>
+						<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER','ADMIN')">
+							<a href="<@spring.url relativeUrl="/admin/"/>" class="list-group-item "> <i class="glyphicon glyphicon-circle-arrow-left"></i> Go to Admin</a>
+						</@security.authorize>
 					</div>
 			    </div><!--/.sidebar-offcanvas-->
 			    <div class="col-xs-12 col-sm-10">

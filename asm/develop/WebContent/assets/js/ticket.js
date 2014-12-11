@@ -74,7 +74,7 @@ function showTicketOrganization(vendorOrgElement,vendorUserElement,data){
 function makeIssueTypeOptions(vendorUserElement,data){
 	 if(typeof data.issueTypes!='undefined' && data.issueTypes!=null && data.issueTypes.length>0){
 		 var issueOptions = [];
-		 $("#issue\\.issueTypeId").remove();
+		 $("#issueType\\.issueTypeId").remove();
 		 for(var i=0; i<data.issueTypes.length;i++){
 			 var option = new Object();
 			 option.value=data.issueTypes[i].issueTypeId;
@@ -86,11 +86,15 @@ function makeIssueTypeOptions(vendorUserElement,data){
 }
 
 function resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement){
-	 $("#issue\\.issueTypeId").parents(".form-group").remove();
-	 vendorOrgElement.addClass("hide");
-	 vendorUserElement.addClass("hide");
+	 resetIssueType(vendorOrgElement, vendorUserElement);
 	 $("#vendorNotAssignedError").remove();
 	 serviceTypeElement.parents(".form-group").after(errorMessageTemplate.render({elementId:"vendorNotAssignedError",message:"No Vendor Assigned"}));
+}
+
+function resetIssueType(vendorOrgElement,vendorUserElement){
+	$("#issueType\\.issueTypeId").parents(".form-group").remove();
+	vendorOrgElement.addClass("hide");
+	vendorUserElement.addClass("hide");
 }
 
 function fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement,vendorUserElement){
@@ -108,6 +112,7 @@ function fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement
 				 success:function(data){
 					 if(data!=null){
 						 if(typeof data.vendors!='undefined' && data.vendors!=null){
+							 resetIssueType(vendorOrgElement, vendorUserElement);
 							 showTicketOrganization(vendorOrgElement,vendorUserElement,data);
 							 makeIssueTypeOptions(vendorUserElement,data);	
 						 }else{

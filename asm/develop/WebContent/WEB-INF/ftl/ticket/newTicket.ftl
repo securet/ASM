@@ -40,7 +40,7 @@
 							<#assign contextData = contextData +"\""+assignedSite.siteId+"\":{\"name\":\""+assignedSite.name+"\",\"area\":\""+ assignedSite.area+"\"}">
 							<#assign optionsText = optionsText +"\""+assignedSite.siteId+"\":\""+assignedSite.name+"\"">
 							<#if assignedSite_has_next>			
-								<#assign optionsText = optionText+",">
+								<#assign optionsText = optionsText+",">
 								<#assign contextData = contextData+",">
 							</#if>
 						</#list>
