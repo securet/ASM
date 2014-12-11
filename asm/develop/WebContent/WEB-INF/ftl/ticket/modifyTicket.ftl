@@ -99,6 +99,8 @@
 									<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Work in Progress","CLOSED":"Closed"}</#assign>
 								<#elseif formObject.status.enumerationId=='OPEN'>
 									<#assign statusOptions>{"":"Select Status","OPEN":"Open","CLOSED":"Closed"}</#assign>
+								<#elseif formObject.status.enumerationId=='OPEN'>
+									<#assign statusOptions>{"":"Select Status","OPEN":"Reject", CLOSED":"Closed"}</#assign>								
 								</#if>
 							</@security.authorize>	
 							<@formSingleSelectSSM path="formObject.status.enumerationId" field={"fieldName":"formObject.status.enumerationId","label":"Select Status"} options=statusOptions?default("{}")?eval />
@@ -125,7 +127,7 @@
 				</div>
 				<div class="col-md-4">
 					<div id="map-canvas"></div>		
-					<div>
+					<div class="ticketAttachments">
 						<h4>Attachments (${formObject.attachments?size})</h4>
 						<ol>	
 						<#list formObject.attachments as attachment>
