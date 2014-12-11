@@ -125,7 +125,7 @@
 				</div>
 				<div class="col-md-4">
 					<div id="map-canvas"></div>		
-					<div>
+					<div class="ticketAttachments">
 						<h4>Attachments (${formObject.attachments?size})</h4>
 						<ol>	
 						<#list formObject.attachments as attachment>

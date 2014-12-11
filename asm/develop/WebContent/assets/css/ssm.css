@@ -116,10 +116,16 @@ header{
 	.login-row .box-end{
 		width: 100.1%;
 	}
+	.ticketAttachments{
+		margin-top: 25px;	
+	}
 }
 @media(max-width:450px){
 	.glyphicon-chevron-right:before{
 		content:"";
+	}
+	#map-canvas{
+		margin-top: 20px;
 	}
 }
 

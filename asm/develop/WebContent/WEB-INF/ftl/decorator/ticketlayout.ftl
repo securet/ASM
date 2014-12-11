@@ -51,7 +51,7 @@
 		</nav>		
 		<div id="content" class="container">
 			<div class="row row-offcanvas row-offcanvas-left">
-			    <div class="col-xs-6 col-sm-2 sidebar-offcanvas" id="sidebar" role="navigation">
+			    <div class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas" id="sidebar" role="navigation">
 					<div class="list-group">
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=OPEN"/>" class="list-group-item ">Open <span class="badge badge-danger">${openTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=WORK_IN_PROGRESS"/>" class="list-group-item ">Work in Progress <span class="badge badge-info">${work_in_progressTicketsCount!}</span></a>
@@ -63,7 +63,7 @@
 						</@security.authorize>
 					</div>
 			    </div><!--/.sidebar-offcanvas-->
-			    <div class="col-xs-12 col-sm-10">
+			    <div class="col-xs-12 col-sm-9 col-md-10">
 			    	<p class="pull-left visible-xs">
 			        	<button type="button" class="toggleleftmenu btn glyphicon glyphicon-th-list" data-toggle="offcanvas"></button>
 			    	</p>

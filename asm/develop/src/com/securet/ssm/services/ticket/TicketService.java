@@ -64,6 +64,7 @@ import freemarker.template.utility.StringUtil;
 @Service
 public class TicketService extends SecureTService {
 
+	private static final String WORK_IN_PROGRESS_DESC = "Work in progress";
 	private static final int MAX_SHORT_DESC = 80;
 	public static final List<String> TICKET_STATUS = new ArrayList<String>();
 	static{
@@ -318,7 +319,7 @@ public class TicketService extends SecureTService {
 			currentTicket = userTickets.get(0);
 			if(isResolver && currentTicket.getStatus().getEnumerationId().equals(OPEN)){
 				//set the status to WORK IN PROGRESS
-				currentTicket = updateTicket(currentTicket, WORK_IN_PROGRESS, currentTicket.getDescription(), customUser.getUsername());
+				currentTicket = updateTicket(currentTicket, WORK_IN_PROGRESS, WORK_IN_PROGRESS_DESC, customUser.getUsername());
 			}
 			_logger.debug("no of attachments : "+currentTicket.getAttachments().size());
 		}
