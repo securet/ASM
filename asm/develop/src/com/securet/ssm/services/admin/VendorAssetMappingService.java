@@ -138,13 +138,21 @@ public class VendorAssetMappingService extends SecureTService{
 				entityManager.persist(vendorServiceAsset);
 			}
 			
-			//delete any unassigned assets with user and service
-			Query deleteVendorAssetMap = entityManager.createQuery("DELETE FROM VendorServiceAsset vsa WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId AND vsa.asset.assetId NOT IN (:assets)");
-			deleteVendorAssetMap.setParameter("userId", formObject.getUserId());
-			deleteVendorAssetMap.setParameter("serviceTypeId", formObject.getServiceTypeId());
-			deleteVendorAssetMap.setParameter("assets", formObject.getAssets());
-			int deletes = deleteVendorAssetMap.executeUpdate();
-			_logger.debug("Deleted unassigned vendor asset mapping :"+deletes);
+			//delete any unassigned assets with user and service of a the current site...
+			//get all assets of the selected site
+			Query siteAssetsQuery = entityManager.createQuery("SELECT o.assetId from Asset o WHERE o.site.siteId=:siteId");
+			siteAssetsQuery.setParameter("siteId", Integer.parseInt(formObject.getSiteId()));
+			List<Integer> allSiteAssetsToDelete = siteAssetsQuery.getResultList();
+			allSiteAssetsToDelete.removeAll(formObject.getAssets());
+			//not identify any assets of this site not selected delete from mapping
+			if(allSiteAssetsToDelete.size()>0){
+				Query deleteVendorAssetMap = entityManager.createQuery("DELETE FROM VendorServiceAsset vsa WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId AND vsa.asset.assetId IN (:assets)");
+				deleteVendorAssetMap.setParameter("userId", formObject.getUserId());
+				deleteVendorAssetMap.setParameter("serviceTypeId", formObject.getServiceTypeId());
+				deleteVendorAssetMap.setParameter("assets", allSiteAssetsToDelete);
+				int deletes = deleteVendorAssetMap.executeUpdate();
+				_logger.debug("Deleted unassigned vendor asset mapping :"+deletes);
+			}
 			model.addAttribute("saved","Saved asset mapping successfully for vendor: "+formObject.getUserId());
 		}
 		//get users if organization is selected

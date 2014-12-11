@@ -16,7 +16,7 @@
 			</div>
 			<div class="panel-body">
 				<script type="text/javascript">
-					dataUrl="<@spring.url relativeUrl="/admin/listSimpleObjects?entityName=${entityName}&operator=or"/>";
+					dataUrl="<@spring.url relativeUrl="/admin/listSimpleObjects?${_csrf.parameterName}=${_csrf.token}&entityName=${entityName}&operator=or"/>";
 					columnsToDisplay=[<#list formField as field><#assign fieldType = fieldTypeMapping[field.fieldType]?default(field.fieldType)><#if field.canDisplay>{<#if fieldType=="file">"render":function( data, type, full, meta ){return ${field.fieldName}Display( data, type, full, meta );},"searchable":false,</#if><#if field.fieldName="activeRoles">"searchable":false, "orderable":false,</#if> "data": "<#if fieldType!='text' &&  fieldType!='file' &&  fieldType!='date' && fieldType!='select'>${field.fieldName}.name<#else>${field.fieldName}</#if>" },</#if></#list>];
 					function makeEditLink(row,data){
 						var cellToModify = $(row).find("td:eq(0)");

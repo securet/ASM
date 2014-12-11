@@ -1,10 +1,13 @@
 package com.securet.ssm.services;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 public class DefaultService {
@@ -19,10 +22,22 @@ public class DefaultService {
 		return "login";
 	}
 
-	@RequestMapping("/admin/")
+	@RequestMapping("/logout")
+	public String logout(Model model,HttpServletRequest request) {
+		request.getSession().invalidate();
+		return "redirect:login";
+	}
+
+	@RequestMapping(value= {"/admin","/admin/"})
 	public String admin(Model model) {
 		// TODO - Prepare admin view model later
 		return "admin/home";
+	}
+
+	@RequestMapping(value= {"/tickets","/tickets/"})
+	public String tickets(Model model) {
+		// TODO - Prepare admin view model later
+		return "ticket/listTickets";
 	}
 
 	@RequestMapping("error/403")

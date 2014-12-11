@@ -27,7 +27,7 @@
 				});
 			</script>
 		</#if>	
-	</#if>	
+	</#if> 
 </#macro>
 
 <#macro formSingleSelectSSM path field options attributes="" includeLabelInline=true>
@@ -128,4 +128,20 @@
 			<input id="${field.fieldName}" name="${field.fieldName}" value="${field.fieldValue!}" type="${field.fieldType}" ${attributes}/>
 		</div>	
 	</div>	
+</#macro>
+
+<#macro ticketTimeLine ticket>
+	<#if ticket?exists>
+		<li class="timeline-inverted">
+			<div class="timeline-badge"><i class="glyphicon <#if ticket.modifiedBy.organization.organizationType=='VENDOR'>glyphicon-wrench<#else>glyphicon-user</#if>"></i></div>
+			<div class="timeline-panel">
+				<div class="timeline-heading">
+		  			<p><small class="text-muted"><i class="glyphicon glyphicon-time"></i> posted by ${ticket.modifiedBy.userId!} @  ${ticket.lastUpdatedTimestamp?string!} </small></p>
+		    	</div>
+			    <div class="timeline-body">
+					<p>${ticket.description!}</p>
+			    </div>
+			</div> 
+		</li>
+	</#if>	
 </#macro>

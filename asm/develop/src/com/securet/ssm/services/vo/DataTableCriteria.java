@@ -14,22 +14,24 @@ import com.securet.ssm.utils.SecureTUtils;
 
 public class DataTableCriteria implements Serializable{
 
-	private static final String AND = "and";
-	private static final String EQUALS = "=";
+	public static final String AND = "and";
+	public static final String EQUALS = "=";
 	public static final String DATA_QUERY = "dataQuery";
 	public static final String COUNT_QUERY = "countQuery";
-	private static final String SELECT = "select ";
-	private static final String WHERE = " where ";
-	private static final String ORDER_BY = " order by ";
-	private static final String LIKE = " like ";
-	private static final String COUNT = "count";
-	private static final String PERCENTILE = "%";
-	private static final String DOT = ".";
-	private static final String SPACE = " ";
-	private static final String QUOTE = "'";
-	private static final String START_BRACKET = "(";
-	private static final String END_BRACKET = ")";
-	private static final String DB_OR = " or ";
+	public static final String AND_FILTER = "AND_FILTER";
+	public static final String OR_FILTER = "OR_FILTER";
+	public static final String SELECT = "select ";
+	public static final String WHERE = " where ";
+	public static final String ORDER_BY = " order by ";
+	public static final String LIKE = " like ";
+	public static final String COUNT = "count";
+	public static final String PERCENTILE = "%";
+	public static final String DOT = ".";
+	public static final String SPACE = " ";
+	public static final String QUOTE = "'";
+	public static final String START_BRACKET = "(";
+	public static final String END_BRACKET = ")";
+	public static final String DB_OR = " or ";
 	private static final Logger _logger = LoggerFactory.getLogger(DataTableCriteria.class);
 	/*
 	 * columns[0][data]	name
@@ -113,10 +115,7 @@ public class DataTableCriteria implements Serializable{
 		StringBuilder orQuery = new StringBuilder();
 		Iterator<Map<ColumnCriterias, String>> columnsIterator = dataTableCriteria.getColumns().iterator();
 		//let us also check if there are any column criterias - field filters will  "and" filters,   any text search will be "or" regex
-		String textToSearch = null;
-    	if(dataTableCriteria.search!=null && dataTableCriteria.search.size()>0){
-    		textToSearch = dataTableCriteria.search.get(SearchCriterias.value);
-    	}
+		String textToSearch = getDefaultTextToSearch(dataTableCriteria);
 		boolean hasNext=columnsIterator.hasNext(); 
 		Map<ColumnCriterias,String> columnCriteriasMapping = columnsIterator.next();
 		while(hasNext){
@@ -188,8 +187,18 @@ public class DataTableCriteria implements Serializable{
     	countQuery.append(SELECT).append(SPACE).append(COUNT).append(START_BRACKET).append(anyColumn).append(END_BRACKET).append(SPACE).append(baseQuery.toString());
     	queriesToRun.put(DATA_QUERY, dataQuery.toString());
     	queriesToRun.put(COUNT_QUERY, countQuery.toString());
+    	queriesToRun.put(AND_FILTER, andQuery.toString());
+    	queriesToRun.put(OR_FILTER, andQuery.toString());
     	return queriesToRun;
     }
+
+    public static String getDefaultTextToSearch(DataTableCriteria dataTableCriteria) {
+		String textToSearch=null;
+		if(dataTableCriteria.search!=null && dataTableCriteria.search.size()>0){
+    		textToSearch = dataTableCriteria.search.get(SearchCriterias.value);
+    	}
+		return textToSearch;
+	}
 	
 	private static Map<ColumnCriterias, String> makeColumns(String field) {
 		Map<ColumnCriterias,String> columns = new HashMap<DataTableCriteria.ColumnCriterias, String>();

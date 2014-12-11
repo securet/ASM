@@ -46,7 +46,6 @@ public class SecureTObject implements Serializable{
 		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
 	}
 
-	@PreUpdate
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
 	}

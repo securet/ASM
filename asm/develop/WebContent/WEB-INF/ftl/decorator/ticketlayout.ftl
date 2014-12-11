@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <#assign security=JspTaglibs["http://www.springframework.org/security/tags"] />
 <#assign decorator = JspTaglibs["http://www.opensymphony.com/sitemesh/decorator"]/>
-<@decorator.usePage id="page"/>
 <#setting number_format="0.##">
+<@decorator.usePage id="page"/>
 <html>
 	<head>
 	    <meta charset="utf-8">
@@ -53,16 +53,11 @@
 			<div class="row row-offcanvas row-offcanvas-left">
 			    <div class="col-xs-6 col-sm-2 sidebar-offcanvas" id="sidebar" role="navigation">
 					<div class="list-group">
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Organization"/>" class="list-group-item ">Organization <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Site"/>" class="list-group-item ">Site   <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=ServiceType"/>" class="list-group-item ">Service Type  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=IssueType"/>" class="list-group-item ">Issue Type  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=AssetType"/>" class="list-group-item ">AssetType  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Asset"/>" class="list-group-item ">Asset  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=User"/>" class="list-group-item ">User  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewClientUserSites"/>" class="list-group-item ">Assign Client Sites  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/admin/viewVendorAssetMapping"/>" class="list-group-item ">Map Vendor Assets  <i class="glyphicon glyphicon-chevron-right"></i></a>
-						<a href="<@spring.url relativeUrl="/tickets/listTickets"/>" class="list-group-item ">Tickets<i class="glyphicon glyphicon-chevron-right"></i></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=OPEN"/>" class="list-group-item ">Open <span class="badge badge-danger">${openTicketsCount!}</span></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=WORK_IN_PROGRESS"/>"class="list-group-item ">Work in Progress <span class="badge badge-info">${work_in_progressTicketsCount!}</span></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=RESOLVED"/>" class="list-group-item ">Resolved <span class="badge badge-warning">${resolvedTicketsCount!}</span></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=CLOSED"/>" class="list-group-item ">Closed <span class="badge badge-success">${closedTicketsCount!}</span></a>
+						<a href="<@spring.url relativeUrl="/tickets/listTickets"/>" class="list-group-item ">All Tickets <span class="badge badge-primary">${openTicketsCount?default(0)+work_in_progressTicketsCount?default(0)+resolvedTicketsCount?default(0)+closedTicketsCount?default(0)}</span></a>
 					</div>
 			    </div><!--/.sidebar-offcanvas-->
 			    <div class="col-xs-12 col-sm-10">
@@ -81,5 +76,3 @@
 		<div id="footer">Copyright &copy; SecureT ${now?string("yyyy")}</div>
 	</body>
 </html>
-		
- 
