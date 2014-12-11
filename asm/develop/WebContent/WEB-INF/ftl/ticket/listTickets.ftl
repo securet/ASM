@@ -18,7 +18,7 @@
 			<div class="panel-body">
 				<script type="text/javascript">
 					dataUrl="<@spring.url relativeUrl="/tickets/listUserTickets?${_csrf.parameterName}=${_csrf.token}&entityName=Ticket&operator=or"/><#if filterStatus?exists>&filterStatus=${filterStatus}</#if>";
-					columnsToDisplay=[{ "data": "ticketId" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription" }];
+					columnsToDisplay=[{ "data": "ticketId" },{ "data": "site.name" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription" }];
 					function makeEditLink(row,data){
 						var cellToModify = $(row).find("td:eq(0)");
 						var text = $(cellToModify).html();
@@ -51,6 +51,7 @@
 			        <thead>
 			            <tr>
 			                <th>Ticket Id</th>
+			                <th>SiteId</th>
 			                <th>ServiceType</th>
 			                <th>Description</th>
 			                <th>Status</th>
@@ -63,6 +64,7 @@
 			        <tfoot>
 			            <tr>
 			                <th>Ticket Id</th>
+			                <th>SiteId</th>
 			                <th>ServiceType</th>
 			                <th>Description</th>
 			                <th>Status</th>
