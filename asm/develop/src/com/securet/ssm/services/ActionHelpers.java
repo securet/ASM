@@ -1,5 +1,7 @@
 package com.securet.ssm.services;
 
+import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +42,16 @@ public class ActionHelpers {
 		String dataQueryStr = queriesToRun.get(DataTableCriteria.DATA_QUERY);
 		String countQueryStr = queriesToRun.get(DataTableCriteria.COUNT_QUERY);
 		Query query = entityManager.createQuery(dataQueryStr);
+		Query countQuery = entityManager.createQuery(countQueryStr);
+		Map<String,Query> jpaQueriesToRun = new HashMap<String, Query>();
+		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, query);
+		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countQuery);
+		ListObjects listObjects = listSimpleObjectFromQuery(entityManager, columns, jpaQueriesToRun);
+		return listObjects; 
+	}
+
+	public static ListObjects listSimpleObjectFromQuery(EntityManager entityManager, DataTableCriteria columns, Map<String,Query> queriesToRun) {
+		Query query = queriesToRun.get(DataTableCriteria.DATA_QUERY);
 		int viewSize = columns.getLength();
 		int startIndex = columns.getStart();
 		int maxResults = query.getMaxResults();
@@ -52,20 +64,28 @@ public class ActionHelpers {
 		@SuppressWarnings("rawtypes")
 		List data = query.getResultList();
 		
-		Query countQuery = entityManager.createQuery(countQueryStr);
-		Long totalResults = (Long)countQuery.getSingleResult();
+		Query countQuery = queriesToRun.get(DataTableCriteria.COUNT_QUERY);
+		Object totalResults = countQuery.getSingleResult();
+		int totalRecords = 0;
+		if(totalResults instanceof Long){
+			totalRecords = ((Long)totalResults).intValue();
+		}else if(totalResults instanceof BigInteger){
+			totalRecords = ((BigInteger)totalResults).intValue();
+		}else{
+			totalRecords=(int)totalResults;
+		}
 		_logger.debug("query count : "+totalResults);
 		
 		ListObjects listObjects = new ListObjects();
 		listObjects.setData(data);
-		listObjects.setRecordsTotal(totalResults.intValue());
-		if(maxResults>totalResults.intValue()){
-			maxResults=totalResults.intValue();
+		listObjects.setRecordsTotal(totalRecords);
+		if(maxResults>totalRecords){
+			maxResults=totalRecords;
 		}
 		
 		listObjects.setDraw(columns.getDraw());
 		listObjects.setRecordsFiltered(maxResults);
-		return listObjects; 
+		return listObjects;
 	}
 
 }

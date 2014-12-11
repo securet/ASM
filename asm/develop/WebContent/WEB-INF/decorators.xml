@@ -3,9 +3,11 @@
 	<decorator name="standard" page="adminlayout.ftl">
 		<pattern>/admin/*</pattern>
    		<pattern>/error/*</pattern>
+	</decorator>
+	<decorator name="tickets" page="ticketlayout.ftl">
 		<pattern>/tickets/*</pattern>
 	</decorator>
-	<decorator name="nolayout" page="nolayout.ftl">
+		<decorator name="nolayout" page="nolayout.ftl">
 		<pattern>/login</pattern>
 	</decorator>
 </decorators>

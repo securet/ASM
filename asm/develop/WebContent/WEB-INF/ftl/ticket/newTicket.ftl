@@ -56,9 +56,11 @@
 						<#assign hideSite="">
 						<#assign area=selectedSite.area!>
 					</#if>
-					<div id="areablock" class="form-group ${hideSite}">
+					<div id="areablock" class="form-group labelblock ${hideSite}">
 						<label for="area" class="col-sm-3 control-label">Area </label>
-						<label id="area" class="col-sm-9 control-label normaltext">${area}</label>
+					    <div class="col-sm-9">
+							<p id="area" class="form-control-static normaltext">${area}</p>
+					    </div>
 					</div>
 
 					<#if serviceTypes?exists && (serviceTypes?size>0) >
@@ -77,13 +79,17 @@
 						<#assign vendorName = vendors.userId>	
 						<#assign organizationName = vendors.organization.name>	
 					</#if>
-					<div id="vendorOrgblock" class="form-group ${hideVendor}">
+					<div id="vendorOrgblock" class="form-group labelblock ${hideVendor}">
 						<label for="vendorOrg" class="col-sm-3 control-label">Vendor Organization</label>
-						<label id="vendorOrg" class="col-sm-9 control-label normaltext">${organizationName!}</label>
+					    <div class="col-sm-9">
+							<p id="vendorOrg" class="form-control-static normaltext">${organizationName!}</p>
+					    </div>
 					</div>
-					<div id="vendorUserblock" class="form-group ${hideVendor}">
+					<div id="vendorUserblock" class="form-group labelblock ${hideVendor}">
 						<label for="vendorUser" class="col-sm-3 control-label">Vendor User</label>
-						<label id="vendorUser" class="col-sm-9 control-label normaltext">${vendorName}</label>
+					    <div class="col-sm-9">
+							<p id="vendorUser" class="form-control-static normaltext">${vendorName!}</p>
+					    </div>
 					</div>
 					<#if issueTypes?exists>
 						<#if issueTypes?exists && (issueTypes?size>0) >

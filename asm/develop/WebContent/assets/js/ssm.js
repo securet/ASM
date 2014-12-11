@@ -58,6 +58,7 @@ $(document).ready(function () {
 			"serverSide": true,
 			ajax: {
 				"url": dataUrl,
+				"type": "POST",
 				"data": function(data) {
 					planify(data);
 			}},
@@ -222,14 +223,14 @@ function initVendorAssetMapping(){
 	
 	if($("#userId").size()>0){
 		$("#userId").change(function(eventData){
-			fetchAndMapVendorAssets();
+			fetchAndMapVendorAssets(false);
 			makeAssetsOptions();
 		});
 	}
 
 	if($("#serviceTypeId").size()>0){
 		$("#serviceTypeId").change(function(eventData){
-			fetchAndMapVendorAssets();
+			fetchAndMapVendorAssets(false);
 			 makeAssetsOptions();
 		});
 	}
@@ -238,8 +239,7 @@ function initVendorAssetMapping(){
 		initMultiSelect("assets");
 	}
 	if($("#siteId").val()!=null && $("#siteId").val()!=""){
-		fetchAndMapVendorAssets();
-		$("#siteId").trigger("change");
+		fetchAndMapVendorAssets(true);
 	}
 }
 
@@ -306,7 +306,7 @@ function getCitiesForState(stateElementId,cityElementId){
 	}
 }
 
-function fetchAndMapVendorAssets(){
+function fetchAndMapVendorAssets(triggerSiteChange){
 	if($("#userId").val()=="" || $("#serviceTypeId").val()==""){
 		//alert("Please select a user");
 		return false;
@@ -316,9 +316,13 @@ function fetchAndMapVendorAssets(){
 			 success:function(data){
 				 if(typeof data!='undefined' && data.length>0){
 					 for(var i=0;i<data.length;i++){
-						 vendorServiceAsset[$("#userId").val()+"_"+$("#serviceTypeId").val()+"_"+data[i].assetId]=data[i].name;	
+						 var key=$("#userId").val()+"_"+$("#serviceTypeId").val()+"_"+data[i].assetId;
+						 vendorServiceAsset[key]=data[i].name;
 					 }
 				 }	
+				 if(triggerSiteChange){
+					 $("#siteId").trigger("change");
+				 }
 			 },
 			 error: function(){
 				 alert("No Asset mapped for user");
@@ -329,7 +333,8 @@ function fetchAndMapVendorAssets(){
 function makeAssetsOptions(){
 	if(typeof allAssets !='undefined' && allAssets!=null && allAssets.length>0){
 		for(var j=0; j<allAssets.length; j++){
-			if(typeof vendorServiceAsset[$("#userId").val()+"_"+$("#serviceTypeId").val()+"_"+allAssets[j].assetId] !='undefined'){
+			var key=$("#userId").val()+"_"+$("#serviceTypeId").val()+"_"+allAssets[j].assetId;
+			if(typeof vendorServiceAsset[key] !='undefined'){
 				allAssets[j].assetSelected=true
 			}else{
 				allAssets[j].assetSelected=false;

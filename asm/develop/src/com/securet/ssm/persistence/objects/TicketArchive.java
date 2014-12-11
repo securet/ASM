@@ -1,17 +1,46 @@
 package com.securet.ssm.persistence.objects;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
 @Entity
 @Table(name="ticket_archive")
-public class TicketArchive extends SecureTObject{
+@NamedQueries({
+	@NamedQuery(name="getLatestTicketArchivesForTicketId",query="SELECT o from TicketArchive o WHERE o.ticketId=:ticketId order by o.lastUpdatedTimestamp desc")
+})
+public class TicketArchive{
 
+	private Timestamp createdTimestamp;
+	private Timestamp lastUpdatedTimestamp;
+	
+
+	public TicketArchive() {
+		//No argument constructor for JPA
+	}
+
+	public TicketArchive(Ticket ticket){
+		this.ticketId=ticket.getTicketId();
+		this.ticketMasterId=ticket.getTicketId();
+		this.modifiedBy=ticket.getModifiedBy();
+		this.description=ticket.getDescription();
+		this.modifiedBy=ticket.getModifiedBy();
+		this.reporter=ticket.getReporter();
+		this.resolver=ticket.getResolver();
+		this.setCreatedTimestamp(ticket.getCreatedTimestamp());
+		this.setLastUpdatedTimestamp(ticket.getLastUpdatedTimestamp());
+	}
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int ticketArchiveId;
@@ -90,4 +119,20 @@ public class TicketArchive extends SecureTObject{
 		this.modifiedBy = modifiedBy;
 	}
 	
+	public Timestamp getCreatedTimestamp() {
+		return createdTimestamp;
+	}
+
+	public void setCreatedTimestamp(Timestamp createdTimestamp) {
+		this.createdTimestamp = createdTimestamp;
+	}
+
+	public Timestamp getLastUpdatedTimestamp() {
+		return lastUpdatedTimestamp;
+	}
+	
+	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
+		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+	}
+
 }

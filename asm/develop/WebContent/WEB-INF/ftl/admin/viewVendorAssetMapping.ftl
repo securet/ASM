@@ -29,7 +29,7 @@
 					<div class="row">
 						 <div class="col-xs-12 col-lg-5">
 							<#assign organizationsList = .data_model["getVendorOrganizationForView"]>
-							<#assign options>{"":"Select Organization",<#list organizationsList as uiObject>"${uiObject.organizationId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#assign options>{"":"Select Organization"<#if organizationsList?exists && (organizationsList?size>0)>,</#if><#list organizationsList as uiObject>"${uiObject.organizationId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 							<@formSingleSelectSSM path="formObject.organizationId" field={"fieldName":"organizationId","label":"Select Organization"} options=options?eval  includeLabelInline=false/>
 		
 							<#assign usersList = .data_model["getVendorsForOrganization"]?default([])>

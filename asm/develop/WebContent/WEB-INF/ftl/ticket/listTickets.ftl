@@ -1,3 +1,4 @@
+<#assign security=JspTaglibs["http://www.springframework.org/security/tags"] />
 <#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","boolean","text"}>
 <html>
 	<head>
@@ -16,26 +17,36 @@
 			</div>
 			<div class="panel-body">
 				<script type="text/javascript">
-					<#assign userParams = "&columns[0][name]=&columns[0][orderable]=true&columns[0][searchRegex]=false&columns[0][searchable]=true&columns[0][searchValue]=11"+userName>
-					<#if isReporter>
-						<#assign userParams= "columns[0][data]=reporter.userId" + userParams>
-					<#else>
-						<#assign userParams= "columns[0][data]=resolver.userId" + userParams>	
-					</#if>	
-					dataUrl="<@spring.url relativeUrl="/tickets/listUserTickets?entityName=Ticket&operator=or"/>";
-					columnsToDisplay=[{ "data": "ticketId" },{ "data": "serviceType.name" },{ "data": "description"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription" }];
+					dataUrl="<@spring.url relativeUrl="/tickets/listUserTickets?${_csrf.parameterName}=${_csrf.token}&entityName=Ticket&operator=or"/><#if filterStatus?exists>&filterStatus=${filterStatus}</#if>";
+					columnsToDisplay=[{ "data": "ticketId" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription" }];
 					function makeEditLink(row,data){
 						var cellToModify = $(row).find("td:eq(0)");
 						var text = $(cellToModify).html();
-						$(cellToModify).html('<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="/>'+data.ticketId+'">'+text+'</a>');
+						var ticketType = $(row).find("td:eq(7)");
+						ticketTypeText = $(ticketType).html();
+						if(ticketTypeText=='Complaint'){
+							$(cellToModify).html('<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="/>'+data.ticketId+'">'+text+'</a>');
+						}
 					}				
 				</script>
-				<#--
-				<#assign bindingResult = .data_model["org.springframework.validation.BindingResult.formObject"]>
-				<#if formObject.name?exists && bindingResult?exists && !bindingResult.hasErrors()>
-					<div class="alert alert-info asmnotification" role="alert"><#if createNew>Created<#else>Saved</#if> ${entityName} successfully : ${formObject.name!}</div>
+				
+				
+				<#if saved?exists>
+					<div class="alert alert-info asmnotification" role="alert">Saved Ticket with  : ${formObject.ticketId!}</div>
 				</#if>
-				-->
+				
+				<#if filterStatus?exists>
+					<div class="alert alert-success" role="alert">Showing '${filterStatus?replace("_"," ")?capitalize}' tickets</div>
+				</#if>	
+				<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER','ADMIN')">
+					<div class="pageoptions">
+						<div class="btn-group">
+							<a href="<@spring.url relativeUrl="/tickets/newTicket"/>" class="btn btn-default DTTT_button_text" tabindex="0" aria-controls="example">
+								<span>New</span>
+							</a>
+						</div>
+					</div>
+				</@security.authorize>				
 				<table id="asmdatatable" class="display table table-striped table-hover dt-responsive" width="100%" cellspacing="0">
 			        <thead>
 			            <tr>

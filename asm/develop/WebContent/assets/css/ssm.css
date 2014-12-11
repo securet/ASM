@@ -63,9 +63,12 @@ body {
 
 /* off canvas*/
 .toggleleftmenu {
-    height: 31px;
-    margin-left: -15px;
-    width: 11px;
+	margin-left: -13px;
+	width: 22px;
+	padding-left: 3px;
+	padding-right: 4px;
+	padding-top: 0px;
+	padding-bottom: 0px;
 }
 
 header{
@@ -88,9 +91,11 @@ header{
 }
 .login-row .box-start{
 	vertical-align: middle;
+	 width: 99.8%
 }
 .login-row .box-end{
 	vertical-align: top;
+	width: 100%;
 }
 @media (min-width: 600px) { 
 	.login-row{
@@ -108,7 +113,16 @@ header{
 	#content{
 		margin-left: 2%;
 	}
+	.login-row .box-end{
+		width: 100.1%;
+	}
 }
+@media(max-width:450px){
+	.glyphicon-chevron-right:before{
+		content:"";
+	}
+}
+
 #sitelogo{
 	width:50px;
 	display: inline-block;
@@ -220,4 +234,28 @@ div.dataTables_filter input{
 }
 #map-canvas{
 	height:200px;	
+}
+.timeline-body > p, .timeline-body > ul {
+    word-wrap: break-word;
+}
+.timeline > li > .timeline-panel{
+	width:65%
+}
+.timeline > li > .timeline-badge, .timeline:before {
+	left:25%;
+}
+.badge-danger{
+	background-color: #d9534f;
+}
+.badge-info{
+	background-color: #5bc0de;
+}
+.badge-warning{
+	background-color: #f0ad4e;
+}
+.badge-success {
+    background-color: #5cb85c;
+}
+.badge-primary {
+    background-color: #337ab7;
 }

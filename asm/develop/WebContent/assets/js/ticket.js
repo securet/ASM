@@ -64,10 +64,10 @@ function bindSiteChange(siteElement,serviceTypeElement){
 function showTicketOrganization(vendorOrgElement,vendorUserElement,data){
 	 $("#vendorNotAssignedError").remove();
 	 vendorOrgElement.removeClass("hide");
-	 var orgLabel = vendorOrgElement.children("#vendorOrg")
+	 var orgLabel = vendorOrgElement.find("#vendorOrg")
 	 orgLabel.html(data.vendors.organization.name);
 	 vendorUserElement.removeClass("hide");
-	 var userLabel = vendorUserElement.children("#vendorUser")
+	 var userLabel = vendorUserElement.find("#vendorUser")
 	 userLabel.html(data.vendors.userId);
 }
 

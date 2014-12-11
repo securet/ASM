@@ -6,10 +6,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import javax.xml.crypto.Data;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -35,9 +39,11 @@ import com.securet.ssm.persistence.SequenceGeneratorHelper;
 import com.securet.ssm.persistence.objects.Asset;
 import com.securet.ssm.persistence.objects.Enumeration;
 import com.securet.ssm.persistence.objects.MailTemplate;
+import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.objects.TicketArchive;
 import com.securet.ssm.persistence.objects.TicketAttachment;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.persistence.objects.VendorServiceAsset;
@@ -50,18 +56,59 @@ import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.services.vo.DataTableCriteria.ColumnCriterias;
 import com.securet.ssm.utils.SecureTUtils;
 
+import freemarker.template.utility.StringUtil;
+
 @Controller
 @Repository
 @Service
 public class TicketService extends SecureTService {
 
-	private static final String BASE_CLIENT_USER_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+	private static final int MAX_SHORT_DESC = 80;
+	public static final List<String> TICKET_STATUS = new ArrayList<String>();
+	static{
+		TICKET_STATUS.add("OPEN");
+		TICKET_STATUS.add("WORK_IN_PROGRESS");
+		TICKET_STATUS.add("RESOLVED");
+		TICKET_STATUS.add("CLOSED");
+	}
+
+	// should make a query planner, to many queries - TODO - data table query planner for custom queries 
+	private static final String CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+	private static final String VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+
+	private static final String TICKET_NATIVE_QUERY = "SELECT t.* from ticket t ";
+	private static final String TICKET_COUNT_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t ";
+	
+	private static final String SERVICE_ISSUE_TYPE_JOIN_CLAUSE = " INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN issue_type it ON t.issueTypeId=it.issueTypeId";
+	
+	//client queries
+	private static final String CLIENT_USER_SITE_JOIN_CLAUSE = " INNER JOIN client_user_site cus ON t.siteId=cus.siteId ";
+	private static final String CLIENT_USER_FILTER = " cus.userId=(?1) ";
+	
+	//vendor queries
+	private static final String VENDOR_SERVICE_ASSET_JOIN_CLAUSE = " INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId";
+	private static final String VENDOR_USER_FILTER = " t.ticketType!='LOG' AND vsa.userId=(?1) ";
+	
+	//Common Join and Filters
+	private static final String TICKET_STATUS_FILTER = " t.statusId IN (?2) ";
+	private static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)) ";  
+	private static final int TICKET_COMMON_FILTER_PARAMS_SIZE=5;  
+	
+	//Queries to show navigation filters 
+	private static final String COUNT_CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+	private static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+	
 	private static final String EMAIL_CREATE_TICKET_NOTIFICATION = "EMAIL_CREATE_TICKET_NOTIFICATION";
 	private static final String SMS_CREATE_TICKET_NOTIFICATION = "SMS_CREATE_TICKET_NOTIFICATION";
+
+	private static final String EMAIL_UPDATE_TICKET_NOTIFICATION = "EMAIL_UPDATE_TICKET_NOTIFICATION";
+	private static final String SMS_UPDATE_TICKET_NOTIFICATION = "SMS_UPDATE_TICKET_NOTIFICATION";
+
 	private static final String LOG = "LOG";
 	private static final String COMPLAINT = "COMPLAINT";
 
 	private static final String OPEN = "OPEN";
+	private static final String WORK_IN_PROGRESS = "WORK_IN_PROGRESS";
 	private static final String CLOSED = "CLOSED";
 	
 	private static final String ALL_OK = "ALL OK";
@@ -161,29 +208,72 @@ public class TicketService extends SecureTService {
 	}
 
 	@RequestMapping("/tickets/listTickets")
-	public String listTickets(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,Model model){
+	public String listTickets(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@RequestParam(value="filterStatus",required=false) String filterStatus,Model model){
 		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
 		model.addAttribute("isReporter", isReporter);
 		model.addAttribute("userName", customUser.getUsername());
+		if(filterStatus!=null && !filterStatus.isEmpty()){
+			model.addAttribute("filterStatus", filterStatus);
+		}
 		return DefaultService.TICKET+"listTickets";
 	}
 
 	@Transactional
 	@RequestMapping(value="/tickets/listUserTickets",produces="application/json")
-	public @ResponseBody ListObjects loadSimpleObjects(@ModelAttribute DataTableCriteria columns, @RequestParam("entityName") String entityName,@RequestParam("operator") String operator,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,HttpServletRequest request){
+	public @ResponseBody ListObjects listUserTickets(@ModelAttribute DataTableCriteria columns, @RequestParam("entityName") String entityName,@RequestParam("operator") String operator,@RequestParam(value="filterStatus",required=false) String filterStatus,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,HttpServletRequest request){
 		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
-		//add the user filter
-		Map<ColumnCriterias,String> userColumn = new HashMap<DataTableCriteria.ColumnCriterias, String>();
+		StringBuilder ticketQueryStr = new StringBuilder();
+		//ticketQueryStr.append(TICKET_NATIVE_QUERY);
+		ticketQueryStr.append(SERVICE_ISSUE_TYPE_JOIN_CLAUSE);
 		if(isReporter){
-			userColumn.put(ColumnCriterias.data, "reporter.userId");
+			ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
+			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
+			ticketQueryStr.append(CLIENT_USER_FILTER).append(DataTableCriteria.END_BRACKET);
 		}else{
-			userColumn.put(ColumnCriterias.data, "resolver.userId");
+			ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE).append(" WHERE ");;
+			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
+			ticketQueryStr.append(VENDOR_USER_FILTER).append(DataTableCriteria.END_BRACKET);
 		}
-		userColumn.put(ColumnCriterias.searchable,"true");
-		userColumn.put(ColumnCriterias.searchValue,customUser.getUsername());
-		columns.getColumns().add(userColumn);
-		if(_logger.isDebugEnabled())_logger.debug("load objects for "+entityName);
-		return ActionHelpers.loadSimpleObjects(entityManager, columns, entityName, operator, request);
+		
+		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
+		boolean textSearchEnabled = textToSearch!=null && !textToSearch.isEmpty();
+		if(textSearchEnabled){
+			ticketQueryStr.append(DataTableCriteria.SPACE).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
+			ticketQueryStr.append(TICKET_COMMON_FILTER_CLAUSE);
+		}
+
+		StringBuilder ticketListQueryStr = new StringBuilder();
+		ticketListQueryStr.append(TICKET_NATIVE_QUERY).append(ticketQueryStr.toString());
+		Query ticketListQuery = entityManager.createNativeQuery(ticketListQueryStr.toString(), Ticket.class);
+
+		StringBuilder ticketCountQueryStr = new StringBuilder();
+		ticketCountQueryStr.append(TICKET_COUNT_NATIVE_QUERY).append(ticketQueryStr.toString());
+		Query ticketCountQuery = entityManager.createNativeQuery(ticketCountQueryStr.toString());
+		ticketListQuery.setParameter(1, customUser.getUsername());
+		ticketCountQuery.setParameter(1, customUser.getUsername());
+		if(filterStatus!=null && !filterStatus.isEmpty()){
+			ticketListQuery.setParameter(2, filterStatus);
+			ticketCountQuery.setParameter(2, filterStatus);
+		}else{
+			ticketListQuery.setParameter(2, TICKET_STATUS);
+			ticketCountQuery.setParameter(2, TICKET_STATUS);
+		}
+			
+		int paramCount = ticketListQuery.getParameters().size();
+		if(textSearchEnabled){
+			textToSearch = DataTableCriteria.PERCENTILE+textToSearch+DataTableCriteria.PERCENTILE;
+			for(int i=3;i<=paramCount;i++){
+				ticketListQuery.setParameter(i, textToSearch);
+				ticketCountQuery.setParameter(i, textToSearch);
+			}
+		}
+		
+		Map<String,Query> jpaQueriesToRun = new HashMap<String, Query>();
+		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, ticketListQuery);
+		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, ticketCountQuery);
+
+		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
+		return ActionHelpers.listSimpleObjectFromQuery(entityManager, columns, jpaQueriesToRun);
 	}
 
 	
@@ -193,10 +283,11 @@ public class TicketService extends SecureTService {
 		validateAndSetDefaultsForTicket(formObject,result);		
 		if(!result.hasErrors()){
 			createTicket(formObject,customUser.getUsername());
-			saveAttachments(formObject,ticketAttachments);
+			saveAttachments(formObject,ticketAttachments,true);
 			if(!isLog(formObject)){
-				sendNotifications(formObject);
+				sendNotifications(formObject, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION);
 			}
+			model.addAttribute("saved", true);
 		}else{
 			loadDefaults(model, customUser.getUsername());
 			//preload all the necessary data...
@@ -204,7 +295,7 @@ public class TicketService extends SecureTService {
 			return DefaultService.TICKET+"newTicket";
 		}
 		//all is fine.. load the user tickets
-		return listTickets(customUser, model);
+		return listTickets(customUser,null, model);
 	}
 
 
@@ -213,27 +304,62 @@ public class TicketService extends SecureTService {
 	public String editTicket(@RequestParam("id") String ticketId,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser, Model model){
 		//find if the ticket is part of the user or his organization group and then allow them to edit
 		Ticket currentTicket = null;
-		if(customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority)){
-			
-		}else{
-			//consider admin as the client as of now
-			List<Ticket> userTickets =  getClientUserTicket(customUser,ticketId);
-			//if tickets found, the user shoud be allowed to view, else.. show him his tickets list
-			if(userTickets.size()>0){
-				currentTicket = userTickets.get(0);
-				_logger.debug("no of attachments : "+currentTicket.getAttachments().size());
+		//consider admin as the client as of now
+		String selectedQuery = CLIENT_USER_TICKET_NATIVE_QUERY;
+		boolean isResolver = customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+		if(isResolver){
+			//find the logged in user, assigned service types and sites 
+			selectedQuery=VENDOR_SITE_TICKET_NATIVE_QUERY;			
+		}
+		List<Ticket> userTickets =  getUserTickets(customUser,selectedQuery,ticketId);
+		//if tickets found, the user should be allowed to view, else.. show him his tickets list - error message??
+		if(userTickets.size()>0){
+			currentTicket = userTickets.get(0);
+			if(isResolver && currentTicket.getStatus().getEnumerationId().equals(OPEN)){
+				//set the status to WORK IN PROGRESS
+				currentTicket = updateTicket(currentTicket, WORK_IN_PROGRESS, currentTicket.getDescription(), customUser.getUsername());
 			}
+			_logger.debug("no of attachments : "+currentTicket.getAttachments().size());
 		}
-		
 		if(currentTicket==null){
-			return listTickets(customUser,model);
+			return listTickets(customUser,null,model);
 		}
+		return loadEditTicketModel(model, currentTicket);
+	}
+
+	private String loadEditTicketModel(Model model, Ticket currentTicket) {
+		//also load the archive...
+		List<SecureTObject> ticketArchives = fetchQueriedObjects("getLatestTicketArchivesForTicketId", "ticketId", currentTicket.getTicketId());
+		model.addAttribute("ticketArchives", ticketArchives);// pagination???
 		model.addAttribute("formObject",currentTicket);
 		return DefaultService.TICKET+"modifyTicket";
 	}
 
-	private List<Ticket> getClientUserTicket(org.springframework.security.core.userdetails.User customUser, String ticketId){
-		StringBuilder queryString = new StringBuilder(BASE_CLIENT_USER_NATIVE_QUERY);
+	@Transactional
+	@RequestMapping(value="/tickets/updateTicket",method=RequestMethod.POST)
+	public String updateTicket(@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@Valid @ModelAttribute("formObject") Ticket formObject, BindingResult result,Model model){
+		if(formObject.getStatus()==null || formObject.getStatus().getEnumerationId().isEmpty()){
+			FieldError fieldError = new FieldError("formObject", "status.enumerationId", "Please select a valid status");
+			result.addError(fieldError);
+		}
+		if(!result.hasErrors()){
+			if(ticketAttachments!=null && ticketAttachments.size()>0){
+				saveAttachments(formObject, ticketAttachments,false);
+			}
+			formObject = updateTicket(formObject, formObject.getStatus().getEnumerationId(), formObject.getDescription(), customUser.getUsername());
+			if(!isLog(formObject)){
+				sendNotifications(formObject, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION);
+			}
+		}else{
+			String responseString = editTicket(formObject.getTicketId(), customUser, model);
+			return responseString;
+		}
+		return listTickets(customUser,null, model);
+	}
+
+	
+	private List<Ticket> getUserTickets(org.springframework.security.core.userdetails.User customUser,String query, String ticketId){
+		StringBuilder queryString = new StringBuilder(query);
 		if(ticketId!=null){
 			queryString.append(" AND ").append("t.ticketId=(?2)");
 		}
@@ -272,6 +398,7 @@ public class TicketService extends SecureTService {
 				formObject.setResolver(vendorUser);
 				
 			}
+			setShortDescription(formObject);
 			//reporter, resolver, status, createdBy
 			User reporter = new User();
 			reporter.setUserId(reporterUserId);
@@ -289,10 +416,43 @@ public class TicketService extends SecureTService {
 			entityManager.persist(formObject);
 	}
 
+	private void setShortDescription(Ticket formObject) {
+		String description = formObject.getDescription();
+		if(description.length()<MAX_SHORT_DESC){
+			formObject.setShortDesc(description);
+		}else{
+			formObject.setShortDesc(description.substring(0, MAX_SHORT_DESC));	
+		}
+	}
+
 	private boolean isLog(Ticket formObject) {
 		return formObject.getTicketType().getEnumerationId().equals(LOG);
 	}
 
+	private Ticket updateTicket(Ticket ticket, String newStatus, String description,String modifiedUser){
+		///load the ticket first 
+		Ticket storedTicket = entityManager.find(Ticket.class, ticket.getTicketId());
+		TicketArchive ticketArchive = new TicketArchive(storedTicket);
+		ticket.setDescription(description);
+		
+		User currentUser = new User();
+		currentUser.setUserId(modifiedUser);
+		storedTicket.setModifiedBy(currentUser);
+		
+		Enumeration status = new Enumeration();
+		status.setEnumerationId(newStatus);
+		storedTicket.setStatus(status);
+		storedTicket.setDescription(ticket.getDescription());
+		setShortDescription(storedTicket);
+		
+		entityManager.persist(ticketArchive);
+		entityManager.merge(storedTicket);
+		entityManager.flush();
+		entityManager.refresh(storedTicket);
+
+		return storedTicket;
+	}
+	
 	private ServiceType setTicketType(Ticket formObject) {
 		//if service Type text is ALL OK - then it is a LOG, otherwise every ticket will default to COMPLAINT
 		ServiceType serviceType = entityManager.find(ServiceType.class, formObject.getServiceType().getServiceTypeId());
@@ -336,13 +496,9 @@ public class TicketService extends SecureTService {
 				result.addError(fieldError);
 			}
 		}
-		if(formObject.getDescription()==null || formObject.getDescription().isEmpty()){
-			FieldError fieldError = new FieldError("formObject", "description", "Please enter the description");
-			result.addError(fieldError);
-		}
 	}
 
-	private void saveAttachments(Ticket formObject, List<MultipartFile> ticketAttachments) {
+	private void saveAttachments(Ticket formObject, List<MultipartFile> ticketAttachments,boolean refresh) {
 		int index = 0;
 		if(formObject.getAttachments()!=null){
 			index = formObject.getAttachments().size();
@@ -350,19 +506,23 @@ public class TicketService extends SecureTService {
 			formObject.setAttachments(new ArrayList<TicketAttachment>());
 		}
 		for(MultipartFile attachment : ticketAttachments){
-			String fileName = formObject.getTicketId()+"_"+index+"_"+attachment.getOriginalFilename();
-			String attachmentPath = SecureTService.ASSETS_SSMUPLOADS_TICKETATTACHMENTS+fileName;
-			String savedPath = SecureTUtils.saveToFile(attachment, SecureTService.ASSETS_SSMUPLOADS_TICKETATTACHMENTS,fileName);
-			_logger.debug("Path for saved attachment: "+attachmentPath);
-			if(savedPath!=null){
-				TicketAttachment ticketAttachment = new TicketAttachment();
-				ticketAttachment.setTicket(formObject);
-				ticketAttachment.setAttachmentName(attachment.getOriginalFilename());
-				ticketAttachment.setAttachmentPath(attachmentPath);
-				entityManager.persist(ticketAttachment);
+			if(!attachment.isEmpty()){//check if attachments are empty...
+				String fileName = formObject.getTicketId()+"_"+index+"_"+attachment.getOriginalFilename();
+				String attachmentPath = SecureTService.ASSETS_SSMUPLOADS_TICKETATTACHMENTS+fileName;
+				String savedPath = SecureTUtils.saveToFile(attachment, SecureTService.ASSETS_SSMUPLOADS_TICKETATTACHMENTS,fileName);
+				_logger.debug("Path for saved attachment: "+attachmentPath);
+				if(savedPath!=null){
+					TicketAttachment ticketAttachment = new TicketAttachment();
+					ticketAttachment.setTicket(formObject);
+					ticketAttachment.setAttachmentName(attachment.getOriginalFilename());
+					ticketAttachment.setAttachmentPath(attachmentPath);
+					entityManager.persist(ticketAttachment);
+				}
 			}
 		}
-		entityManager.refresh(formObject);
+		if(refresh){
+			entityManager.refresh(formObject);
+		}
 		_logger.debug("formObject: "+formObject.getAttachments());
 	}
 
@@ -385,12 +545,12 @@ public class TicketService extends SecureTService {
 		
 	}
 
-	private void sendNotifications(Ticket formObject) {
-		sendEmail(formObject);
-		sendSMS(formObject);
+	private void sendNotifications(Ticket formObject,String emailTemplate, String smsTemplate) {
+		sendEmail(formObject,emailTemplate);
+		sendSMS(formObject,smsTemplate);
 	}
 
-	private void sendSMS(Ticket formObject) {
+	private void sendSMS(Ticket formObject,String templateName) {
 		List<String> receiverContacts = new ArrayList<String>();
 		switch (formObject.getStatus().getEnumerationId()) {
 		case "OPEN":
@@ -407,7 +567,7 @@ public class TicketService extends SecureTService {
 		if(receiverContacts.size()>0){
 			Map<String,Object> smsContext = new HashMap<String, Object>();
 			Query mailTemplateQuery = entityManager.createNamedQuery("getMailTemplateByName");
-			mailTemplateQuery.setParameter("templateName", SMS_CREATE_TICKET_NOTIFICATION);
+			mailTemplateQuery.setParameter("templateName", templateName);
 			MailTemplate mailTemplate = (MailTemplate)mailTemplateQuery.getSingleResult();
 			Map<String,Object> bodyParameters = new HashMap<String, Object>();
 			bodyParameters.put("ticket", formObject);
@@ -424,13 +584,13 @@ public class TicketService extends SecureTService {
 		}
 	}
 
-	private void sendEmail(Ticket formObject) {
+	private void sendEmail(Ticket formObject,String templateName) {
 		//get the user email... this can run in background.. 
 		Map<String,Object> mailContext = new HashMap<String,Object>();
 		StringBuilder toAddress = new StringBuilder(); 
 		toAddress.append(formObject.getReporter().getEmailId()).append(",").append(formObject.getResolver().getEmailId());
 		Query mailTemplateQuery = entityManager.createNamedQuery("getMailTemplateByName");
-		mailTemplateQuery.setParameter("templateName", EMAIL_CREATE_TICKET_NOTIFICATION);
+		mailTemplateQuery.setParameter("templateName", templateName);
 		MailTemplate mailTemplate = (MailTemplate)mailTemplateQuery.getSingleResult();
 		mailContext.put("to",toAddress.toString());
 
@@ -445,4 +605,32 @@ public class TicketService extends SecureTService {
 
 		mailService.sendMail(mailContext);
 	}
+
+	public static void fetchTicketStats(EntityManager entityManager, org.springframework.security.core.userdetails.User customUser, ModelMap map) {
+		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+		StringBuilder baseQuery = new StringBuilder();
+		if(isReporter){
+			baseQuery.append(COUNT_CLIENT_USER_TICKET_NATIVE_QUERY);
+		}else{
+			baseQuery.append(COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY);
+		}
+		baseQuery.append(" AND ").append("t.statusId=(?2)");
+		_logger.debug("query to get tickets stats:" + baseQuery.toString());
+		for(String status:TICKET_STATUS){
+			Query query = entityManager.createNativeQuery(baseQuery.toString());
+			query.setParameter(1, customUser.getUsername());
+			query.setParameter(2, status);
+			Number result = (Number) query.getSingleResult ();
+			map.put(status.toLowerCase()+"TicketsCount",result);	
+		}
+	}
+	
+	private Map<ColumnCriterias,String> addSearchableFieldToColumnCriteria(String fieldPath, String value){
+		Map<ColumnCriterias,String> userColumn = new HashMap<DataTableCriteria.ColumnCriterias, String>();
+		userColumn.put(ColumnCriterias.data, fieldPath);
+		userColumn.put(ColumnCriterias.searchable,"true");
+		userColumn.put(ColumnCriterias.searchValue,value);
+		return userColumn;
+	}
+	
 }

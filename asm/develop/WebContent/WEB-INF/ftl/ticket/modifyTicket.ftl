@@ -53,6 +53,7 @@
 							<label for="areaId" class="col-sm-3 control-label">Area</label>
 						    <div id="areaId"  class="col-sm-9">
 								<p class="form-control-static normaltext">${formObject.site.area!}</p>
+								<input type="hidden" name="site.siteId" value="${formObject.site.siteId!}"/>
 						    </div>
 						</div>
 						<div class="form-group labelblock">
@@ -65,6 +66,7 @@
 							<label for="serviceTypeId" class="col-sm-3 control-label">Service Type</label>
 						    <div id="serviceTypeId"  class="col-sm-9">
 								<p class="form-control-static normaltext">${formObject.serviceType.name!}</p>
+								<input type="hidden" name="serviceType.serviceTypeId" value="${formObject.serviceType.serviceTypeId!}"/>
 						    </div>
 						</div>
 						<div class="form-group labelblock">
@@ -85,45 +87,51 @@
 								<p class="form-control-static normaltext">${formObject.status.enumDescription!}</p>
 						    </div>
 						</div>
-						<#assign statusOptions>{"":"You cannot change status check your role"}</#assign>
-						<@security.authorize access="hasRole('RESOLVER')">
-							<#if formObject.status.enumerationId='WORK_IN_PROGRESS'>
-								<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Work in Progress","RESOLVED":"Resolved"}</#assign>
-							</#if>
-						</@security.authorize>	
-						<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER','ADMIN')">
-							<#if formObject.status.enumerationId='WORK_IN_PROGRESS'>
-								<#assign statusOptions>{"Test":"Select Status","WORK_IN_PROGRESS":"Work in Progress","CLOSED":"Closed"}</#assign>
-							<#else>
-								<#assign statusOptions>{"Test":"Select Status","CLOSED":"Closed"}</#assign>
-							</#if>
-						</@security.authorize>	
-						<@formSingleSelectSSM path="formObject.status.enumerationId" field={"fieldName":"formObject.status.enumerationId","label":"Select Status"} options=statusOptions?default("{}")?eval />
-						<@simpleInputFieldSSM  field={"fieldName":"ticketAttachments","label":"Attachment","fieldType":"file"}  attributes="multiple"/>
+						<#if formObject.status.enumerationId!='CLOSED'>
+							<#assign statusOptions>{"":"You cannot change status check your role"}</#assign>
+							<@security.authorize access="hasRole('RESOLVER')">
+								<#if formObject.status.enumerationId=='WORK_IN_PROGRESS'>
+									<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Work in Progress","RESOLVED":"Resolved"}</#assign>
+								</#if>
+							</@security.authorize>	
+							<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER','ADMIN')">
+								<#if formObject.status.enumerationId=='WORK_IN_PROGRESS'>
+									<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Work in Progress","CLOSED":"Closed"}</#assign>
+								<#elseif formObject.status.enumerationId=='OPEN'>
+									<#assign statusOptions>{"":"Select Status","OPEN":"Open","CLOSED":"Closed"}</#assign>
+								</#if>
+							</@security.authorize>	
+							<@formSingleSelectSSM path="formObject.status.enumerationId" field={"fieldName":"formObject.status.enumerationId","label":"Select Status"} options=statusOptions?default("{}")?eval />
+							<@simpleInputFieldSSM  field={"fieldName":"ticketAttachments","label":"Attachment","fieldType":"file"}  attributes="multiple"/>
+						</#if>	
 						<ul class="timeline">
-							<li class="timeline-inverted">
-								<div class="timeline-badge"><i class="glyphicon glyphicon-user"></i></div>
-								<div class="timeline-panel">
-									<div class="timeline-heading">
-						      			<p><small class="text-muted"><i class="glyphicon glyphicon-time"></i></small></p>
-							    	</div>
-								    <div class="timeline-body">
-										<p>${formObject.description!}</p>
-								    </div>
-								</div>
-							</li>
-						</ul>							
-						<@formTextAreaSSM path="formObject.description" field={"fieldName":"description","label":"Description"} attributes="class=\"form-control\"" empty=true/>
+							<#if ticketArchives?exists>
+								<@ticketTimeLine ticket=formObject/>
+								<#list ticketArchives as archive>
+									<@ticketTimeLine ticket=archive/>
+								</#list>
+							</#if>
+						</ul>		
+						<#if formObject.status.enumerationId!='CLOSED'>
+							<@formTextAreaSSM path="formObject.description" field={"fieldName":"description","label":"Description"} attributes="class=\"form-control\"" empty=true/>
+						</#if>
 						<span class="hide" id="lat-long" data-value='{"lat":${formObject.latitude!},"lng": ${formObject.longitude!}}' data-title="Ticket Posted by ${formObject.createdBy.userId}"></span>
+						<#if formObject.status.enumerationId!='CLOSED'>
+							<div style="text-align:right">
+								<input  class="btn btn-primary right" name="submit" type="submit"  value="Save" />
+							</div>	              	
+						</#if>
 					</form>	
 				</div>
 				<div class="col-md-4">
 					<div id="map-canvas"></div>		
 					<div>
-						<h4>Attachments (${formObject.attachments?size})</h4>	
+						<h4>Attachments (${formObject.attachments?size})</h4>
+						<ol>	
 						<#list formObject.attachments as attachment>
-							<a target="_blank" href="<@spring.url relativeUrl="/"+attachment.attachmentPath />" title=${attachment.attachmentName}>${attachment.attachmentName}</a>  @ ${attachment.createdTimestamp?string}
-						</#list> 	
+							<li><a target="_blank" href="<@spring.url relativeUrl="/"+attachment.attachmentPath />" title=${attachment.attachmentName}>${attachment.attachmentName}</a>  @ ${attachment.createdTimestamp?string}</li>
+						</#list>
+						</ol> 	
 					</div>										
 				</div>
 			</div>

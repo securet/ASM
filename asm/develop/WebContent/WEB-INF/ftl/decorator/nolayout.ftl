@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <#assign decorator = JspTaglibs["http://www.opensymphony.com/sitemesh/decorator"]/>
 <@decorator.usePage id="page"/>
+<#setting number_format="0.##">
 <html>
 	<head>
 	    <meta charset="utf-8">
 	    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 	    <meta name="viewport" content="width=device-width, initial-scale=1">
 		<title><@decorator.title/></title>
-		<base href="http://192.168.1.53:8080${springMacroRequestContext.contextPath}/"/>
+		<base href="http://${serverName}<#if port!=80>:${port}</#if>${springMacroRequestContext.contextPath}/"/>
 		<!-- Latest compiled and minified CSS -->
 		<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 		
