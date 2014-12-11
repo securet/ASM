@@ -8,7 +8,7 @@
 				<h1 class="panel-title" > Forbidden </h1>
 			</div>
 			<div class="panel-body">
-				You should have not landed here, Try <a href="<@spring.url relativeUrl="/login"/>" title="Login">logging</a> in again  to find your destiny! 
+				You should have not landed here, Try <a href="<@spring.url relativeUrl="/login"/>" title="Login">logging</a> in again  to find your home! 
 			</div>
 		</div>		   
 	</body>
