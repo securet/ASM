@@ -99,7 +99,7 @@
 									<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Work in Progress","CLOSED":"Closed"}</#assign>
 								<#elseif formObject.status.enumerationId=='OPEN'>
 									<#assign statusOptions>{"":"Select Status","OPEN":"Open","CLOSED":"Closed"}</#assign>
-								<#elseif formObject.status.enumerationId=='OPEN'>
+								<#elseif formObject.status.enumerationId=='RESOLVED'>
 									<#assign statusOptions>{"":"Select Status","OPEN":"Reject", CLOSED":"Closed"}</#assign>								
 								</#if>
 							</@security.authorize>	
