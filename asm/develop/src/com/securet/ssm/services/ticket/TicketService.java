@@ -412,6 +412,7 @@ public class TicketService extends SecureTService {
 			Enumeration status = new Enumeration();
 			if(isLog(formObject)){
 				status.setEnumerationId(CLOSED);
+				formObject.setSeverity(null);
 			}else{
 				status.setEnumerationId(OPEN);
 			}
@@ -503,7 +504,6 @@ public class TicketService extends SecureTService {
 
 	private void saveAttachments(Ticket formObject, List<MultipartFile> ticketAttachments,boolean refresh) {
 		int index = 0;
-		_logger.debug("No attachments");
 		boolean savedAttachments = false;
 		if(formObject.getAttachments()!=null){
 			index = formObject.getAttachments().size();
