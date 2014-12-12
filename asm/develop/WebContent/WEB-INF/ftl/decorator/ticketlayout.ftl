@@ -58,7 +58,7 @@
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=RESOLVED"/>" class="list-group-item ">Resolved <span class="badge badge-warning">${resolvedTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=CLOSED"/>" class="list-group-item ">Closed <span class="badge badge-success">${closedTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets"/>" class="list-group-item ">All Tickets <span class="badge badge-primary">${openTicketsCount?default(0)+work_in_progressTicketsCount?default(0)+resolvedTicketsCount?default(0)+closedTicketsCount?default(0)}</span></a>
-						<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER','ADMIN')">
+						<@security.authorize access="hasAnyRole('ADMIN')">
 							<a href="<@spring.url relativeUrl="/admin/"/>" class="list-group-item "> <i class="glyphicon glyphicon-circle-arrow-left"></i> Go to Admin</a>
 						</@security.authorize>
 					</div>
