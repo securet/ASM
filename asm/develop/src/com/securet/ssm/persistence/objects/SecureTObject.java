@@ -8,6 +8,8 @@ import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @MappedSuperclass
 public class SecureTObject implements Serializable{
 
@@ -18,7 +20,9 @@ public class SecureTObject implements Serializable{
 		this.lastUpdatedTimestamp=new Timestamp(new Date().getTime());
 	}
 	
+	@JsonIgnore
 	private Timestamp createdTimestamp;
+	@JsonIgnore
 	private Timestamp lastUpdatedTimestamp;
 	
 	public Timestamp getCreatedTimestamp() {
@@ -36,7 +40,6 @@ public class SecureTObject implements Serializable{
 	}
 	
 
-	
 	public Timestamp getLastUpdatedTimestamp() {
 		return lastUpdatedTimestamp;
 	}

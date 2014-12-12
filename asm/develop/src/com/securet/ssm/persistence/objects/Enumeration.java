@@ -11,7 +11,8 @@ import javax.persistence.Table;
 @NamedQueries({
 	@NamedQuery(name = "getTicketType", query = "SELECT o.enumerationId,o.enumDescription FROM Enumeration o WHERE o.enumTypeId='TICKET_TYPE'"),
 	@NamedQuery(name = "getSiteTypeForView", query = "SELECT o.enumerationId as siteTypeId,o.enumDescription as name FROM Enumeration o WHERE o.enumTypeId='SITE_TYPE'"),
-	@NamedQuery(name = "getSeverityForView", query = "SELECT o.enumerationId ,o.enumDescription  FROM Enumeration o WHERE o.enumTypeId='SEVERITY'")
+	@NamedQuery(name = "getSeverityForView", query = "SELECT o.enumerationId ,o.enumDescription  FROM Enumeration o WHERE o.enumTypeId='SEVERITY'"),
+	@NamedQuery(name = "getTicketStatusForView", query = "SELECT o.enumerationId ,o.enumDescription  FROM Enumeration o WHERE o.enumTypeId='TICKET_STATUS'")
 })
 public class Enumeration extends SecureTObject {
 

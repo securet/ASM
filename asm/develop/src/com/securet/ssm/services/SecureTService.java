@@ -133,10 +133,22 @@ public abstract class SecureTService {
 	
 
 	public List<SecureTObject> fetchQueriedObjects(String namedQuery, String namedParameter,Object fieldValue) {
-		Query userQuery = entityManager.createNamedQuery(namedQuery);
-		userQuery.setParameter(namedParameter, fieldValue);
-		List<SecureTObject> ssmObjects = userQuery.getResultList();
+		Query query = entityManager.createNamedQuery(namedQuery);
+		query.setParameter(namedParameter, fieldValue);
+		List<SecureTObject> ssmObjects = query.getResultList();
 		return ssmObjects;
 	}
 	
+	public SecureTObject fetchSingleObject(String namedQuery, String namedParameter,Object fieldValue) {
+		Query query = entityManager.createNamedQuery(namedQuery);
+		query.setParameter(namedParameter, fieldValue);
+		SecureTObject ssmObjects = (SecureTObject)query.getSingleResult();
+		return ssmObjects;
+	}
+
+	public List<SecureTObject> fetchObjects(String namedQuery) {
+		Query query = entityManager.createNamedQuery(namedQuery);
+		List<SecureTObject> ssmObjects = query.getResultList();
+		return ssmObjects;
+	}
 }

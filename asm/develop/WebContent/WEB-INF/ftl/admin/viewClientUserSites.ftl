@@ -23,19 +23,27 @@
 					<div class="row">
 						<div class="col-xs-12  col-lg-5">
 							<#assign organizationsList = .data_model["getClientOrganizationForView"]>
-							<#assign options>{"":"Select Organization",<#list organizationsList as uiObject>"${uiObject.organizationId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#if organizationsList?exists && (organizationsList?size>0)>
+								<#assign options>{"":"Select Organization",<#list organizationsList as uiObject>"${uiObject.organizationId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#else>
+								<#assign options>{"":"Select Organization"}</#assign>
+							</#if>
 							<@formSingleSelectSSM path="formObject.organizationId" field={"fieldName":"organizationId","label":"Select Organization"} options=options?eval  includeLabelInline=false/>
 		
 							<#assign usersList = .data_model["getUsersForOrganization"]?default([])>
 							<#if usersList?exists && (usersList?size>0) >
-								<#assign useroptions>{"":"Select User",<#list usersList as uiObject>"${uiObject.userId}":"${uiObject.fullName}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+								<#assign useroptions>{"":"Select User"<#list usersList as uiObject>"${uiObject.userId}":"${uiObject.fullName}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 							</#if>
 							<@formSingleSelectSSM path="formObject.userId" field={"fieldName":"userId","label":"Select User"} options=useroptions?default("{}")?eval  includeLabelInline=false/>
 		
 			        	</div>
 				        <div class="col-xs-12 col-sm-6 col-lg-7">
 							<#assign citiesList = .data_model["getCityWithSitesForView"]>
-							<#assign options>{"":"Select Region"<#list citiesList as uiObject>,"${uiObject.geoId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#if citiesList?exists && (citiesList?size>0)>
+								<#assign options>{"":"Select Region",<#list citiesList as uiObject>"${uiObject.geoId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#else>	
+								<#assign options>{"":"Select Region"}</#assign>
+							</#if>
 							<@formSingleSelectSSM path="formObject.cityGeoId" field={"fieldName":"cityGeoId","label":"Select Region"} options=options?eval  includeLabelInline=false/>
 							<div class="form-group">
 								<div class="col-sm-9">

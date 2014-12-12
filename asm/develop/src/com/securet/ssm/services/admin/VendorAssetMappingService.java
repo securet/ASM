@@ -17,6 +17,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -113,6 +114,12 @@ public class VendorAssetMappingService extends SecureTService{
 	@Transactional
 	@RequestMapping("/admin/saveVendorAssetMapping")
 	public String saveVendorAssetMapping(@Valid @ModelAttribute("formObject") VendorServiceAsset formObject,BindingResult result,Model model){
+
+		//check if the service and asset is assigned to any other vendor...
+		if(!result.hasErrors()){
+			validateExistingVendorServiceAssetAssignment(formObject,result);
+		}
+		
 		if(!result.hasErrors()){
 			User vendorUser = new User();
 			vendorUser.setUserId(formObject.getUserId());
@@ -180,4 +187,16 @@ public class VendorAssetMappingService extends SecureTService{
 		makeUIData(entityManager,model,"VendorServiceAsset");
 		return DefaultService.ADMIN+"viewVendorAssetMapping";
 	}
+
+	private void validateExistingVendorServiceAssetAssignment(VendorServiceAsset formObject, BindingResult result) {
+		Query vendorsAssignedQuery =  entityManager.createNamedQuery("getAssetNameMappedByAssetServiceType");
+		vendorsAssignedQuery.setParameter("assetId", formObject.getAssets());
+		vendorsAssignedQuery.setParameter("serviceTypeId", formObject.getServiceTypeId());
+		List<String> assetsMapped = vendorsAssignedQuery.getResultList();
+		if(assetsMapped.size()>0){
+			FieldError fieldError = new FieldError("formObject", "serviceTypeId", "Following assets have been mapped to vendor already: "+assetsMapped.toString());
+			result.addError(fieldError);
+		}
+	}
+	
 }

@@ -79,7 +79,7 @@ public class TicketService extends SecureTService {
 	private static final String VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 
 	private static final String TICKET_NATIVE_QUERY = "SELECT t.* from ticket t ";
-	private static final String TICKET_COUNT_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t ";
+	private static final String TICKET_COUNT_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t ";
 	
 	private static final String SERVICE_TYPE_JOIN_CLAUSE = " INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId";
 	private static final String ISSUE_TYPE_JOIN_CLAUSE = " LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId ";
@@ -94,12 +94,13 @@ public class TicketService extends SecureTService {
 	
 	//Common Join and Filters
 	private static final String TICKET_STATUS_FILTER = " t.statusId IN (?2) ";
-	private static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)) ";  
+	private static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)) ";
+	private static final String TICKET_GROUP_BY = " GROUP BY t.ticketId ";
 	private static final int TICKET_COMMON_FILTER_PARAMS_SIZE=5;  
 	
 	//Queries to show navigation filters 
-	private static final String COUNT_CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
-	private static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+	private static final String COUNT_CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+	private static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 	
 	private static final String EMAIL_CREATE_TICKET_NOTIFICATION = "EMAIL_CREATE_TICKET_NOTIFICATION";
 	private static final String SMS_CREATE_TICKET_NOTIFICATION = "SMS_CREATE_TICKET_NOTIFICATION";

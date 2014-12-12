@@ -15,7 +15,8 @@ import javax.persistence.Table;
 @Table(name="vendor_service_asset")
 @NamedQueries({
 	@NamedQuery(name="getVendorServiceAssetByServiceType",query="SELECT o FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId"),
-	@NamedQuery(name="getVendorByServiceType",query="SELECT o.vendorUser FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId")
+	@NamedQuery(name="getVendorByServiceType",query="SELECT o.vendorUser FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId"),
+	@NamedQuery(name="getAssetNameMappedByAssetServiceType",query="SELECT distinct o.asset.name FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.assetId IN (:assetId)")
 })
 public class VendorServiceAsset extends SecureTObject{
 
