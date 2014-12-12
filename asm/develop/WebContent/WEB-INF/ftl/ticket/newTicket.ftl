@@ -91,7 +91,7 @@
 							<p id="vendorUser" class="form-control-static normaltext">${vendorName!}</p>
 					    </div>
 					</div>
-					<#if issueTypes?exists>
+					<#if issueTypes?exists && (issueTypes?size>0)>
 						<#if issueTypes?exists && (issueTypes?size>0) >
 							<#assign issueTypeOptions>{"":"Select Issue Type",<#list issueTypes as type>"${type.issueTypeId}":"${type.name}"<#if type_has_next>,</#if></#list>}</#assign>
 						</#if>

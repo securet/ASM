@@ -56,12 +56,14 @@
 								<input type="hidden" name="site.siteId" value="${formObject.site.siteId!}"/>
 						    </div>
 						</div>
-						<div class="form-group labelblock">
-							<label for="assetId" class="col-sm-3 control-label">Asset</label>
-						    <div id="assetId"  class="col-sm-9">
-								<p class="form-control-static normaltext">${formObject.asset.name!}</p>
-						    </div>
-						</div>
+						<#if formObject.asset?exists>
+							<div class="form-group labelblock">
+								<label for="assetId" class="col-sm-3 control-label">Asset</label>
+							    <div id="assetId"  class="col-sm-9">
+									<p class="form-control-static normaltext">${formObject.asset.name!}</p>
+							    </div>
+							</div>
+						</#if>
 						<div class="form-group labelblock">
 							<label for="serviceTypeId" class="col-sm-3 control-label">Service Type</label>
 						    <div id="serviceTypeId"  class="col-sm-9">
@@ -69,18 +71,22 @@
 								<input type="hidden" name="serviceType.serviceTypeId" value="${formObject.serviceType.serviceTypeId!}"/>
 						    </div>
 						</div>
-						<div class="form-group labelblock">
-							<label for="issueTypeId" class="col-sm-3 control-label">Issue Type</label>
-						    <div id="issueTypeId"  class="col-sm-9">
-								<p class="form-control-static normaltext">${formObject.issueType.name!}</p>
-						    </div>
-						</div>
-						<div class="form-group labelblock">
-							<label for="severity" class="col-sm-3 control-label">Severity</label>
-						    <div id="severity"  class="col-sm-9">
-								<p class="form-control-static normaltext">${formObject.severity.enumDescription!}</p>
-						    </div>
-						</div>
+						<#if formObject.issueType?exists>
+							<div class="form-group labelblock">
+								<label for="issueTypeId" class="col-sm-3 control-label">Issue Type</label>
+							    <div id="issueTypeId"  class="col-sm-9">
+									<p class="form-control-static normaltext">${formObject.issueType.name!}</p>
+							    </div>
+							</div>
+						</#if>
+						<#if formObject.severity?exists>
+							<div class="form-group labelblock">
+								<label for="severity" class="col-sm-3 control-label">Severity</label>
+							    <div id="severity"  class="col-sm-9">
+									<p class="form-control-static normaltext">${formObject.severity.enumDescription!}</p>
+							    </div>
+							</div>
+						</#if>
 						<div class="form-group labelblock">
 							<label for="currentStatus" class="col-sm-3 control-label">Current Status</label>
 						    <div id="currentStatus"  class="col-sm-9">

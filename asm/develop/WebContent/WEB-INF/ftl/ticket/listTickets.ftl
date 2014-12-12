@@ -18,15 +18,11 @@
 			<div class="panel-body">
 				<script type="text/javascript">
 					dataUrl="<@spring.url relativeUrl="/tickets/listUserTickets?${_csrf.parameterName}=${_csrf.token}&entityName=Ticket&operator=or"/><#if filterStatus?exists>&filterStatus=${filterStatus}</#if>";
-					columnsToDisplay=[{ "data": "ticketId" },{ "data": "site.name" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription" }];
+					columnsToDisplay=[{ "data": "ticketId" },{ "data": "site.name" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription","defaultContent":"None" }];
 					function makeEditLink(row,data){
 						var cellToModify = $(row).find("td:eq(0)");
 						var text = $(cellToModify).html();
-						var ticketType = $(row).find("td:eq(7)");
-						ticketTypeText = $(ticketType).html();
-						if(ticketTypeText=='Complaint'){
-							$(cellToModify).html('<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="/>'+data.ticketId+'">'+text+'</a>');
-						}
+						$(cellToModify).html('<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="/>'+data.ticketId+'">'+text+'</a>');
 					}				
 				</script>
 				

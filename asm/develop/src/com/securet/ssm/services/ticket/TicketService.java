@@ -81,7 +81,8 @@ public class TicketService extends SecureTService {
 	private static final String TICKET_NATIVE_QUERY = "SELECT t.* from ticket t ";
 	private static final String TICKET_COUNT_NATIVE_QUERY = "SELECT COUNT(t.ticketId) from ticket t ";
 	
-	private static final String SERVICE_ISSUE_TYPE_JOIN_CLAUSE = " INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN issue_type it ON t.issueTypeId=it.issueTypeId";
+	private static final String SERVICE_TYPE_JOIN_CLAUSE = " INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId";
+	private static final String ISSUE_TYPE_JOIN_CLAUSE = " LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId ";
 	
 	//client queries
 	private static final String CLIENT_USER_SITE_JOIN_CLAUSE = " INNER JOIN client_user_site cus ON t.siteId=cus.siteId ";
@@ -226,13 +227,13 @@ public class TicketService extends SecureTService {
 		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
 		StringBuilder ticketQueryStr = new StringBuilder();
 		//ticketQueryStr.append(TICKET_NATIVE_QUERY);
-		ticketQueryStr.append(SERVICE_ISSUE_TYPE_JOIN_CLAUSE);
+		ticketQueryStr.append(SERVICE_TYPE_JOIN_CLAUSE);
 		if(isReporter){
-			ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
+			ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE).append(ISSUE_TYPE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
 			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
 			ticketQueryStr.append(CLIENT_USER_FILTER).append(DataTableCriteria.END_BRACKET);
 		}else{
-			ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE).append(" WHERE ");;
+			ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE).append(ISSUE_TYPE_JOIN_CLAUSE).append(" WHERE ");;
 			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
 			ticketQueryStr.append(VENDOR_USER_FILTER).append(DataTableCriteria.END_BRACKET);
 		}
@@ -502,6 +503,7 @@ public class TicketService extends SecureTService {
 
 	private void saveAttachments(Ticket formObject, List<MultipartFile> ticketAttachments,boolean refresh) {
 		int index = 0;
+		_logger.debug("No attachments");
 		boolean savedAttachments = false;
 		if(formObject.getAttachments()!=null){
 			index = formObject.getAttachments().size();

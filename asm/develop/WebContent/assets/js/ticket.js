@@ -2,6 +2,7 @@ var errorMessageTemplate = null;
 var selectBoxTemplate = null;
 var siteData={};
 var currentPosition=null;
+var ALL_OK = "ALL OK";
 var previewSettings =     {
 	    'image': {width: "auto", height:"auto"},
 	    'html': {width: "auto", height:"auto"},
@@ -85,10 +86,12 @@ function makeIssueTypeOptions(vendorUserElement,data){
 	 }
 }
 
-function resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement){
+function resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement,showError){
 	 resetIssueType(vendorOrgElement, vendorUserElement);
 	 $("#vendorNotAssignedError").remove();
-	 serviceTypeElement.parents(".form-group").after(errorMessageTemplate.render({elementId:"vendorNotAssignedError",message:"No Vendor Assigned"}));
+	 if(showError){
+		 serviceTypeElement.parents(".form-group").after(errorMessageTemplate.render({elementId:"vendorNotAssignedError",message:"No Vendor Assigned"}));
+	 }
 }
 
 function resetIssueType(vendorOrgElement,vendorUserElement){
@@ -106,7 +109,7 @@ function fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement
 			}else{
 				siteElement.parents(".form-group").before(errorMessageTemplate.render({elementId:"siteSelectionError",message:"Please select a site"}));
 			}
-		}else if(serviceTypeElement.find("option:selected").text()!="ALL OK"){
+		}else if(serviceTypeElement.find("option:selected").text()!=ALL_OK){
 			$.ajax({
 				 url:contextPath+"/tickets/getVendorsAndIssueTypes?siteId="+siteElement.val()+"&serviceTypeId="+serviceTypeElement.val(),
 				 success:function(data){
@@ -116,7 +119,7 @@ function fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement
 							 showTicketOrganization(vendorOrgElement,vendorUserElement,data);
 							 makeIssueTypeOptions(vendorUserElement,data);	
 						 }else{
-							 resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement);
+							 resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement,true);
 						 }
 					 }
 				 },
@@ -124,6 +127,8 @@ function fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement
 					 $("#newTicket").append(errorMessageTemplate.render({elementId:"couldnotloaddata",message:"Something went wrong, try again or refresh the page"}));
 				 }
 			});
+		}else{
+			 resetNoVendorMapping(vendorOrgElement,vendorUserElement,serviceTypeElement,false);
 		}
 	});
 }
