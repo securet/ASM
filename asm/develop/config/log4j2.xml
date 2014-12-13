@@ -6,11 +6,11 @@
 			<TimeBasedTriggeringPolicy />
 		</RollingFile>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} %L - %msg%n" />
+			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.springframework.web" level="debug"></Logger>
+		<Logger name="org.springframework.web" level="info"></Logger>
 	    <Logger name="com.securet.ssm" level="trace"></Logger>
 	    <Logger name="org.hibernate.type" level="trace"></Logger>
 	    <Root level="debug">
