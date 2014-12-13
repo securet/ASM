@@ -102,24 +102,26 @@ public class TicketRestfulService extends BaseTicketService{
 		this.smsService = smsService;
 	}
 	
-	@RequestMapping("/rest/ticket/fromId")
+	@RequestMapping("/rest/ticket/forId")
 	public Object getTicket(@RequestParam(value="ticketId",required=false) String ticketId,@AuthenticationPrincipal User loggedInUser){
 		_logger.debug("ticketId sent as "+ticketId);
 		String status = "error";
 		Object messages = null;
 		Object data = null;
-		if(ticketId==null || ticketId.isEmpty()){
-			messages = new FieldError("ticket", "ticketId", "TicketId cannot be empty");
-		}else{
-			Ticket userTicket = getUserTicket(ticketId, loggedInUser);
-			if(userTicket==null){
-				messages = new FieldError("ticket", "ticketId", "TicketId not found or no access to ticket");
+		if(loggedInUser!=null){
+			if(ticketId==null || ticketId.isEmpty()){
+				messages = new FieldError("ticket", "ticketId", "TicketId cannot be empty");
 			}else{
-				status="success";
-				//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
-				cleanTicketForResponse(userTicket);
-				
-				data=userTicket;
+				Ticket userTicket = getUserTicket(ticketId, loggedInUser);
+				if(userTicket==null){
+					messages = new FieldError("ticket", "ticketId", "TicketId not found or no access to ticket");
+				}else{
+					status="success";
+					//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
+					cleanTicketForResponse(userTicket);
+					
+					data=userTicket;
+				}
 			}
 		}
 		return new SecureTJSONResponse(status, messages, data);
