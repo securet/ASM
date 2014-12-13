@@ -13,6 +13,7 @@ import javax.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
@@ -147,11 +148,7 @@ public class TicketService extends BaseTicketService {
 	public String saveTicket(@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@Valid @ModelAttribute("formObject") Ticket formObject, BindingResult result,Model model){
 		validateAndSetDefaultsForTicket(formObject,result);		
 		if(!result.hasErrors()){
-			createTicket(formObject,customUser.getUsername());
-			saveAttachments(formObject,ticketAttachments,true);
-			if(!isLog(formObject)){
-				sendNotifications(mailService,smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION,formObject);
-			}
+			createTicketAndNotify(formObject,ticketAttachments, customUser,mailService,smsService);
 			model.addAttribute("saved", true);
 		}else{
 			loadDefaults(model, customUser.getUsername());
@@ -192,13 +189,7 @@ public class TicketService extends BaseTicketService {
 			result.addError(fieldError);
 		}
 		if(!result.hasErrors()){
-			if(ticketAttachments!=null && ticketAttachments.size()>0){
-				saveAttachments(formObject, ticketAttachments,false);
-			}
-			formObject = updateTicket(formObject, formObject.getStatus().getEnumerationId(), formObject.getDescription(), customUser.getUsername());
-			if(!isLog(formObject)){
-				sendNotifications(mailService,smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION,formObject);
-			}
+			updateTicketAndNotify(formObject,ticketAttachments, customUser,mailService,smsService );
 		}else{
 			String responseString = editTicket(formObject.getTicketId(), customUser, model);
 			return responseString;

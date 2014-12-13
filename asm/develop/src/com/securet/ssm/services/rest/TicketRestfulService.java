@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.MatrixVariable;
@@ -143,9 +144,11 @@ public class TicketRestfulService extends BaseTicketService{
 	public Object ticketHistory(@AuthenticationPrincipal User user,@RequestParam(value="ticketId",required=false) String ticketId){
 		Query ticketArchiveQuery = entityManager.createNativeQuery("SELECT ta.ticketId, ta.description, ta.modifiedBy, ta.lastUpdatedTimestamp FROM ticket_archive ta WHERE ta.ticketId=(?1) ORDER BY ta.lastUpdatedTimestamp");
 		ticketArchiveQuery.setParameter(1, ticketId);
-		Object ticketHistory = ticketArchiveQuery.getResultList();
+		List ticketHistory = ticketArchiveQuery.getResultList();
 		ListObjects listObjects = new ListObjects();
 		listObjects.setData(ticketHistory);
+		listObjects.setRecordsFiltered(ticketHistory.size());
+		listObjects.setRecordsTotal(ticketHistory.size());
 		listObjects.setColumnsNames(historyColumnNames);
 		return new SecureTJSONResponse("success",null,listObjects);
 	}
@@ -160,13 +163,14 @@ public class TicketRestfulService extends BaseTicketService{
 
 	@Transactional
 	@RequestMapping(value="/rest/ticket/create",method=RequestMethod.POST)
-	public Object createTicket(@AuthenticationPrincipal User user ,@Valid @ModelAttribute("ticket") Ticket ticket,BindingResult result){
+	public Object createTicket(@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal User user ,@Valid @ModelAttribute("ticket") Ticket ticket,BindingResult result){
 		String status = "error";
 		Object messages = null;
 		Object data = null;
 		validateAndSetDefaultsForTicket(ticket, result);
 		if(!result.hasErrors()){
-			createTicket(ticket,user.getUsername());
+			createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
+			cleanTicketForResponse(ticket);
 			data = ticket;
 		}else{
 			messages=simplifyErrorMessages(result.getFieldErrors());
@@ -174,19 +178,56 @@ public class TicketRestfulService extends BaseTicketService{
 		return new SecureTJSONResponse(status, messages, data);
 	}
 	
-	
+	@Transactional
+	@RequestMapping(value="/rest/ticket/update",method=RequestMethod.POST)
+	public Object updateTicket(	@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@ModelAttribute("ticket") Ticket ticket, BindingResult result){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		if(ticket.getStatus()==null || ticket.getStatus().getEnumerationId().isEmpty()){
+			FieldError fieldError = new FieldError("ticket", "status.enumerationId", "Please select a valid status");
+			result.addError(fieldError);
+		}
+		if(ticket.getDescription()==null || ticket.getDescription().isEmpty()){
+			FieldError fieldError = new FieldError("ticket", "description", "Description cannot be empty");
+			result.addError(fieldError);
+		}
+		if(!result.hasErrors()){
+			try{
+				updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
+				cleanTicketForResponse(ticket);
+				status="success";
+				data = ticket;
+			}catch(Exception e){
+				_logger.error("Something went wrong",e);
+				status="error";
+				FieldError fieldError = new FieldError("ticket", "ticket", "Something went wrong, check with server logs");
+				result.addError(fieldError);
+				messages=simplifyErrorMessages(result.getFieldErrors());
+			}
+		}else{
+			messages=simplifyErrorMessages(result.getFieldErrors());
+		}
+		return new SecureTJSONResponse(status, messages, data);
+	}
 	private void cleanTicketForResponse(Ticket userTicket) {
 		cleanUser(userTicket.getCreatedBy());
 		cleanUser(userTicket.getModifiedBy());
 		cleanUser(userTicket.getReporter());
 		cleanUser(userTicket.getResolver());
-		userTicket.getAsset().setSite(null);
-		userTicket.getIssueType().setServiceType(null);
+		if(userTicket.getAsset()!=null){
+			userTicket.getAsset().setSite(null);
+		}
+		if(userTicket.getIssueType()!=null){
+			userTicket.getIssueType().setServiceType(null);
+		}
 	}
 	
 	private void cleanUser(com.securet.ssm.persistence.objects.User user){
-		user.setUserLogin(null);
-		user.setRoles(null);
-		user.setPermissions(null);
+		if(user!=null){
+			user.setUserLogin(null);
+			user.setRoles(null);
+			user.setPermissions(null);
+		}
 	}
 }

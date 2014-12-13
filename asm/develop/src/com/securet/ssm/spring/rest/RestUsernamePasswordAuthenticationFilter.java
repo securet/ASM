@@ -42,8 +42,6 @@ public class RestUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
 				if(authResult!=null && authResult.isAuthenticated()){
 					_logger.debug("Check authresult: "+authResult);
 					successfulAuthentication(request, response, authResult);
-				}else{
-					response.getOutputStream().println("Invalid Login");
 				}
 			} catch (IOException e) {
 				retVal = false;

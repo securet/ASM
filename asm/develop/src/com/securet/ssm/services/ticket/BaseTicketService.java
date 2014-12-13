@@ -200,6 +200,14 @@ public class BaseTicketService extends SecureTService{
 		return ActionHelpers.listSimpleObjectFromQuery(entityManager, columns, jpaQueriesToRun);
 	}
 
+	public void createTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
+		createTicket(formObject,customUser.getUsername());
+		saveAttachments(formObject,ticketAttachments,true);
+		if(!isLog(formObject)){
+			sendNotifications(mailService,smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION,formObject);
+		}
+	}
+	
 	public void createTicket(Ticket formObject, String reporterUserId) {
 			//get a new sequence, ALL tickets should be prefixed with C
 			long ticketSequenceId = SequenceGeneratorHelper.getNextSequence("Ticket",entityManager);
@@ -257,6 +265,18 @@ public class BaseTicketService extends SecureTService{
 		return formObject.getTicketType().getEnumerationId().equals(LOG);
 	}
 
+	public void updateTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
+		Ticket receivedTicket = formObject;
+		formObject = updateTicket(formObject, formObject.getStatus().getEnumerationId(), formObject.getDescription(), customUser.getUsername());
+		if(ticketAttachments!=null && ticketAttachments.size()>0){
+			saveAttachments(formObject, ticketAttachments,false);
+		}
+		receivedTicket.setAttachments(formObject.getAttachments());
+		if(!isLog(formObject)){
+			sendNotifications(mailService,smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION,formObject);
+		}
+	}
+
 	public Ticket updateTicket(Ticket ticket, String newStatus, String description,String modifiedUser){
 		///load the ticket first 
 		Ticket storedTicket = entityManager.find(Ticket.class, ticket.getTicketId());
@@ -284,7 +304,7 @@ public class BaseTicketService extends SecureTService{
 	public ServiceType setTicketType(Ticket formObject) {
 		//if service Type text is ALL OK - then it is a LOG, otherwise every ticket will default to COMPLAINT
 		ServiceType serviceType = entityManager.find(ServiceType.class, formObject.getServiceType().getServiceTypeId());
-		if(serviceType.getName().equals(ALL_OK)){
+		if(serviceType!=null && serviceType.getName().equals(ALL_OK)){
 			//this is a log
 			setTicketType(formObject, LOG);
 			//also close the ticket
@@ -380,7 +400,7 @@ public class BaseTicketService extends SecureTService{
 		if(formObject.getResolver().getEmailId()!=null){
 			toAddress.append(formObject.getResolver().getEmailId());
 		}
-		if(toAddress.length()>0){
+		if(toAddress.length()<=0){
 			_logger.error("No email address found.. so not notifying for ticket: "+ formObject.getTicketId());
 			return;
 		}

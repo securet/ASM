@@ -85,9 +85,9 @@ public class SMSService {
         		return true;
         	}
 		} catch (ClientProtocolException e) {
-			_logger.error("Sent sms", e);
+			_logger.error("Could not Send sms", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			_logger.error("Could not Send sms", e);
 		}
         return false;
 	}

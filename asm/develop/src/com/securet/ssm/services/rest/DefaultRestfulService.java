@@ -27,8 +27,15 @@ public class DefaultRestfulService extends SecureTService  {
 
 	@RequestMapping("/rest/validateUser")
 	public Object validateUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user){
-		User fetchedUser = (User)fetchSingleObject("getUserById", "id", user.getUsername());
-		return new SecureTJSONResponse("success", null, fetchedUser);
+		String status  = "error";
+		Object message = null;
+		Object data = null;
+		if(user!=null){
+			data = (User)fetchSingleObject("getUserById", "id", user.getUsername());
+		}else{
+			message = new FieldError("ticket", "userId", "Invalid credentials!");
+		}
+		return new SecureTJSONResponse(status, null, data);
 	}
 
 	@RequestMapping("/rest/getAllTicketStatus")
@@ -55,5 +62,10 @@ public class DefaultRestfulService extends SecureTService  {
 		List<SecureTObject> sites = fetchQueriedObjects("getUserAssignedSites", "userId", user.getUsername());
 		return new SecureTJSONResponse("success", null, sites);
 	}
-
+	
+/*	@RequestMapping("/error/defaulterror")
+	public @ResponseBody Object error(){
+		return new SecureTJSONResponse("error", new FieldError("login", "login", "Invalid Credentials"), null);
+	}
+*/	
 }
