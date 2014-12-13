@@ -13,6 +13,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @MappedSuperclass
 public class SecureTObject implements Serializable{
 
+    public interface SimpleObject {};
+
 	//default implementations for all objects..
 	
 	public SecureTObject() {

@@ -11,8 +11,12 @@ import javax.persistence.JoinColumn;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonView;
+import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 
 @Entity
 @Table(name="ticket_archive")
@@ -21,7 +25,10 @@ import javax.persistence.Table;
 })
 public class TicketArchive{
 
+    
+    @JsonView(SimpleObject.class)
 	private Timestamp createdTimestamp;
+    @JsonView(SimpleObject.class)
 	private Timestamp lastUpdatedTimestamp;
 	
 
@@ -45,6 +52,7 @@ public class TicketArchive{
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int ticketArchiveId;
 	
+    @JsonView(SimpleObject.class)
 	private String ticketId;
 	
 	private String ticketMasterId;
@@ -61,6 +69,7 @@ public class TicketArchive{
 	@JoinColumn(name="modifiedBy",referencedColumnName="userId")
 	private User modifiedBy;
 
+    @JsonView(SimpleObject.class)
 	private String description;
 
 	public int getTicketArchiveId() {
@@ -127,10 +136,22 @@ public class TicketArchive{
 		this.createdTimestamp = createdTimestamp;
 	}
 
+	@PrePersist
+	public void setCreateTimestamp(){
+		setCreatedTimestamp(new Timestamp(new Date().getTime()));
+		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+	}
+	
+
 	public Timestamp getLastUpdatedTimestamp() {
 		return lastUpdatedTimestamp;
 	}
 	
+	@PreUpdate
+	public void setLastUpdatedTimestamp(){
+		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+	}
+
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
 	}

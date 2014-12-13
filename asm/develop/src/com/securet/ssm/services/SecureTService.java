@@ -1,5 +1,6 @@
 package com.securet.ssm.services;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import javax.persistence.Query;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
+import org.springframework.validation.FieldError;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import com.securet.ssm.persistence.objects.SecureTObject;
@@ -151,4 +153,13 @@ public abstract class SecureTService {
 		List<SecureTObject> ssmObjects = query.getResultList();
 		return ssmObjects;
 	}
+	
+	public Object simplifyErrorMessages(List<FieldError> fieldErrors) {
+		List<FieldError> errors = new ArrayList<FieldError>();
+		for(FieldError error:fieldErrors){
+			errors.add(new FieldError(error.getObjectName(), error.getField(), error.getDefaultMessage()));
+		}
+		return errors;
+	}
+
 }

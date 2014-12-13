@@ -9,6 +9,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name="ticket_attachment")
 public class TicketAttachment extends SecureTObject {
@@ -21,6 +23,7 @@ public class TicketAttachment extends SecureTObject {
 	
 	private String attachmentPath;
 
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "ticketId", nullable = false)
 	private Ticket ticket;

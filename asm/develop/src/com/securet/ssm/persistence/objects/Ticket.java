@@ -1,30 +1,25 @@
 package com.securet.ssm.persistence.objects;
 
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Parameter;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 @Entity
 @Table(name="ticket")
-public class Ticket extends SecureTObject {
+public class Ticket{
 
 	@Id
 	private String ticketId;
@@ -59,6 +54,7 @@ public class Ticket extends SecureTObject {
 	
 	private String shortDesc;
 	
+	@NotNull(message="Description cannot be empty")
 	@Size(min=1,message="Description cannot be empty")
 	@Column(columnDefinition = "TEXT")
 	private String description;
@@ -92,7 +88,6 @@ public class Ticket extends SecureTObject {
 	@JoinColumn(name="ticketId",referencedColumnName="ticketId")
 	private List<TicketExt> ticketExtensions;
 
-	@JsonIgnore
 	@OneToMany(fetch=FetchType.EAGER)
 	@JoinColumn(name="ticketId",referencedColumnName="ticketId")
 	private List<TicketAttachment> attachments;
@@ -102,6 +97,9 @@ public class Ticket extends SecureTObject {
 	private double longitude;
 	
 	private String source;
+
+	private Timestamp createdTimestamp;
+	private Timestamp lastUpdatedTimestamp;
 
 	public String getTicketId() {
 		return ticketId;
@@ -271,4 +269,33 @@ public class Ticket extends SecureTObject {
 	public void setTicketType(Enumeration ticketType) {
 		this.ticketType = ticketType;
 	}
+
+	public Timestamp getCreatedTimestamp() {
+		return createdTimestamp;
+	}
+
+	public void setCreatedTimestamp(Timestamp createdTimestamp) {
+		this.createdTimestamp = createdTimestamp;
+	}
+
+	@PrePersist
+	public void setCreateTimestamp(){
+		setCreatedTimestamp(new Timestamp(new Date().getTime()));
+		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+	}
+	
+
+	public Timestamp getLastUpdatedTimestamp() {
+		return lastUpdatedTimestamp;
+	}
+	
+	@PreUpdate
+	public void setLastUpdatedTimestamp(){
+		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+	}
+
+	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
+		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+	}
+
 }

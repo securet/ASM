@@ -1,12 +1,15 @@
 package com.securet.ssm.services.vo;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class ListObjects implements Serializable {
 
 	private int draw;//field list size
 	private int recordsTotal;//total no of records
 	private int recordsFiltered;//records to display
+	private List<String> columnsNames;
+	
 	private Object data;
 	public int getDraw() {
 		return draw;
@@ -33,6 +36,13 @@ public class ListObjects implements Serializable {
 		this.data = data;
 	}
 	
+	public List<String> getColumnsNames() {
+		return columnsNames;
+	}
+	public void setColumnsNames(List<String> columnsNames) {
+		this.columnsNames = columnsNames;
+	}
+
 	@Override
 	public String toString() {
 		return "ListObjects [draw=" + draw + ", recordsTotal=" + recordsTotal + ", recordsFiltered=" + recordsFiltered + ", data=" + data + "]";

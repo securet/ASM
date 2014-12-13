@@ -17,6 +17,8 @@ import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 
 @Entity
 @Table(name="user_login")
@@ -44,6 +46,7 @@ public class UserLogin extends SecureTObject {
 	private transient String verifyPassword;
 	
 
+    @JsonView(SimpleObject.class)
 	private boolean enabled;
 	
 	private Timestamp lastLoginTimestamp;

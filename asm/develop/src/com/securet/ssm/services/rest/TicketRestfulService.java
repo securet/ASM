@@ -1,19 +1,192 @@
 package com.securet.ssm.services.rest;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.Query;
+import javax.transaction.Transactional;
+import javax.validation.Valid;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.MatrixVariable;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.securet.ssm.components.mail.MailService;
+import com.securet.ssm.components.sms.SMSService;
+import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.objects.TicketArchive;
+import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 import com.securet.ssm.services.SecureTService;
+import com.securet.ssm.services.admin.AdminService;
+import com.securet.ssm.services.ticket.BaseTicketService;
+import com.securet.ssm.services.vo.DataTableCriteria;
+import com.securet.ssm.services.vo.ListObjects;
+import com.securet.ssm.services.vo.DataTableCriteria.SearchCriterias;
 
 @RestController
-public class TicketRestfulService extends SecureTService{
+@Repository
+@Service
+public class TicketRestfulService extends BaseTicketService{
 
-/*	@RequestMapping("/rest/getComplaintDetailsbyComplaintId")
-	public Ticket getTicket(@PathVariable String complaintId){
-		
-		
-	}*/
+	private static final List<String> columnNames = new ArrayList<String>();
+	static{
+		columnNames.add("ticketId");
+		columnNames.add("statusId");
+		columnNames.add("siteId");
+		columnNames.add("site");
+		columnNames.add("serviceTypeId");
+		columnNames.add("serviceType");
+		columnNames.add("createdTimestamp");
+	}
 	
+	private static final List<String> historyColumnNames = new ArrayList<String>();
+	static{
+		historyColumnNames.add("ticketId");
+		historyColumnNames.add("description");
+		historyColumnNames.add("modifiedBy");
+		historyColumnNames.add("lastUpdatedTimestamp");
+	}
+
+	private Logger _logger = LoggerFactory.getLogger(TicketRestfulService.class);
+
+	@Autowired
+	private AdminService adminService;
+
+	@Autowired
+	private MailService mailService;
+
+	@Autowired
+	private SMSService smsService;
+
+	
+	public AdminService getAdminService() {
+		return adminService;
+	}
+
+	public void setAdminService(AdminService adminService) {
+		this.adminService = adminService;
+	}
+
+	public MailService getMailService() {
+		return mailService;
+	}
+
+	public void setMailService(MailService mailService) {
+		this.mailService = mailService;
+	}
+
+	public SMSService getSmsService() {
+		return smsService;
+	}
+
+	public void setSmsService(SMSService smsService) {
+		this.smsService = smsService;
+	}
+	
+	@RequestMapping("/rest/ticket/fromId")
+	public Object getTicket(@RequestParam(value="ticketId",required=false) String ticketId,@AuthenticationPrincipal User loggedInUser){
+		_logger.debug("ticketId sent as "+ticketId);
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		if(ticketId==null || ticketId.isEmpty()){
+			messages = new FieldError("ticket", "ticketId", "TicketId cannot be empty");
+		}else{
+			Ticket userTicket = getUserTicket(ticketId, loggedInUser);
+			if(userTicket==null){
+				messages = new FieldError("ticket", "ticketId", "TicketId not found or no access to ticket");
+			}else{
+				status="success";
+				//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
+				cleanTicketForResponse(userTicket);
+				
+				data=userTicket;
+			}
+		}
+		return new SecureTJSONResponse(status, messages, data);
+	}
+
+	@RequestMapping("/rest/ticket/forUser")
+	public Object getTicketsForEmployee(@AuthenticationPrincipal User user,@RequestParam(value="filter",required=false) String statusFilter, @ModelAttribute DataTableCriteria columns){
+		if(columns.getLength()==0){
+			columns.setLength(100);
+		}
+		if(columns.getStart()==0){
+			columns.setStart(1);
+		}
+		ListObjects  userTickets = null;
+		userTickets = listUserTickets(columns, statusFilter, user, false);
+		userTickets.setColumnsNames(columnNames);
+		return new SecureTJSONResponse("success",null,userTickets);
+	}
+	
+	@RequestMapping("/rest/ticket/history")
+    @JsonView(SimpleObject.class)
+	public Object ticketHistory(@AuthenticationPrincipal User user,@RequestParam(value="ticketId",required=false) String ticketId){
+		Query ticketArchiveQuery = entityManager.createNativeQuery("SELECT ta.ticketId, ta.description, ta.modifiedBy, ta.lastUpdatedTimestamp FROM ticket_archive ta WHERE ta.ticketId=(?1) ORDER BY ta.lastUpdatedTimestamp");
+		ticketArchiveQuery.setParameter(1, ticketId);
+		Object ticketHistory = ticketArchiveQuery.getResultList();
+		ListObjects listObjects = new ListObjects();
+		listObjects.setData(ticketHistory);
+		listObjects.setColumnsNames(historyColumnNames);
+		return new SecureTJSONResponse("success",null,listObjects);
+	}
+
+	@RequestMapping("/rest/getVendorAndIssueTypes")
+	public Object getVendorAndIssueTypes(@RequestParam("siteId") int siteId, @RequestParam("serviceTypeId") int serviceTypeId){
+		Map<String,Object> vendorAndIssueType = loadVendorsAndIssueTypes(serviceTypeId,siteId);
+		com.securet.ssm.persistence.objects.User user =  (com.securet.ssm.persistence.objects.User)vendorAndIssueType.get("vendors");
+		cleanUser(user);
+		return vendorAndIssueType;
+	}
+
+	@Transactional
+	@RequestMapping(value="/rest/ticket/create",method=RequestMethod.POST)
+	public Object createTicket(@AuthenticationPrincipal User user ,@Valid @ModelAttribute("ticket") Ticket ticket,BindingResult result){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		validateAndSetDefaultsForTicket(ticket, result);
+		if(!result.hasErrors()){
+			createTicket(ticket,user.getUsername());
+			data = ticket;
+		}else{
+			messages=simplifyErrorMessages(result.getFieldErrors());
+		}
+		return new SecureTJSONResponse(status, messages, data);
+	}
+	
+	
+	private void cleanTicketForResponse(Ticket userTicket) {
+		cleanUser(userTicket.getCreatedBy());
+		cleanUser(userTicket.getModifiedBy());
+		cleanUser(userTicket.getReporter());
+		cleanUser(userTicket.getResolver());
+		userTicket.getAsset().setSite(null);
+		userTicket.getIssueType().setServiceType(null);
+	}
+	
+	private void cleanUser(com.securet.ssm.persistence.objects.User user){
+		user.setUserLogin(null);
+		user.setRoles(null);
+		user.setPermissions(null);
+	}
 }

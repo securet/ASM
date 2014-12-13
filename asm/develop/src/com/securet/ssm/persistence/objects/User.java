@@ -4,12 +4,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.CascadeType;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.JoinColumns;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
@@ -23,6 +21,8 @@ import javax.validation.constraints.Size;
 
 import org.hibernate.validator.constraints.Email;
 
+import com.fasterxml.jackson.annotation.JsonView;
+
 @Entity
 @Table(name="user")
 @NamedQueries({
@@ -33,19 +33,23 @@ import org.hibernate.validator.constraints.Email;
 })
 public class User extends SecureTObject {
 
+    @JsonView(SimpleObject.class)
 	@Id
 	@Size(min=1,message="UserId cannot be empty")
 	private String userId;
 
+    @JsonView(SimpleObject.class)
 	@NotNull
 	@Size(min=1,message="Name cannot be empty")
 	private String fullName;
 	
+    @JsonView(SimpleObject.class)
 	@NotNull
 	@Size(min=1,message="Email cannot be empty")
 	@Email(message="Invalid Email Id")
 	private String emailId;
 	
+    @JsonView(SimpleObject.class)
 	@NotNull
 	@Size(min=1,message="Mobile no cannot be empty")
 	private String mobile;
