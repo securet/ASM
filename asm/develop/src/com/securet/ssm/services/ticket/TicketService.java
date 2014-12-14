@@ -146,7 +146,7 @@ public class TicketService extends BaseTicketService {
 	@Transactional
 	@RequestMapping(value="/tickets/saveTicket",method=RequestMethod.POST)
 	public String saveTicket(@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@Valid @ModelAttribute("formObject") Ticket formObject, BindingResult result,Model model){
-		validateAndSetDefaultsForTicket(formObject,result);		
+		validateAndSetDefaultsForTicket("formObject",formObject,result);		
 		if(!result.hasErrors()){
 			createTicketAndNotify(formObject,ticketAttachments, customUser,mailService,smsService);
 			model.addAttribute("saved", true);

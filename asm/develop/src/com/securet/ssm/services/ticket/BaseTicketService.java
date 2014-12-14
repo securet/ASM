@@ -474,26 +474,30 @@ public class BaseTicketService extends SecureTService{
 		return responseObjects;
 	}
 
-	public void validateAndSetDefaultsForTicket(Ticket formObject,BindingResult result) {
+	public void validateAndSetDefaultsForTicket(String objectName,Ticket formObject,BindingResult result) {
 		if(result.getFieldErrorCount("site.siteId")==0 && formObject.getSite().getSiteId()==0){
-			FieldError fieldError = new FieldError("formObject", "site.siteId", "Please Select a Site");
+			FieldError fieldError = new FieldError(objectName, "site.siteId", "Please Select a Site");
 			result.addError(fieldError);
 		}
 		if(formObject.getServiceType()==null || formObject.getServiceType().getServiceTypeId()==0){
-			FieldError fieldError = new FieldError("formObject", "serviceType.serviceTypeId", "Please Select a Service Type");
+			FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "Please Select a Service Type");
 			result.addError(fieldError);
 		}else{
 			ServiceType serviceType = setTicketType(formObject);
+			if(serviceType==null){
+				FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "Service Type does not exist");
+				result.addError(fieldError);
+			}
 			formObject.setServiceType(serviceType);
 		}
 		
 		if(!result.hasErrors() && !isLog(formObject)){
 			if(formObject.getIssueType()==null || formObject.getIssueType().getIssueTypeId()==0){
-				FieldError fieldError = new FieldError("formObject", "issueType.issueTypeId", "Please Select a Issue Type");
+				FieldError fieldError = new FieldError(objectName, "issueType.issueTypeId", "Please Select a Issue Type");
 				result.addError(fieldError);
 			}
 			if(formObject.getSeverity()==null || formObject.getSeverity().getEnumerationId()==null || formObject.getSeverity().getEnumerationId().isEmpty()){
-				FieldError fieldError = new FieldError("formObject", "severity.enumerationId", "Please Select Severity");
+				FieldError fieldError = new FieldError(objectName, "severity.enumerationId", "Please Select Severity");
 				result.addError(fieldError);
 			}
 		}

@@ -178,7 +178,7 @@ public class TicketRestfulService extends BaseTicketService{
 		String status = "error";
 		Object messages = null;
 		Object data = null;
-		validateAndSetDefaultsForTicket(ticket, result);
+		validateAndSetDefaultsForTicket("ticket",ticket, result);
 		if(!result.hasErrors() && user!=null){
 			try{
 				createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
