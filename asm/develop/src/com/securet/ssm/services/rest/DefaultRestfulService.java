@@ -51,6 +51,12 @@ public class DefaultRestfulService extends SecureTService  {
 		return new SecureTJSONResponse("success", null, serviceTypes);
 	}
 
+	@RequestMapping("/rest/severityTypes")
+	public Object severityTypes(){
+		List<SecureTObject> severityTypes = fetchObjects("getSeverityForView");
+		return new SecureTJSONResponse("success", null, severityTypes);
+	}
+
 	@RequestMapping("/rest/getIssueTypesForService")
 	public Object getIssueTypes(@RequestParam String serviceTypeId){
 		List<SecureTObject> issueTypes = fetchQueriedObjects("getIssueTypeForService", "serviceTypeId", Integer.valueOf(serviceTypeId));
