@@ -80,7 +80,7 @@ public class SMSService {
         try {
         	httpResponse = httpclient.execute(getMethod);
         	String response = EntityUtils.toString(httpResponse.getEntity());
-        	_logger.info("SMS Satus: " + EntityUtils.toString(httpResponse.getEntity()));
+        	_logger.info("SMS Satus: " + response);
         	if(!response.isEmpty() && response.indexOf("Status=0")!=-1){
         		return true;
         	}

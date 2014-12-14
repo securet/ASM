@@ -409,8 +409,10 @@ public class BaseTicketService extends SecureTService{
 		if(formObject.getReporter().getEmailId()!=null){
 			toAddress.append(formObject.getReporter().getEmailId()).append(",");
 		}
-		if(formObject.getResolver().getEmailId()!=null){
+		if(formObject.getResolver()!=null && formObject.getResolver().getEmailId()!=null){
 			toAddress.append(formObject.getResolver().getEmailId());
+		}else{
+			_logger.error("No vendor assignment something went wrong: "+formObject.getTicketId());
 		}
 		if(toAddress.length()<=0){
 			_logger.error("No email address found.. so not notifying for ticket: "+ formObject.getTicketId());

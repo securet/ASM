@@ -114,7 +114,6 @@ public class TicketRestfulService extends BaseTicketService{
 					status="success";
 					//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
 					cleanTicketForResponse(userTicket);
-					
 					data=userTicket;
 				}
 			}
@@ -182,7 +181,9 @@ public class TicketRestfulService extends BaseTicketService{
 		validateAndSetDefaultsForTicket(ticket, result);
 		if(!result.hasErrors() && user!=null){
 			createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
-			cleanTicketForResponse(ticket);
+			entityManager.flush();
+			entityManager.detach(ticket);
+			//cleanTicketForResponse(ticket);
 			data = ticket;
 			status="success";
 		}else{
