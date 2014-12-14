@@ -26,15 +26,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 import com.securet.ssm.persistence.objects.Ticket;
-import com.securet.ssm.persistence.objects.TicketArchive;
-import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -183,7 +180,7 @@ public class TicketRestfulService extends BaseTicketService{
 		Object messages = null;
 		Object data = null;
 		validateAndSetDefaultsForTicket(ticket, result);
-		if(!result.hasErrors()){
+		if(!result.hasErrors() && user!=null){
 			createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
 			cleanTicketForResponse(ticket);
 			data = ticket;
