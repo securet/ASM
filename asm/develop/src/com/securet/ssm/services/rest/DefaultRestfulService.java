@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.securet.ssm.persistence.objects.Enumeration;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.services.SecureTService;
@@ -53,7 +54,7 @@ public class DefaultRestfulService extends SecureTService  {
 
 	@RequestMapping("/rest/severityTypes")
 	public Object severityTypes(){
-		List<SecureTObject> severityTypes = fetchObjects("getSeverityForView");
+		List<SecureTObject> severityTypes = fetchQueriedObjects("getEnumByType", "enumTypeId", "SEVERITY",Enumeration.class);
 		return new SecureTJSONResponse("success", null, severityTypes);
 	}
 
