@@ -129,8 +129,8 @@ public class TicketRestfulService extends BaseTicketService{
 		if(columns.getLength()==0){
 			columns.setLength(100);
 		}
-		if(columns.getStart()==0){
-			columns.setStart(1);
+		if(columns.getStart()<0){
+			columns.setStart(0);
 		}
 		ListObjects  userTickets = null;
 		if(user!=null){
