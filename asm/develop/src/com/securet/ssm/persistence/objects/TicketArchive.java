@@ -15,6 +15,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 
@@ -27,8 +28,10 @@ import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 public class TicketArchive{
 
     
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
     @JsonView(SimpleObject.class)
 	private Timestamp createdTimestamp;
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
     @JsonView(SimpleObject.class)
 	private Timestamp lastUpdatedTimestamp;
 	

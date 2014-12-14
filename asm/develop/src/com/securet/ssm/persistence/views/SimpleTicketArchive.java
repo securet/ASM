@@ -2,9 +2,12 @@ package com.securet.ssm.persistence.views;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class SimpleTicketArchive{
 	private String ticketId;
 	private String description;
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
 	private Date lastUpdatedTimestamp;
 	private String modifiedByUser;
 	private String vendorOrganization;

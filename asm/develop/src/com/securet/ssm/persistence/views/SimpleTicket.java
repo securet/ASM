@@ -2,6 +2,8 @@ package com.securet.ssm.persistence.views;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 public class SimpleTicket {
 
 	private String ticketId;
@@ -11,6 +13,7 @@ public class SimpleTicket {
 	private String siteName;
 	private String serviceTypeId;
 	private String serviceTypeName;
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
 	private Date createdTimestamp;
 
 	public SimpleTicket() {

@@ -22,6 +22,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.securet.ssm.persistence.views.SimpleTicket;
 
 @Entity
@@ -141,7 +142,9 @@ public class Ticket{
 	
 	private String source;
 
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
 	private Timestamp createdTimestamp;
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
 	private Timestamp lastUpdatedTimestamp;
 
 	public String getTicketId() {
