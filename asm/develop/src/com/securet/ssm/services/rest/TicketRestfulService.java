@@ -210,7 +210,7 @@ public class TicketRestfulService extends BaseTicketService{
 			if(!result.hasErrors()){
 				try{
 					updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
-					cleanTicketForResponse(ticket);
+					//cleanTicketForResponse(ticket);
 					status="success";
 					data = ticket;
 				}catch(Exception e){
