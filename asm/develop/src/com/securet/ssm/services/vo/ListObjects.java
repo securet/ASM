@@ -3,13 +3,17 @@ package com.securet.ssm.services.vo;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonView;
+import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
+
 public class ListObjects implements Serializable {
 
 	private int draw;//field list size
 	private int recordsTotal;//total no of records
 	private int recordsFiltered;//records to display
 	private List<String> columnsNames;
-	
+
+	//@JsonView(SimpleObject.class)
 	private Object data;
 	public int getDraw() {
 		return draw;

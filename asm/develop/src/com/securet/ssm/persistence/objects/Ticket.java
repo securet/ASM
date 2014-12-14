@@ -5,20 +5,63 @@ import java.util.Date;
 import java.util.List;
 
 import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.securet.ssm.persistence.views.SimpleTicket;
+
 @Entity
 @Table(name="ticket")
+@NamedNativeQueries({
+	@NamedNativeQuery(
+			  name="getClientUserTickets",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN client_user_site cus ON t.siteId=cus.siteId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.statusId IN (?2) and  cus.userId=(?1) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  resultSetMapping="simpleTickets"
+			),
+	@NamedNativeQuery(
+			  name="getVendorUserTickets",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  resultSetMapping="simpleTickets"
+			),
+	@NamedNativeQuery(
+			  name="getFilteredClientUserTickets",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN client_user_site cus ON t.siteId=cus.siteId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.statusId IN (?2) AND  cus.userId=(?1) ) AND (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  resultSetMapping="simpleTickets"
+			),
+	@NamedNativeQuery(
+			  name="getFilteredVendorUserTickets",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) AND (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  resultSetMapping="simpleTickets"
+			)
+})
+@SqlResultSetMapping(name="simpleTickets", 
+  classes={ 
+    @ConstructorResult(targetClass=SimpleTicket.class, columns={
+        @ColumnResult(name="ticketId", type=String.class),
+        @ColumnResult(name="shortDesc", type=String.class),
+        @ColumnResult(name="statusId", type=String.class),
+        @ColumnResult(name="siteId", type=String.class),
+        @ColumnResult(name="siteName", type=String.class),
+        @ColumnResult(name="serviceTypeId", type=String.class),
+        @ColumnResult(name="serviceTypeName", type=String.class),
+        @ColumnResult(name="createdTimestamp", type=Date.class),
+    })
+  }
+)
 public class Ticket{
 
 	@Id

@@ -155,6 +155,7 @@ public class BaseTicketService extends SecureTService{
 		}
 		
 		StringBuilder ticketListQueryStr = new StringBuilder();
+
 		if(allFields){
 			ticketListQueryStr.append(TICKET_NATIVE_QUERY);
 		}else{
@@ -168,7 +169,19 @@ public class BaseTicketService extends SecureTService{
 		if(allFields){
 			ticketListQuery = entityManager.createNativeQuery(ticketListQueryStr.toString(), Ticket.class);
 		}else{
-			ticketListQuery = entityManager.createNativeQuery(ticketListQueryStr.toString());
+			if(isReporter){
+				if(textSearchEnabled){
+					ticketListQuery = entityManager.createNamedQuery("getFilteredClientUserTickets");
+				}else{
+					ticketListQuery = entityManager.createNamedQuery("getClientUserTickets");
+				}
+			}else{
+				if(textSearchEnabled){
+					ticketListQuery = entityManager.createNamedQuery("getFilteredVendorUserTickets");
+				}else{
+					ticketListQuery = entityManager.createNamedQuery("getVendorUserTickets");
+				}
+			}
 		}
 		StringBuilder ticketCountQueryStr = new StringBuilder();
 		ticketCountQueryStr.append(TICKET_COUNT_NATIVE_QUERY).append(ticketQueryStr.toString());
@@ -191,7 +204,6 @@ public class BaseTicketService extends SecureTService{
 				ticketCountQuery.setParameter(i, textToSearch);
 			}
 		}
-		
 		Map<String,Query> jpaQueriesToRun = new HashMap<String, Query>();
 		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, ticketListQuery);
 		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, ticketCountQuery);

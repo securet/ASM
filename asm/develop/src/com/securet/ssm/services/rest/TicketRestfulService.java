@@ -25,10 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.objects.TicketArchive;
+import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -120,7 +126,7 @@ public class TicketRestfulService extends BaseTicketService{
 	}
 
 	@RequestMapping("/rest/ticket/forUser")
-	public Object getTicketsForEmployee(@AuthenticationPrincipal User user,@RequestParam(value="filter",required=false) String statusFilter, @ModelAttribute DataTableCriteria columns){
+	public Object getTicketsForUser(@AuthenticationPrincipal User user,@RequestParam(value="filter",required=false) String statusFilter, @ModelAttribute DataTableCriteria columns){
 		String status = "error";
 		Object messages = null;
 		Object data = null;
@@ -133,7 +139,10 @@ public class TicketRestfulService extends BaseTicketService{
 		ListObjects  userTickets = null;
 		if(user!=null){
 			userTickets = listUserTickets(columns, statusFilter, user, false);
+			ObjectMapper mapper = new ObjectMapper();
+			//Object t = mapper.convertValue(userTickets.getData(), Ticket.class);
 			userTickets.setColumnsNames(columnNames);
+//			Object simpleTicket = mapper.convertValue(userTickets.getData(), new TypeReference<List<SimpleTicket>>() {});
 			data=userTickets;
 			status="success";
 		}
@@ -142,15 +151,20 @@ public class TicketRestfulService extends BaseTicketService{
 	
 	@RequestMapping("/rest/ticket/history")
     @JsonView(SimpleObject.class)
-	public Object ticketHistory(@AuthenticationPrincipal User user,@RequestParam(value="ticketId",required=false) String ticketId){
-		Query ticketArchiveQuery = entityManager.createNativeQuery("SELECT ta.ticketId, ta.description, ta.modifiedBy, ta.lastUpdatedTimestamp FROM ticket_archive ta WHERE ta.ticketId=(?1) ORDER BY ta.lastUpdatedTimestamp");
-		ticketArchiveQuery.setParameter(1, ticketId);
+	public Object ticketHistory(@AuthenticationPrincipal User user,@RequestParam(value="ticketId",required=false) String ticketId) throws JsonProcessingException{
+		//Query ticketArchiveQuery = entityManager.createNativeQuery("SELECT ta.ticketId, ta.description, ta.modifiedBy, ta.lastUpdatedTimestamp FROM ticket_archive ta WHERE ta.ticketId=(?1) ORDER BY ta.lastUpdatedTimestamp");
+		Query ticketArchiveQuery = entityManager.createNamedQuery("getLatestSimpleTicketArchivesForTicketId");
+		ticketArchiveQuery.setParameter("ticketId", ticketId);
 		List ticketHistory = ticketArchiveQuery.getResultList();
 		ListObjects listObjects = new ListObjects();
 		listObjects.setData(ticketHistory);
 		listObjects.setRecordsFiltered(ticketHistory.size());
 		listObjects.setRecordsTotal(ticketHistory.size());
 		listObjects.setColumnsNames(historyColumnNames);
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new Hibernate4Module());
+        mapper.getSerializationConfig().withView(SimpleObject.class);
+        String str3 = mapper.writeValueAsString(ticketHistory);
 		return new SecureTJSONResponse("success",null,listObjects);
 	}
 
