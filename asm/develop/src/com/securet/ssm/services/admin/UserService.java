@@ -121,7 +121,6 @@ public class UserService extends SecureTService {
 			model.addAttribute("formObject",formObject);
 			return DefaultService.ADMIN+"createEditUser";
 		}else{
-			
 			//map the roles
 			if(formObject.getRolesList()!=null && !formObject.getRolesList().isEmpty()){
 				List<RoleType> roles = new ArrayList<RoleType>();
@@ -158,7 +157,7 @@ public class UserService extends SecureTService {
 	private void validateUser(User formObject, BindingResult result, String verifyPassword) {
 		Query query = null;
 		query = entityManager.createNamedQuery("getUserById");
-		query.setParameter("id", formObject.getUserId());
+		query.setParameter("id", formObject.getUserId().toLowerCase());
 		int resultsCount = query.getResultList().size();
 		if(resultsCount>0){
 			FieldError fieldError = new FieldError("formObject", "userId", "UserId  already exists");

@@ -60,8 +60,16 @@ public class DefaultRestfulService extends SecureTService  {
 	
 	@RequestMapping("/rest/getSitesForUser")
 	public Object getSitesForUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user){
-		List<SecureTObject> sites = fetchQueriedObjects("getUserAssignedSites", "userId", user.getUsername());
-		return new SecureTJSONResponse("success", null, sites);
+		String status  = "error";
+		Object message = null;
+		Object data = null;
+		if(user!=null){
+			status  = "success";
+			data = fetchQueriedObjects("getUserAssignedSites", "userId", user.getUsername());
+		}else{
+			
+		}
+		return new SecureTJSONResponse(status, null, data);
 	}
 	
 /*	@RequestMapping("/error/defaulterror")

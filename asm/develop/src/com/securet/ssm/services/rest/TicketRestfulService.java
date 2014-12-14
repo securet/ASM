@@ -1,7 +1,6 @@
 package com.securet.ssm.services.rest;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,12 +15,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.MatrixVariable;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,16 +27,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
-import com.securet.ssm.persistence.objects.SecureTObject;
-import com.securet.ssm.persistence.objects.Ticket;
-import com.securet.ssm.persistence.objects.TicketArchive;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
-import com.securet.ssm.services.SecureTService;
+import com.securet.ssm.persistence.objects.Ticket;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
-import com.securet.ssm.services.vo.DataTableCriteria.SearchCriterias;
 
 @RestController
 @Repository
@@ -129,6 +121,9 @@ public class TicketRestfulService extends BaseTicketService{
 
 	@RequestMapping("/rest/ticket/forUser")
 	public Object getTicketsForEmployee(@AuthenticationPrincipal User user,@RequestParam(value="filter",required=false) String statusFilter, @ModelAttribute DataTableCriteria columns){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
 		if(columns.getLength()==0){
 			columns.setLength(100);
 		}
@@ -136,9 +131,13 @@ public class TicketRestfulService extends BaseTicketService{
 			columns.setStart(1);
 		}
 		ListObjects  userTickets = null;
-		userTickets = listUserTickets(columns, statusFilter, user, false);
-		userTickets.setColumnsNames(columnNames);
-		return new SecureTJSONResponse("success",null,userTickets);
+		if(user!=null){
+			userTickets = listUserTickets(columns, statusFilter, user, false);
+			userTickets.setColumnsNames(columnNames);
+			data=userTickets;
+			status="success";
+		}
+		return new SecureTJSONResponse(status,null,data);
 	}
 	
 	@RequestMapping("/rest/ticket/history")
@@ -187,29 +186,31 @@ public class TicketRestfulService extends BaseTicketService{
 		String status = "error";
 		Object messages = null;
 		Object data = null;
-		if(ticket.getStatus()==null || ticket.getStatus().getEnumerationId().isEmpty()){
-			FieldError fieldError = new FieldError("ticket", "status.enumerationId", "Please select a valid status");
-			result.addError(fieldError);
-		}
-		if(ticket.getDescription()==null || ticket.getDescription().isEmpty()){
-			FieldError fieldError = new FieldError("ticket", "description", "Description cannot be empty");
-			result.addError(fieldError);
-		}
-		if(!result.hasErrors()){
-			try{
-				updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
-				cleanTicketForResponse(ticket);
-				status="success";
-				data = ticket;
-			}catch(Exception e){
-				_logger.error("Something went wrong",e);
-				status="error";
-				FieldError fieldError = new FieldError("ticket", "ticket", "Something went wrong, check with server logs");
+		if(customUser!=null){
+			if(ticket.getStatus()==null || ticket.getStatus().getEnumerationId().isEmpty()){
+				FieldError fieldError = new FieldError("ticket", "status.enumerationId", "Please select a valid status");
 				result.addError(fieldError);
+			}
+			if(ticket.getDescription()==null || ticket.getDescription().isEmpty()){
+				FieldError fieldError = new FieldError("ticket", "description", "Description cannot be empty");
+				result.addError(fieldError);
+			}
+			if(!result.hasErrors()){
+				try{
+					updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
+					cleanTicketForResponse(ticket);
+					status="success";
+					data = ticket;
+				}catch(Exception e){
+					_logger.error("Something went wrong",e);
+					status="error";
+					FieldError fieldError = new FieldError("ticket", "ticket", "Something went wrong, check with server logs");
+					result.addError(fieldError);
+					messages=simplifyErrorMessages(result.getFieldErrors());
+				}
+			}else{
 				messages=simplifyErrorMessages(result.getFieldErrors());
 			}
-		}else{
-			messages=simplifyErrorMessages(result.getFieldErrors());
 		}
 		return new SecureTJSONResponse(status, messages, data);
 	}
