@@ -31,6 +31,7 @@ public class DefaultRestfulService extends SecureTService  {
 		Object message = null;
 		Object data = null;
 		if(user!=null){
+			status  = "success";
 			data = (User)fetchSingleObject("getUserById", "id", user.getUsername());
 		}else{
 			message = new FieldError("ticket", "userId", "Invalid credentials!");

@@ -160,7 +160,7 @@ public class TicketRestfulService extends BaseTicketService{
 		Map<String,Object> vendorAndIssueType = loadVendorsAndIssueTypes(serviceTypeId,siteId);
 		com.securet.ssm.persistence.objects.User user =  (com.securet.ssm.persistence.objects.User)vendorAndIssueType.get("vendors");
 		cleanUser(user);
-		return vendorAndIssueType;
+		return new SecureTJSONResponse("success", null, vendorAndIssueType);
 	}
 
 	@Transactional
@@ -174,6 +174,7 @@ public class TicketRestfulService extends BaseTicketService{
 			createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
 			cleanTicketForResponse(ticket);
 			data = ticket;
+			status="success";
 		}else{
 			messages=simplifyErrorMessages(result.getFieldErrors());
 		}
