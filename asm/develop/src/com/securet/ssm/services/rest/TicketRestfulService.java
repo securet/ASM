@@ -180,12 +180,22 @@ public class TicketRestfulService extends BaseTicketService{
 		Object data = null;
 		validateAndSetDefaultsForTicket(ticket, result);
 		if(!result.hasErrors() && user!=null){
-			createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
-			entityManager.flush();
-			entityManager.detach(ticket);
-			//cleanTicketForResponse(ticket);
-			data = ticket;
-			status="success";
+			try{
+				createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
+				entityManager.flush();
+				entityManager.clear();
+				cleanTicketForResponse(ticket);
+				data = ticket;
+				status="success";
+				FieldError fieldError = new FieldError("ticket", "ticket", "Ticket successfully created: "+ticket.getTicketId());
+				result.addError(fieldError);
+				messages=simplifyErrorMessages(result.getFieldErrors());
+			}catch(Exception e){//handling every exceptions to ensure apps do not see stack...
+				_logger.error("something went wrong",e);
+				FieldError fieldError = new FieldError("ticket", "ticket", "Opps server said :"+e.getMessage());
+				result.addError(fieldError);
+				messages=simplifyErrorMessages(result.getFieldErrors());
+			}
 		}else{
 			messages=simplifyErrorMessages(result.getFieldErrors());
 		}
@@ -210,13 +220,18 @@ public class TicketRestfulService extends BaseTicketService{
 			if(!result.hasErrors()){
 				try{
 					updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
-					//cleanTicketForResponse(ticket);
+					entityManager.flush();
+					entityManager.clear();
+					cleanTicketForResponse(ticket);
 					status="success";
 					data = ticket;
-				}catch(Exception e){
+					FieldError fieldError = new FieldError("ticket", "ticket", "Ticket successfully updated: "+ticket.getTicketId());
+					result.addError(fieldError);
+					messages=simplifyErrorMessages(result.getFieldErrors());
+				}catch(Exception e){//handling every exceptions to ensure apps do not see stack...
 					_logger.error("Something went wrong",e);
 					status="error";
-					FieldError fieldError = new FieldError("ticket", "ticket", "Something went wrong, check with server logs");
+					FieldError fieldError = new FieldError("ticket", "ticket", "Opps server said :"+e.getMessage());
 					result.addError(fieldError);
 					messages=simplifyErrorMessages(result.getFieldErrors());
 				}
