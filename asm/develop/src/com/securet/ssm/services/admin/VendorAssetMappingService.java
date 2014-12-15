@@ -1,6 +1,7 @@
 package com.securet.ssm.services.admin;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +37,7 @@ import com.securet.ssm.services.vo.VendorServiceAsset;
 @Repository
 public class VendorAssetMappingService extends SecureTService{
 
+	private static final String ASSETIDS_BY_CITY_AND_ASSET_TYPE_QUERY = "SELECT o.assetId FROM Asset o WHERE o.site.city.geoId=:geoId AND o.assetType.assetTypeId=:assetTypeId";
 	private Logger _logger = LoggerFactory.getLogger(VendorAssetMappingService.class);
 	private static List<String> excludeInDisplay = null;  
 	private static Map<String,String> customFieldTypes = null;  
@@ -81,6 +83,7 @@ public class VendorAssetMappingService extends SecureTService{
 			dataViewNames.add("getVendorOrganizationForView");
 			dataViewNames.add("getServiceTypeForView");
 			dataViewNames.add("getCityWithSitesForView");
+			dataViewNames.add("getAssetTypeForView");
 		}
 		return dataViewNames;
 	}
@@ -103,9 +106,17 @@ public class VendorAssetMappingService extends SecureTService{
 		return fetchQueriedObjects("getAssetsForSite", "siteId",Integer.valueOf(siteId));
 	}
 
+	@RequestMapping(value="/admin/getUnassignedAssetsByCityAndAssetType",produces="application/json")
+	public @ResponseBody List<SecureTObject> getAssetsByCityAndAssetType(@RequestParam String cityGeoId,@RequestParam String assetTypeId){
+		Query assetsByCityAndAssetType = entityManager.createNamedQuery("getUnAssignedAssetsByCityAndAssetType");
+		assetsByCityAndAssetType.setParameter(1, cityGeoId);
+		assetsByCityAndAssetType.setParameter(2, assetTypeId);
+		return assetsByCityAndAssetType.getResultList();
+	}
+
 	@RequestMapping(value="/admin/getUserAssignedAssets",produces="application/json")
 	public @ResponseBody List<SecureTObject> getUserAssignedAssets(@RequestParam String userId,@RequestParam String serviceTypeId){
-		Query existingVendorAssetMap = entityManager.createQuery("SELECT vsa.asset FROM VendorServiceAsset vsa WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId");
+		Query existingVendorAssetMap = entityManager.createQuery("SELECT NEW com.securet.ssm.persistence.views.SimpleAsset(vsa.asset.assetId,vsa.asset.name,vsa.asset.assetTag,vsa.asset.assetType.name,vsa.asset.site.name,vsa.asset.installedDate) FROM VendorServiceAsset vsa WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId");
 		existingVendorAssetMap.setParameter("userId", userId);
 		existingVendorAssetMap.setParameter("serviceTypeId", Integer.valueOf(serviceTypeId));
 		return existingVendorAssetMap.getResultList();
@@ -126,9 +137,9 @@ public class VendorAssetMappingService extends SecureTService{
 			ServiceType serviceType = new ServiceType();
 			serviceType.setServiceTypeId(formObject.getServiceTypeId());
 			//find existing assets
-			Query existingVendorAssetMap = entityManager.createQuery("SELECT vsa.asset.assetId FROM VendorServiceAsset vsa WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId");
-			existingVendorAssetMap.setParameter("userId", formObject.getUserId());
-			existingVendorAssetMap.setParameter("serviceTypeId", formObject.getServiceTypeId());
+			Query existingVendorAssetMap = entityManager.createQuery("SELECT vsa.asset.assetId FROM VendorServiceAsset vsa"); //WHERE vsa.vendorUser.userId=:userId AND vsa.serviceType.serviceTypeId=:serviceTypeId");
+			//existingVendorAssetMap.setParameter("userId", formObject.getUserId());
+			//existingVendorAssetMap.setParameter("serviceTypeId", formObject.getServiceTypeId());
 			List<Integer> assetsMapped = existingVendorAssetMap.getResultList();
 			
 			List<Integer> newMappedAssets = new ArrayList<Integer>(formObject.getAssets());
@@ -147,9 +158,10 @@ public class VendorAssetMappingService extends SecureTService{
 			
 			//delete any unassigned assets with user and service of a the current site...
 			//get all assets of the selected site
-			Query siteAssetsQuery = entityManager.createQuery("SELECT o.assetId from Asset o WHERE o.site.siteId=:siteId");
-			siteAssetsQuery.setParameter("siteId", Integer.parseInt(formObject.getSiteId()));
-			List<Integer> allSiteAssetsToDelete = siteAssetsQuery.getResultList();
+			Query regionAssets = entityManager.createQuery(ASSETIDS_BY_CITY_AND_ASSET_TYPE_QUERY);
+			regionAssets.setParameter("geoId", formObject.getCityGeoId());
+			regionAssets.setParameter("assetTypeId", Integer.parseInt(formObject.getAssetTypeId()));
+			List<Integer> allSiteAssetsToDelete = regionAssets.getResultList();
 			allSiteAssetsToDelete.removeAll(formObject.getAssets());
 			//not identify any assets of this site not selected delete from mapping
 			if(allSiteAssetsToDelete.size()>0){
@@ -189,9 +201,10 @@ public class VendorAssetMappingService extends SecureTService{
 	}
 
 	private void validateExistingVendorServiceAssetAssignment(VendorServiceAsset formObject, BindingResult result) {
-		Query vendorsAssignedQuery =  entityManager.createNamedQuery("getAssetNameMappedByAssetServiceType");
+		Query vendorsAssignedQuery =  entityManager.createNamedQuery("getAssetNameMappedByVendorAssetServiceType");
 		vendorsAssignedQuery.setParameter("assetId", formObject.getAssets());
 		vendorsAssignedQuery.setParameter("serviceTypeId", formObject.getServiceTypeId());
+		vendorsAssignedQuery.setParameter("userId", formObject.getUserId());
 		List<String> assetsMapped = vendorsAssignedQuery.getResultList();
 		if(assetsMapped.size()>0){
 			FieldError fieldError = new FieldError("formObject", "serviceTypeId", "Following assets have been mapped to vendor already: "+assetsMapped.toString());

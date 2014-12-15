@@ -28,10 +28,10 @@ import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 public class TicketArchive{
 
     
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
     @JsonView(SimpleObject.class)
 	private Timestamp createdTimestamp;
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
     @JsonView(SimpleObject.class)
 	private Timestamp lastUpdatedTimestamp;
 	

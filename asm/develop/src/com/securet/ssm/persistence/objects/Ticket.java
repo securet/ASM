@@ -142,9 +142,9 @@ public class Ticket{
 	
 	private String source;
 
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Timestamp createdTimestamp;
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Timestamp lastUpdatedTimestamp;
 
 	public String getTicketId() {

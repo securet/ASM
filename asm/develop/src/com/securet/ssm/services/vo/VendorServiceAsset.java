@@ -26,6 +26,8 @@ public class VendorServiceAsset {
 	
 	private String siteId;
 	
+	private String assetTypeId;
+
 	public String getUserId() {
 		return userId;
 	}
@@ -72,6 +74,14 @@ public class VendorServiceAsset {
 
 	public void setSiteId(String siteId) {
 		this.siteId = siteId;
+	}
+
+	public String getAssetTypeId() {
+		return assetTypeId;
+	}
+
+	public void setAssetTypeId(String assetTypeId) {
+		this.assetTypeId = assetTypeId;
 	}
 	
 }

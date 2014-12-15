@@ -1,22 +1,23 @@
 package com.securet.ssm.persistence.objects;
 
-import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 @Entity
-@Table(name="vendor_service_asset")
+@Table(name="vendor_service_asset",	uniqueConstraints=
+	@UniqueConstraint(columnNames={"assetId"})
+)
 @NamedQueries({
 	@NamedQuery(name="getVendorServiceAssetByServiceType",query="SELECT o FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId"),
 	@NamedQuery(name="getVendorByServiceType",query="SELECT o.vendorUser FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.site.siteId=:siteId"),
-	@NamedQuery(name="getAssetNameMappedByAssetServiceType",query="SELECT distinct o.asset.name FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.assetId IN (:assetId)")
+	@NamedQuery(name="getAssetNameMappedByAssetServiceType",query="SELECT distinct o.asset.name FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.assetId IN (:assetId)"),
+	@NamedQuery(name="getAssetNameMappedByVendorAssetServiceType",query="SELECT distinct o.asset.assetTag FROM VendorServiceAsset o WHERE o.serviceType.serviceTypeId=:serviceTypeId AND o.asset.assetId IN (:assetId) AND o.vendorUser.userId<>:userId")
 })
 public class VendorServiceAsset extends SecureTObject{
 

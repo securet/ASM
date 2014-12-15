@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class SimpleTicketArchive{
 	private String ticketId;
 	private String description;
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Date lastUpdatedTimestamp;
 	private String modifiedByUser;
 	private String vendorOrganization;

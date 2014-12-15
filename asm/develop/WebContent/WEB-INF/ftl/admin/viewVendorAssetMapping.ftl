@@ -51,11 +51,11 @@
 							</#if>
 							<@formSingleSelectSSM path="formObject.cityGeoId" field={"fieldName":"cityGeoId","label":"Select Region"} options=citiesoptions?default("{}")?eval  includeLabelInline=false/>
 		
-							<#assign sitesList = .data_model["getSitesForCity"]?default([])>
-							<#if sitesList?exists && (sitesList?size>0) >
-								<#assign sitesoptions>{"":"Select Site",<#list sitesList as uiObject>"${uiObject.siteId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+							<#assign assetTypes = .data_model["getAssetTypeForView"]?default([])>
+							<#if assetTypes?exists && (assetTypes?size>0) >
+								<#assign assetTypeoptions>{"":"Select AssetType",<#list assetTypes as uiObject>"${uiObject.assetTypeId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 							</#if>
-							<@formSingleSelectSSM path="formObject.siteId" field={"fieldName":"siteId","label":"Select Site"} options=sitesoptions?default("{}")?eval  includeLabelInline=false/>
+							<@formSingleSelectSSM path="formObject.assetTypeId" field={"fieldName":"assetTypeId","label":"Select Asset Type"} options=assetTypeoptions?default("{}")?eval  includeLabelInline=false/>
 							<div class="form-group">
 								<div class="col-sm-9">
 									<@showErrorsSSM "formObject.assets"/>							

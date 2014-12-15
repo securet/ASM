@@ -13,7 +13,7 @@ public class SimpleTicket {
 	private String siteName;
 	private String serviceTypeId;
 	private String serviceTypeName;
-	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a")
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Date createdTimestamp;
 
 	public SimpleTicket() {

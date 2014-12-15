@@ -22,17 +22,19 @@
 				<form class="form-horizontal" role="form" method="POST" action="<@spring.url relativeUrl="/admin/saveUser"/>">
 					<#setting number_format="0.##">
 					<@formInputSSM path="formObject.fullName" field={"fieldName":"Full Name"} fieldType="text"/>
-					<div class="form-group labelblock">
-						<label for="serviceTypeId" class="col-sm-3 control-label">User Id</label>
-					    <div id="serviceTypeId"  class="col-sm-9">
-							<p class="form-control-static normaltext">${formObject.userId!}</p>
-							<input type="hidden" name="userId" value="${formObject.userId!}"/>
-					    </div>
-					</div>
 					<#if mode!="edit">
+						<@formInputSSM path="formObject.userId" field={"fieldName":"user Id"} fieldType="text"/>
 						<@formInputSSM path="formObject.userLogin.password" field={"fieldName":"Password"} fieldType="password"/>
 						<@formInputSSM path="formObject.userLogin.verifyPassword" field={"fieldName":"Verify Password"} fieldType="password"/>
 						<@formCheckboxSSM path="formObject.userLogin.enabled" field={"fieldName":"enabled"}  attributes="checked"/>
+					<#else>
+						<div class="form-group labelblock">
+							<label for="serviceTypeId" class="col-sm-3 control-label">User Id</label>
+						    <div id="serviceTypeId"  class="col-sm-9">
+								<p class="form-control-static normaltext">${formObject.userId!}</p>
+								<input type="hidden" name="userId" value="${formObject.userId!}"/>
+						    </div>
+						</div>
 					</#if>
 					<@formInputSSM path="formObject.emailId" field={"fieldName":"Email"} fieldType="text"/>
 					<@formInputSSM path="formObject.mobile" field={"fieldName":"Mobile"} fieldType="text"/>
