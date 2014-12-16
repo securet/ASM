@@ -35,7 +35,7 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 			),
 	@NamedNativeQuery(
 			  name="getVendorUserTickets",
-			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
 			  resultSetMapping="simpleTickets"
 			),
 	@NamedNativeQuery(
@@ -45,7 +45,7 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 			),
 	@NamedNativeQuery(
 			  name="getFilteredVendorUserTickets",
-			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) AND (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
+			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.ticketType!='LOG' AND vsa.userId=(?1) AND t.statusId IN (?2) ) AND (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
 			  resultSetMapping="simpleTickets"
 			)
 })

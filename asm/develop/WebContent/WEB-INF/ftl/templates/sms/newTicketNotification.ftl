@@ -1,1 +1,1 @@
-You got a new Ticket yaroo ${ticket.ticketId} 
+You got a new Ticket ${ticket.ticketId} 

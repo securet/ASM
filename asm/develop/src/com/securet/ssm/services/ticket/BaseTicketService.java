@@ -51,7 +51,7 @@ public class BaseTicketService extends SecureTService{
 
 	// should make a query planner, to many queries - TODO - data table query planner for custom queries 
 	public static final String CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
-	public static final String VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+	public static final String VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 
 	public static final String TICKET_NATIVE_QUERY = "SELECT t.* from ticket t ";
 	private static final String TICKET_SIMPLE_FIELDS_NATIVE_QUERY = "SELECT t.ticketId,t.statusId,t.siteId,s.name site,t.serviceTypeId, st.name serviceType, t.createdTimestamp  from ticket t ";
@@ -66,7 +66,7 @@ public class BaseTicketService extends SecureTService{
 	public static final String CLIENT_USER_FILTER = " cus.userId=(?1) ";
 	
 	//vendor queries
-	public static final String VENDOR_SERVICE_ASSET_JOIN_CLAUSE = " INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId";
+	public static final String VENDOR_SERVICE_ASSET_JOIN_CLAUSE = " INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId ";
 	public static final String VENDOR_USER_FILTER = " t.ticketType!='LOG' AND vsa.userId=(?1) ";
 	
 	//Common Join and Filters
@@ -78,7 +78,7 @@ public class BaseTicketService extends SecureTService{
 	
 	//Queries to show navigation filters 
 	public static final String COUNT_CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
-	public static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+	public static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 	
 	public static final String EMAIL_CREATE_TICKET_NOTIFICATION = "EMAIL_CREATE_TICKET_NOTIFICATION";
 	public static final String SMS_CREATE_TICKET_NOTIFICATION = "SMS_CREATE_TICKET_NOTIFICATION";

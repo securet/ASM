@@ -2,8 +2,8 @@
 	<head></head>
 	<body>
 		<div>
-			You got a new Ticket yaroo ${ticket.ticketId} in ${ticket.serviceType.name} which is assigned to 
-			${ticket.resolver.userId} who is from ${ticket.resolver.organization.name}
+			You got a new Ticket ${ticket.ticketId} in ${ticket.serviceType.name} which is assigned to 
+			<#if ticket.resolver?exists>${ticket.resolver.userId} who is from ${ticket.resolver.organization.name}<#else>no vendor</#if>
 		</div>
 		<br/>
 		<br/>
