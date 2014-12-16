@@ -78,6 +78,7 @@ public class SMSService {
         CloseableHttpResponse httpResponse = null;
         HttpGet getMethod = new HttpGet(builder.toString());
         try {
+        	_logger.info("SMS message: " + builder.toString());
         	httpResponse = httpclient.execute(getMethod);
         	String response = EntityUtils.toString(httpResponse.getEntity());
         	_logger.info("SMS Satus: " + response);

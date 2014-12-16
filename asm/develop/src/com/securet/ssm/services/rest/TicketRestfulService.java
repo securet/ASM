@@ -107,7 +107,7 @@ public class TicketRestfulService extends BaseTicketService{
 			if(ticketId==null || ticketId.isEmpty()){
 				messages = new FieldError("ticket", "ticketId", "TicketId cannot be empty");
 			}else{
-				Ticket userTicket = getUserTicket(ticketId, loggedInUser);
+				Ticket userTicket = getUserTicket(ticketId, loggedInUser,mailService,smsService);
 				if(userTicket==null){
 					messages = new FieldError("ticket", "ticketId", "TicketId not found or no access to ticket");
 				}else{
@@ -182,8 +182,6 @@ public class TicketRestfulService extends BaseTicketService{
 		if(!result.hasErrors() && user!=null){
 			try{
 				createTicketAndNotify(ticket, ticketAttachments, user, mailService, smsService);
-				entityManager.flush();
-				entityManager.clear();
 				cleanTicketForResponse(ticket);
 				data = ticket;
 				status="success";
@@ -220,8 +218,6 @@ public class TicketRestfulService extends BaseTicketService{
 			if(!result.hasErrors()){
 				try{
 					updateTicketAndNotify(ticket,ticketAttachments, customUser,mailService,smsService );
-					entityManager.flush();
-					entityManager.clear();
 					cleanTicketForResponse(ticket);
 					status="success";
 					data = ticket;

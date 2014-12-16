@@ -96,7 +96,7 @@ public class BaseTicketService extends SecureTService{
 	public static final String ALL_OK = "ALL OK";
 	public static final String TICKET_PREFIX = "C";
 
-	public Ticket getUserTicket(String ticketId, org.springframework.security.core.userdetails.User customUser) {
+	public Ticket getUserTicket(String ticketId, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
 		Ticket currentTicket = null;
 		//consider admin as the client as of now
 		String selectedQuery = CLIENT_USER_TICKET_NATIVE_QUERY;
@@ -111,7 +111,12 @@ public class BaseTicketService extends SecureTService{
 			currentTicket = userTickets.get(0);
 			if(isResolver && currentTicket.getStatus().getEnumerationId().equals(OPEN)){
 				//set the status to WORK IN PROGRESS
-				currentTicket = updateTicket(currentTicket, WORK_IN_PROGRESS, WORK_IN_PROGRESS_DESC, customUser.getUsername());
+				entityManager.detach(currentTicket);
+				Enumeration status = new Enumeration();
+				status.setEnumerationId(WORK_IN_PROGRESS);
+				currentTicket.setStatus(status);
+				currentTicket.setDescription(WORK_IN_PROGRESS_DESC);
+				currentTicket = updateTicketAndNotify(currentTicket, null, customUser, mailService,smsService);
 			}
 			_logger.debug("no of attachments : "+currentTicket.getAttachments().size());
 		}
@@ -216,8 +221,19 @@ public class BaseTicketService extends SecureTService{
 		createTicket(formObject,customUser.getUsername());
 		saveAttachments(formObject,ticketAttachments,true);
 		if(!isLog(formObject)){
-			sendNotifications(mailService,smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION,formObject);
+			formObject = manageTicketPeristence(formObject);
+			Map<String,Object> bodyParameters = new HashMap<String, Object>();
+			bodyParameters.put("ticket", formObject);
+			sendNotifications(mailService,smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION,bodyParameters);
 		}
+	}
+
+	private Ticket manageTicketPeristence(Ticket formObject) {
+		entityManager.flush();
+		entityManager.clear();
+		formObject = entityManager.find(Ticket.class, formObject.getTicketId());
+		entityManager.detach(formObject);
+		return formObject;
 	}
 	
 	public void createTicket(Ticket formObject, String reporterUserId) {
@@ -277,16 +293,26 @@ public class BaseTicketService extends SecureTService{
 		return formObject.getTicketType().getEnumerationId().equals(LOG);
 	}
 
-	public void updateTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
+	public Ticket updateTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
 		Ticket receivedTicket = formObject;
+		//check previous status from history
+		Query statusQuery = entityManager.createNamedQuery("getTicketStatusForId");
+		statusQuery.setParameter("ticketId", formObject.getTicketId());
+		String previousStatus = (String)statusQuery.getSingleResult();
+		
 		formObject = updateTicket(formObject, formObject.getStatus().getEnumerationId(), formObject.getDescription(), customUser.getUsername());
 		if(ticketAttachments!=null && ticketAttachments.size()>0){
 			saveAttachments(formObject, ticketAttachments,false);
 		}
 		receivedTicket.setAttachments(formObject.getAttachments());
+		formObject = manageTicketPeristence(formObject);
 		if(!isLog(formObject)){
-			sendNotifications(mailService,smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION,formObject);
+			Map<String,Object> bodyParameters = new HashMap<String, Object>();
+			bodyParameters.put("ticket", formObject);
+			bodyParameters.put("previousStatus", previousStatus);
+			sendNotifications(mailService,smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION,bodyParameters);
 		}
+		return formObject;
 	}
 
 	public Ticket updateTicket(Ticket ticket, String newStatus, String description,String modifiedUser){
@@ -363,12 +389,13 @@ public class BaseTicketService extends SecureTService{
 		_logger.debug("formObject: "+formObject.getAttachments());
 	}
 
-	public void sendNotifications(MailService mailService,SMSService smsService,String emailTemplate, String smsTemplate,Ticket formObject) {
-		sendEmail(mailService,formObject,emailTemplate);
-		sendSMS(smsService,formObject,smsTemplate);
+	public void sendNotifications(MailService mailService,SMSService smsService,String emailTemplate, String smsTemplate,Map<String,Object> bodyParameters) {
+		sendEmail(mailService,bodyParameters,emailTemplate);
+		sendSMS(smsService,bodyParameters,smsTemplate);
 	}
 
-	public void sendSMS(SMSService smsService, Ticket formObject,String templateName) {
+	public void sendSMS(SMSService smsService, Map<String,Object> bodyParameters,String templateName) {
+		Ticket formObject = (Ticket)bodyParameters.get("ticket");
 		List<String> receiverContacts = new ArrayList<String>();
 		switch (formObject.getStatus().getEnumerationId()) {
 		case "OPEN":
@@ -387,8 +414,6 @@ public class BaseTicketService extends SecureTService{
 			Query mailTemplateQuery = entityManager.createNamedQuery("getMailTemplateByName");
 			mailTemplateQuery.setParameter("templateName", templateName);
 			MailTemplate mailTemplate = (MailTemplate)mailTemplateQuery.getSingleResult();
-			Map<String,Object> bodyParameters = new HashMap<String, Object>();
-			bodyParameters.put("ticket", formObject);
 			smsContext.put("bodyParameters", bodyParameters);
 			smsContext.put("template",mailTemplate.getTemplateFileName());
 			for(String contactNumber : receiverContacts){
@@ -397,22 +422,44 @@ public class BaseTicketService extends SecureTService{
 					smsService.sendSMS(smsContext);
 				} catch (UnsupportedEncodingException e) {
 					_logger.error("Could not send sms for the context:" + smsContext,e);
+				}catch (Exception e) {
+					_logger.error("Could not send sms for the context:" + smsContext,e);
 				}
 			}
 		}
 	}
 
-	public void sendEmail(MailService mailService,Ticket formObject,String templateName) {
-		//get the user email... this can run in background.. 
+	public void sendEmail(MailService mailService,Map<String,Object> bodyParameters,String templateName) {
+		//get the user email... this can run in background..
+		Ticket formObject = (Ticket)bodyParameters.get("ticket");
 		Map<String,Object> mailContext = new HashMap<String,Object>();
 		StringBuilder toAddress = new StringBuilder();
-		if(formObject.getReporter().getEmailId()!=null){
-			toAddress.append(formObject.getReporter().getEmailId()).append(",");
-		}
-		if(formObject.getResolver()!=null && formObject.getResolver().getEmailId()!=null){
-			toAddress.append(formObject.getResolver().getEmailId());
-		}else{
-			_logger.error("No vendor assignment something went wrong: "+formObject.getTicketId());
+		switch (formObject.getStatus().getEnumerationId()) {
+		case "OPEN":
+			if(formObject.getReporter().getEmailId()!=null){
+				toAddress.append(formObject.getReporter().getEmailId());
+			}
+			if(formObject.getResolver()!=null && formObject.getResolver().getEmailId()!=null){
+				toAddress.append(",").append(formObject.getResolver().getEmailId());
+			}else{
+				_logger.error("No vendor assignment something went wrong: "+formObject.getTicketId());
+			}
+			break;
+		case "CLOSED":
+			if(formObject.getResolver()!=null && formObject.getResolver().getEmailId()!=null){
+				toAddress.append(formObject.getResolver().getEmailId());
+			}else{
+				_logger.error("No vendor assignment something went wrong: "+formObject.getTicketId());
+			}
+			break;
+		case "WORK_IN_PROGRESS":
+		case "RESOLVED":
+			if(formObject.getReporter().getEmailId()!=null){
+				toAddress.append(formObject.getReporter().getEmailId());
+			}
+			break;
+		default:
+			break;
 		}
 		if(toAddress.length()<=0){
 			_logger.error("No email address found.. so not notifying for ticket: "+ formObject.getTicketId());
@@ -422,18 +469,17 @@ public class BaseTicketService extends SecureTService{
 		mailTemplateQuery.setParameter("templateName", templateName);
 		MailTemplate mailTemplate = (MailTemplate)mailTemplateQuery.getSingleResult();
 		mailContext.put("to",toAddress.toString());
-
+		mailContext.put("bodyParameters", bodyParameters);
 		mailContext.put("contentType",mailTemplate.getContentType());
 		mailContext.put("from",mailTemplate.getFrom());
 		mailContext.put("subject",mailTemplate.getSubject());
 		mailContext.put("template",mailTemplate.getTemplateFileName());
 		
-		Map<String,Object> bodyParameters = new HashMap<String, Object>();
-		bodyParameters.put("ticket", formObject);
-		mailContext.put("bodyParameters",bodyParameters);
 		try{
 			mailService.sendMail(mailContext);
 		}catch(MailSendException e){
+			_logger.error("Could not send email for ticket :"+formObject.getTicketId() +" check the stack trace", e);
+		}catch (Exception e) {
 			_logger.error("Could not send email for ticket :"+formObject.getTicketId() +" check the stack trace", e);
 		}
 	}

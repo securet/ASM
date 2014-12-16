@@ -13,6 +13,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
@@ -27,6 +29,9 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 
 @Entity
 @Table(name="ticket")
+@NamedQueries({
+	@NamedQuery(name="getTicketStatusForId",query="SELECT t.status.enumerationId FROM Ticket t WHERE t.ticketId=:ticketId")
+})
 @NamedNativeQueries({
 	@NamedNativeQuery(
 			  name="getClientUserTickets",

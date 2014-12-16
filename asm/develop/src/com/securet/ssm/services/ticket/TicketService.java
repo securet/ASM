@@ -165,7 +165,7 @@ public class TicketService extends BaseTicketService {
 	@RequestMapping("/tickets/modifyTicket")
 	public String editTicket(@RequestParam("id") String ticketId,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser, Model model){
 		//find if the ticket is part of the user or his organization group and then allow them to edit
-		Ticket currentTicket = getUserTicket(ticketId, customUser);
+		Ticket currentTicket = getUserTicket(ticketId, customUser,mailService,smsService);
 		if(currentTicket==null){
 			return listTickets(customUser,null,model);
 		}

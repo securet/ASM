@@ -2,13 +2,11 @@
 	<head></head>
 	<body>
 		<div>
-			You got a new Ticket ${ticket.ticketId} in ${ticket.serviceType.name} which is assigned to 
-			<#if ticket.resolver?exists>${ticket.resolver.userId} who is from ${ticket.resolver.organization.name}<#else>no vendor</#if>
-		</div>
-		<br/>
-		<br/>
-		<div>		
-			Description: ${ticket.description}
+			<div>A new Call Log  No : ${ticket.ticketId} has been logged for SBI ATM site ${ticket.site.name!} at ${ticket.site.area!}<br/></div>
+			<div>Please look into the matter and update your action on <a href="http://asm.securet.in/tickets/modifyTicket?id=${ticket.ticketId}">asm.securet.in</a><br/><br/></div>
+			<div>Regards,</div>
+			<div>SBI - ATM Services</div>
+			<div>This is an auto generated mail. Please do not reply to it.</div>
 		</div>
 	</body>
 </html>
