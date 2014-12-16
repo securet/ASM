@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class SimpleTicketArchive{
 	private String ticketId;
 	private String description;
+	private String statusId;
 	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Date lastUpdatedTimestamp;
 	private String modifiedByUser;
@@ -24,6 +25,16 @@ public class SimpleTicketArchive{
 	public SimpleTicketArchive(String ticketId, String description, Date lastUpdatedTimestamp, String modifiedByUser, String vendorOrganization) {
 		this.ticketId = ticketId;
 		this.description = description;
+		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+		this.modifiedByUser = modifiedByUser;
+		this.vendorOrganization = vendorOrganization;
+	}
+	
+	
+	public SimpleTicketArchive(String ticketId, String description, String statusId, Date lastUpdatedTimestamp, String modifiedByUser, String vendorOrganization) {
+		this.ticketId = ticketId;
+		this.description = description;
+		this.setStatusId(statusId);
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
 		this.modifiedByUser = modifiedByUser;
 		this.vendorOrganization = vendorOrganization;
@@ -57,6 +68,12 @@ public class SimpleTicketArchive{
 	}
 	public void setVendorOrganization(String vendorOrganization) {
 		this.vendorOrganization = vendorOrganization;
+	}
+	public String getStatusId() {
+		return statusId;
+	}
+	public void setStatusId(String statusId) {
+		this.statusId = statusId;
 	}
 	
 }

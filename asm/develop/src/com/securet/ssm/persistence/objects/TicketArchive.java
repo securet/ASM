@@ -23,7 +23,7 @@ import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 @Table(name="ticket_archive")
 @NamedQueries({
 	@NamedQuery(name="getLatestTicketArchivesForTicketId",query="SELECT o from TicketArchive o WHERE o.ticketId=:ticketId order by o.lastUpdatedTimestamp desc"),
-	@NamedQuery(name="getLatestSimpleTicketArchivesForTicketId",query="SELECT NEW com.securet.ssm.persistence.views.SimpleTicketArchive(o.ticketId,o.description,o.lastUpdatedTimestamp,o.modifiedBy.userId as modifiedByUser,o.modifiedBy.organization.name) from TicketArchive o JOIN o.modifiedBy mu JOIN mu.organization org WHERE o.ticketId=:ticketId order by o.lastUpdatedTimestamp desc")
+	@NamedQuery(name="getLatestSimpleTicketArchivesForTicketId",query="SELECT NEW com.securet.ssm.persistence.views.SimpleTicketArchive(o.ticketId,o.description,o.status.enumerationId,o.lastUpdatedTimestamp,o.modifiedBy.userId as modifiedByUser,o.modifiedBy.organization.name) from TicketArchive o JOIN o.modifiedBy mu JOIN mu.organization org WHERE o.ticketId=:ticketId order by o.lastUpdatedTimestamp desc")
 })
 public class TicketArchive{
 
@@ -48,6 +48,7 @@ public class TicketArchive{
 		this.modifiedBy=ticket.getModifiedBy();
 		this.reporter=ticket.getReporter();
 		this.resolver=ticket.getResolver();
+		this.status=ticket.getStatus();
 		this.setCreatedTimestamp(ticket.getCreatedTimestamp());
 		this.setLastUpdatedTimestamp(ticket.getLastUpdatedTimestamp());
 	}
@@ -64,6 +65,10 @@ public class TicketArchive{
 	@OneToOne
 	@JoinColumn(name="reporterUserId",referencedColumnName="userId")
 	private User reporter;
+
+	@OneToOne
+	@JoinColumn(name="statusId",referencedColumnName="enumerationId")
+	private Enumeration status;
 
 	@OneToOne
 	@JoinColumn(name="resolverUserId",referencedColumnName="userId")
@@ -158,6 +163,14 @@ public class TicketArchive{
 
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+	}
+
+	public Enumeration getStatus() {
+		return status;
+	}
+
+	public void setStatus(Enumeration status) {
+		this.status = status;
 	}
 
 }

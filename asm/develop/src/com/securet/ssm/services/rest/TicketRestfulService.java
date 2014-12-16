@@ -27,11 +27,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.hibernate4.Hibernate4Module;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.views.SimpleTicketArchive;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -149,18 +149,28 @@ public class TicketRestfulService extends BaseTicketService{
     @JsonView(SimpleObject.class)
 	public Object ticketHistory(@AuthenticationPrincipal User user,@RequestParam(value="ticketId",required=false) String ticketId) throws JsonProcessingException{
 		//Query ticketArchiveQuery = entityManager.createNativeQuery("SELECT ta.ticketId, ta.description, ta.modifiedBy, ta.lastUpdatedTimestamp FROM ticket_archive ta WHERE ta.ticketId=(?1) ORDER BY ta.lastUpdatedTimestamp");
-		Query ticketArchiveQuery = entityManager.createNamedQuery("getLatestSimpleTicketArchivesForTicketId");
-		ticketArchiveQuery.setParameter("ticketId", ticketId);
-		List ticketHistory = ticketArchiveQuery.getResultList();
+		//fetch the ticket too along with archives
+		List ticketHistory = new ArrayList();
+		Ticket ticket = entityManager.find(Ticket.class, ticketId);
 		ListObjects listObjects = new ListObjects();
+		if(ticket!=null){
+			//send same response type as SimpleArchive
+			String organizationName = null;
+			if(ticket.getResolver()!=null){
+				organizationName=ticket.getResolver().getOrganization().getName();
+			}
+			SimpleTicketArchive simpleTicketArchive = new SimpleTicketArchive(ticket.getTicketId(),ticket.getDescription(),ticket.getStatus().getEnumerationId(),ticket.getLastUpdatedTimestamp(),ticket.getModifiedBy().getUserId(),organizationName);
+			ticketHistory.add(simpleTicketArchive);
+
+			Query ticketArchiveQuery = entityManager.createNamedQuery("getLatestSimpleTicketArchivesForTicketId");
+			ticketArchiveQuery.setParameter("ticketId", ticketId);
+			ticketHistory.addAll(ticketArchiveQuery.getResultList());
+		}
 		listObjects.setData(ticketHistory);
 		listObjects.setRecordsFiltered(ticketHistory.size());
 		listObjects.setRecordsTotal(ticketHistory.size());
 		listObjects.setColumnsNames(historyColumnNames);
-		ObjectMapper mapper = new ObjectMapper();
-		mapper.registerModule(new Hibernate4Module());
-        mapper.getSerializationConfig().withView(SimpleObject.class);
-        String str3 = mapper.writeValueAsString(ticketHistory);
+		
 		return new SecureTJSONResponse("success",null,listObjects);
 	}
 
@@ -190,7 +200,7 @@ public class TicketRestfulService extends BaseTicketService{
 				messages=simplifyErrorMessages(result.getFieldErrors());
 			}catch(Exception e){//handling every exceptions to ensure apps do not see stack...
 				_logger.error("something went wrong",e);
-				FieldError fieldError = new FieldError("ticket", "ticket", "Opps server said :"+e.getMessage());
+				FieldError fieldError = new FieldError("ticket", "ticket", "Oops some configuration is missing");
 				result.addError(fieldError);
 				messages=simplifyErrorMessages(result.getFieldErrors());
 			}
@@ -227,7 +237,7 @@ public class TicketRestfulService extends BaseTicketService{
 				}catch(Exception e){//handling every exceptions to ensure apps do not see stack...
 					_logger.error("Something went wrong",e);
 					status="error";
-					FieldError fieldError = new FieldError("ticket", "ticket", "Opps server said :"+e.getMessage());
+					FieldError fieldError = new FieldError("ticket", "ticket", "Oops something is wrong with this ticket");
 					result.addError(fieldError);
 					messages=simplifyErrorMessages(result.getFieldErrors());
 				}

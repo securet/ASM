@@ -68,12 +68,14 @@
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
     	<property name="host" value="${mail.smtp.host}"/>
     	<property name="port" value="${mail.smtp.port}"/>
-    </bean>
+	    <property name="username" value="st@securet.in"></property> <!--  should be configurable.. based on from address for now.. at the application level -->
+	    <property name="password" value="password@123"></property>
+	</bean>
 
 
     <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
         <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost:3306/asm_jpa"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/asm_main_20141216_migrated"/>
         <property name="username" value="asm"/>
         <property name="password" value="shabhu"/>
     </bean>

@@ -62,12 +62,6 @@ public class MailService {
 
 	public void sendMail(Map<String,?> mailContext) {
 		
-		mailSender.setUsername("sharad@securet.in");
-		mailSender.setPassword("password@123");
-
-/*		mailSender.setUsername("sharadbhushank@gmail.com");
-		mailSender.setPassword("#*#shabhu123");
-*/
 		mailSender.setJavaMailProperties(mailProperties);
 		
 		MimeMessage msg = mailSender.createMimeMessage(); 

@@ -17,7 +17,6 @@ public class SimpleTicket {
 	private Date createdTimestamp;
 
 	public SimpleTicket() {
-		// TODO Auto-generated constructor stub
 	}
 	
 	
