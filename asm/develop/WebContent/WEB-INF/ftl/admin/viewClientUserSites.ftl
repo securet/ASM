@@ -32,7 +32,7 @@
 		
 							<#assign usersList = .data_model["getUsersForOrganization"]?default([])>
 							<#if usersList?exists && (usersList?size>0) >
-								<#assign useroptions>{"":"Select User"<#list usersList as uiObject>"${uiObject.userId}":"${uiObject.fullName}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+								<#assign useroptions>{"":"Select User",<#list usersList as uiObject>"${uiObject.userId}":"${uiObject.fullName}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 							</#if>
 							<@formSingleSelectSSM path="formObject.userId" field={"fieldName":"userId","label":"Select User"} options=useroptions?default("{}")?eval  includeLabelInline=false/>
 		
