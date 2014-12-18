@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <decorators defaultdir="/decorator">
-	<decorator name="standard" page="adminlayout.ftl">
+	<decorator name="admin" page="adminlayout.ftl">
 		<pattern>/admin/*</pattern>
    		<pattern>/error/*</pattern>
 	</decorator>
-	<decorator name="tickets" page="ticketlayout.ftl">
+	<decorator name="client" page="clientlayout.ftl">
 		<pattern>/tickets/*</pattern>
+		<pattern>/reports/*</pattern>
 	</decorator>
-		<decorator name="nolayout" page="nolayout.ftl">
+	<decorator name="nolayout" page="nolayout.ftl">
 		<pattern>/login</pattern>
 	</decorator>
 </decorators>

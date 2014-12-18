@@ -64,22 +64,11 @@ public class TicketRestfulService extends BaseTicketService{
 	private Logger _logger = LoggerFactory.getLogger(TicketRestfulService.class);
 
 	@Autowired
-	private AdminService adminService;
-
-	@Autowired
 	private MailService mailService;
 
 	@Autowired
 	private SMSService smsService;
 
-	
-	public AdminService getAdminService() {
-		return adminService;
-	}
-
-	public void setAdminService(AdminService adminService) {
-		this.adminService = adminService;
-	}
 
 	public MailService getMailService() {
 		return mailService;

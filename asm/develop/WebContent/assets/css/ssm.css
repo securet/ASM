@@ -61,7 +61,21 @@ body {
   }
 }
 
-/* off canvas*/
+/* off canvas ends */
+
+
+.marginleft10{
+	margin-left:10px; 
+}
+.marginleft5{
+	margin-left:5px; 
+}
+.marginleft0{
+	margin-left:5px; 
+}
+.margintop10{
+	margin-top:10px; 	
+}
 .toggleleftmenu {
 	margin-left: -13px;
 	width: 22px;
@@ -127,6 +141,16 @@ header{
 	#map-canvas{
 		margin-top: 20px;
 	}
+}
+
+.roundbordersmall{
+	border: 1px solid #ddd;
+	border-radius:4px;
+}
+#loading-indicator {
+  position: absolute;
+  left: 10px;
+  top: 10px;
 }
 
 #sitelogo{
@@ -264,4 +288,67 @@ div.dataTables_filter input{
 }
 .badge-primary {
     background-color: #337ab7;
+}
+.minipie{
+	height:150px;
+}
+@media (min-width: 760px) {
+	.minichart{
+		height:400px;
+	}
+}
+
+@media (max-width: 500px) {
+	.roundbordersmall{
+		margin-top:10px;
+	}
+}
+/*
+ * Placeholder dashboard ideas
+ */
+
+.placeholders {
+  margin-bottom: 30px;
+  text-align: center;
+}
+.placeholders h4 {
+  margin-bottom: 0;
+}
+.placeholder {
+	margin-top: 20px;
+	margin-bottom: 20px;
+}
+.placeholder img {
+  display: inline-block;
+  border-radius: 50%;
+  max-width: 98%;
+}
+.bold{
+	font-weight: bold;
+}
+#displayTicketStatusCount [class*='col-'] {
+	padding-left: 14px;
+	padding-right: 14px;	
+}
+
+#vendorUserTicketCountTable td{
+	width:100px;
+    word-wrap: break-word;
+    font-size: 10px;
+}
+.dashboardcol2{
+	padding-left: 0;
+}
+#vendorUserTicketCountTable_wrapper > .row > div:first-child{
+	display: none;
+	width:1px
+}
+#vendorUserTicketCountTable_wrapper .row div:last-child{
+	width:100%;
+}
+.reports .dataTables_wrapper{
+	margin-top:10px;
+}
+#filterNotification{
+	margin-top: 10px;
 }

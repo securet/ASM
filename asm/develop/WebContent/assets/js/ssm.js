@@ -12,6 +12,13 @@ var userSites = new Array();
 var vendorServiceAsset = new Array();
 
 $(document).ready(function() {
+	$(document).ajaxSend(function(event, request, settings) {
+	    $('#ajax_loader').show();
+	});
+
+	$(document).ajaxComplete(function(event, request, settings) {
+	    $('#ajax_loader').hide();
+	});
 	// $.fn.dataTableExt.sErrMode = 'throw';
 	if ($("form[name='loginForm']").size() > 0) {
 		$("form[name='loginForm'] input[name='username']").focus();

@@ -160,6 +160,12 @@ public abstract class SecureTService {
 		List<SecureTObject> ssmObjects = query.getResultList();
 		return ssmObjects;
 	}
+
+	public List fetchResults(String namedQuery) {
+		Query query = entityManager.createNamedQuery(namedQuery);
+		List ssmObjects = query.getResultList();
+		return ssmObjects;
+	}
 	
 	public Object simplifyErrorMessages(List<FieldError> fieldErrors) {
 		List<FieldError> errors = new ArrayList<FieldError>();

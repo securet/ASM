@@ -18,6 +18,8 @@ public class DefaultService {
 
 	public static final String ADMIN = "admin/";
 	public static final String TICKET = "ticket/";
+	public static final String REPORTS = "reports/";
+	
 	private static final Logger _logger =  LoggerFactory.getLogger(DefaultService.class);
 
 	@RequestMapping("/login")

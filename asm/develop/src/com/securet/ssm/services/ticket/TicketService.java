@@ -137,10 +137,15 @@ public class TicketService extends BaseTicketService {
 
 	@Transactional
 	@RequestMapping(value="/tickets/listUserTickets",produces="application/json")
-	public @ResponseBody ListObjects listUserTickets(@ModelAttribute DataTableCriteria columns, @RequestParam("entityName") String entityName,@RequestParam("operator") String operator,@RequestParam(value="filterStatus",required=false) String filterStatus,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,HttpServletRequest request){
+	public @ResponseBody ListObjects listUserTickets(@ModelAttribute DataTableCriteria columns,@RequestParam(value="filterStatus",required=false) String filterStatus,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser){
 		return listUserTickets(columns, filterStatus, customUser,true);
 	}
 
+	@Transactional
+	@RequestMapping(value="/tickets/listAllTickets",produces="application/json")
+	public @ResponseBody ListObjects listUserTickets(@ModelAttribute DataTableCriteria columns, @RequestParam(value="filterStatus",required=false) String filterStatus){
+		return listUserTickets(columns, filterStatus, null,true);
+	}
 
 	
 	@Transactional

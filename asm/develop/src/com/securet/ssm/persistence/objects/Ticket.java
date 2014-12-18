@@ -30,9 +30,12 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 @Entity
 @Table(name="ticket")
 @NamedQueries({
-	@NamedQuery(name="getTicketStatusForId",query="SELECT t.status.enumerationId FROM Ticket t WHERE t.ticketId=:ticketId")
+	@NamedQuery(name="getTicketStatusForId",query="SELECT t.status.enumerationId FROM Ticket t WHERE t.ticketId=:ticketId"),
+	@NamedQuery(name="getTicketCountByStatus",query="SELECT t.status.enumerationId,COUNT(t.ticketId)  FROM Ticket t GROUP BY t.status.enumerationId"),
+	@NamedQuery(name="getTicketCountByServiceTypeAndStatus",query="SELECT t.serviceType.serviceTypeId,t.status.enumerationId,t.serviceType.name,COUNT(t.ticketId)  FROM Ticket t GROUP BY t.serviceType.serviceTypeId,t.status.enumerationId")
 })
 @NamedNativeQueries({
+	@NamedNativeQuery(name="getTicketCountByVendorUser",query="SELECT vsa.userId,COUNT(t.ticketId)  FROM ticket t INNER JOIN vendor_service_asset vsa ON vsa.serviceTypeId=t.serviceTypeId AND vsa.assetId=t.assetId AND t.statusId='OPEN' GROUP BY vsa.userId"),
 	@NamedNativeQuery(
 			  name="getClientUserTickets",
 			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN client_user_site cus ON t.siteId=cus.siteId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.statusId IN (?2) and  cus.userId=(?1) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",

@@ -71,7 +71,7 @@ public class BaseTicketService extends SecureTService{
 	
 	//Common Join and Filters
 	public static final String TICKET_STATUS_FILTER = " t.statusId IN (?2) ";
-	public static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)) ";
+	public static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)  OR t.ticketId like (?8)) ";
 	public static final String TICKET_DEFAULT_SORT_BY = " ORDER BY t.lastUpdatedTimestamp desc";
 	public static final String TICKET_GROUP_BY = " GROUP BY t.ticketId ";
 	public static final int TICKET_COMMON_FILTER_PARAMS_SIZE=5;  
@@ -91,10 +91,12 @@ public class BaseTicketService extends SecureTService{
 
 	public static final String OPEN = "OPEN";
 	public static final String WORK_IN_PROGRESS = "WORK_IN_PROGRESS";
+	public static final String RESOLVED = "RESOLVED";
 	public static final String CLOSED = "CLOSED";
 	
 	public static final String ALL_OK = "ALL OK";
 	public static final String TICKET_PREFIX = "C";
+	private static final int MAX_PARAM_COUNT = 8;
 
 	public Ticket getUserTicket(String ticketId, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
 		Ticket currentTicket = null;
@@ -137,21 +139,29 @@ public class BaseTicketService extends SecureTService{
 	}
 	
 	public ListObjects listUserTickets(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser,boolean allFields) {
+		boolean isReporter = false;
 		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
-		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
 		StringBuilder ticketQueryStr = new StringBuilder();
 		//ticketQueryStr.append(TICKET_NATIVE_QUERY);
 		ticketQueryStr.append(SERVICE_TYPE_JOIN_CLAUSE);
 		ticketQueryStr.append(SITE_JOIN_CLAUSE);
-		if(isReporter){
-			ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE).append(ISSUE_TYPE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
-			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
-			ticketQueryStr.append(CLIENT_USER_FILTER).append(DataTableCriteria.END_BRACKET);
-		}else{
-			ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE).append(ISSUE_TYPE_JOIN_CLAUSE).append(" WHERE ");;
-			ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
-			ticketQueryStr.append(VENDOR_USER_FILTER).append(DataTableCriteria.END_BRACKET);
+		String userFilterQuery = "";
+		if(customUser!=null){
+			isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+			if(isReporter){
+				ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE);
+				userFilterQuery=CLIENT_USER_FILTER;
+			}else{
+				ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE);
+				userFilterQuery=VENDOR_USER_FILTER;
+			}
 		}
+		ticketQueryStr.append(ISSUE_TYPE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
+		ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER);
+		if(!userFilterQuery.isEmpty()){
+			ticketQueryStr.append(DataTableCriteria.AND).append(DataTableCriteria.SPACE).append(userFilterQuery);
+		}
+		ticketQueryStr.append(DataTableCriteria.END_BRACKET);
 		
 		boolean textSearchEnabled = textToSearch!=null && !textToSearch.isEmpty();
 		if(textSearchEnabled){
@@ -173,7 +183,7 @@ public class BaseTicketService extends SecureTService{
 		Query ticketListQuery = null;
 		if(allFields){
 			ticketListQuery = entityManager.createNativeQuery(ticketListQueryStr.toString(), Ticket.class);
-		}else{
+		}else if(customUser!=null){
 			if(isReporter){
 				if(textSearchEnabled){
 					ticketListQuery = entityManager.createNamedQuery("getFilteredClientUserTickets");
@@ -191,8 +201,10 @@ public class BaseTicketService extends SecureTService{
 		StringBuilder ticketCountQueryStr = new StringBuilder();
 		ticketCountQueryStr.append(TICKET_COUNT_NATIVE_QUERY).append(ticketQueryStr.toString());
 		Query ticketCountQuery = entityManager.createNativeQuery(ticketCountQueryStr.toString());
-		ticketListQuery.setParameter(1, customUser.getUsername());
-		ticketCountQuery.setParameter(1, customUser.getUsername());
+		if(customUser!=null){
+			ticketListQuery.setParameter(1, customUser.getUsername());
+			ticketCountQuery.setParameter(1, customUser.getUsername());
+		}
 		if(filterStatus!=null && !filterStatus.isEmpty()){
 			ticketListQuery.setParameter(2, filterStatus);
 			ticketCountQuery.setParameter(2, filterStatus);
@@ -201,10 +213,10 @@ public class BaseTicketService extends SecureTService{
 			ticketCountQuery.setParameter(2, TICKET_STATUS);
 		}
 			
-		int paramCount = ticketListQuery.getParameters().size();
+		//int paramCount = ticketListQuery.getParameters().size();
 		if(textSearchEnabled){
 			textToSearch = DataTableCriteria.PERCENTILE+textToSearch+DataTableCriteria.PERCENTILE;
-			for(int i=3;i<=paramCount;i++){
+			for(int i=3;i<=MAX_PARAM_COUNT;i++){
 				ticketListQuery.setParameter(i, textToSearch);
 				ticketCountQuery.setParameter(i, textToSearch);
 			}
@@ -243,24 +255,6 @@ public class BaseTicketService extends SecureTService{
 			if(_logger.isDebugEnabled())_logger.debug("Ticket Id generated as "+ticketId);
 			formObject.setTicketId(ticketId);
 			formObject.setTicketMasterId(ticketId);
-			//Identify asset using site and service
-			Query vendorAssetQuery = entityManager.createNamedQuery("getVendorServiceAssetByServiceType");
-			vendorAssetQuery.setParameter("serviceTypeId", formObject.getServiceType().getServiceTypeId());
-			vendorAssetQuery.setParameter("siteId", formObject.getSite().getSiteId());
-			List<VendorServiceAsset> vendorServiceAssets = vendorAssetQuery.getResultList();
-			if(vendorServiceAssets!=null && vendorServiceAssets.size()>0){
-				VendorServiceAsset vendorServiceAsset =vendorServiceAssets.get(0); 
-				entityManager.detach(vendorServiceAsset);
-
-				//set the asset
-				Asset asset = vendorServiceAsset.getAsset();
-				formObject.setAsset(asset);
-				
-				//set the vendor
-				User vendorUser = vendorServiceAsset.getVendorUser();
-				formObject.setResolver(vendorUser);
-				
-			}
 			setShortDescription(formObject);
 			//reporter, resolver, status, createdBy
 			User reporter = new User();
@@ -533,6 +527,28 @@ public class BaseTicketService extends SecureTService{
 			if(serviceType==null){
 				FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "Service Type does not exist");
 				result.addError(fieldError);
+			}else if(!result.hasErrors()){
+				//Identify asset using site and service
+				Query vendorAssetQuery = entityManager.createNamedQuery("getVendorServiceAssetByServiceType");
+				vendorAssetQuery.setParameter("serviceTypeId", formObject.getServiceType().getServiceTypeId());
+				vendorAssetQuery.setParameter("siteId", formObject.getSite().getSiteId());
+				List<VendorServiceAsset> vendorServiceAssets = vendorAssetQuery.getResultList();
+				if(vendorServiceAssets!=null && vendorServiceAssets.size()>0){
+					VendorServiceAsset vendorServiceAsset =vendorServiceAssets.get(0); 
+					entityManager.detach(vendorServiceAsset);
+
+					//set the asset
+					Asset asset = vendorServiceAsset.getAsset();
+					formObject.setAsset(asset);
+					
+					//set the vendor
+					User vendorUser = vendorServiceAsset.getVendorUser();
+					formObject.setResolver(vendorUser);
+				}else{
+					FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "No Vendor Assigned");
+					result.addError(fieldError);
+				}
+
 			}
 			formObject.setServiceType(serviceType);
 		}
@@ -548,6 +564,4 @@ public class BaseTicketService extends SecureTService{
 			}
 		}
 	}
-
-
 }

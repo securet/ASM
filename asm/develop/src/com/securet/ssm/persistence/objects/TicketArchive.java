@@ -3,6 +3,7 @@ package com.securet.ssm.persistence.objects;
 import java.sql.Timestamp;
 import java.util.Date;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -79,6 +80,7 @@ public class TicketArchive{
 	private User modifiedBy;
 
     @JsonView(SimpleObject.class)
+	@Column(columnDefinition = "TEXT")
 	private String description;
 
 	public int getTicketArchiveId() {
