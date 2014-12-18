@@ -43,7 +43,7 @@ public class SiteMeshController {
 		map.put("now", new Date());
 		map.put("serverName",request.getServerName());
 		map.put("port",request.getServerPort());
-		if(name.equals("ticketlayout")){
+		if(name.equals("clientlayout")){
 			TicketService.fetchTicketStats(entityManager,user,map);
 		}
 		return "decorator/" + name;
