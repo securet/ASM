@@ -294,7 +294,7 @@ div.dataTables_filter input{
 }
 @media (min-width: 760px) {
 	.minichart{
-		height:400px;
+		height:500px;
 	}
 }
 
@@ -331,7 +331,7 @@ div.dataTables_filter input{
 	padding-right: 14px;	
 }
 
-#vendorUserTicketCountTable td{
+#vendorUserTicketCountTable td,#clientUserTicketCountTable td{
 	width:100px;
     word-wrap: break-word;
     font-size: 10px;
@@ -339,11 +339,11 @@ div.dataTables_filter input{
 .dashboardcol2{
 	padding-left: 0;
 }
-#vendorUserTicketCountTable_wrapper > .row > div:first-child{
+#vendorUserTicketCountTable_wrapper > .row > div:first-child,.dataTables_filter,#clientUserTicketCountTable_wrapper > .row > div:first-child{
 	display: none;
 	width:1px
 }
-#vendorUserTicketCountTable_wrapper .row div:last-child{
+#vendorUserTicketCountTable_wrapper .row div:last-child, #clientUserTicketCountTable_wrapper .row div:last-child{
 	width:100%;
 }
 .reports .dataTables_wrapper{
@@ -351,4 +351,7 @@ div.dataTables_filter input{
 }
 #filterNotification{
 	margin-top: 10px;
+}
+.roundbordersmall h4{
+	text-align: left;
 }

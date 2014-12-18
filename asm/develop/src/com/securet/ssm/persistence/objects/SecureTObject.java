@@ -18,8 +18,8 @@ public class SecureTObject implements Serializable{
 	//default implementations for all objects..
 	
 	public SecureTObject() {
-		this.createdTimestamp=new Timestamp(new Date().getTime());
-		this.lastUpdatedTimestamp=new Timestamp(new Date().getTime());
+		//this.createdTimestamp=new Timestamp(new Date().getTime());
+		//this.lastUpdatedTimestamp=new Timestamp(new Date().getTime());
 	}
 	
 	@JsonIgnore

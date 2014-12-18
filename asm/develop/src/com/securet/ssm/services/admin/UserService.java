@@ -7,13 +7,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -28,7 +31,6 @@ import org.springframework.web.portlet.ModelAndView;
 import org.springframework.web.servlet.view.RedirectView;
 
 import com.securet.ssm.persistence.objects.RoleType;
-import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.persistence.objects.UserLogin;
 import com.securet.ssm.services.DefaultService;
@@ -182,16 +184,20 @@ public class UserService extends SecureTService {
 	@RequestMapping("/admin/changePassword")
 	public ModelAndView changePassword(@RequestParam String userId, Model model){
 		if(userId!=null){
-			Query query = null;
-			query = entityManager.createNamedQuery("getUserLoginById");
-			query.setParameter("id", userId);
-			UserLogin formObject = (UserLogin)query.getSingleResult();
-			formObject.setPassword("");	
-			formObject.setVerifyPassword("");	
-			model.addAttribute("formObject", formObject);
+			loadUserForChangePassword(userId, model);
 			return new ModelAndView(DefaultService.ADMIN+"changePassword",model.asMap());
 		}
 		return new ModelAndView(new RedirectView(DefaultService.ADMIN+"viewObjects?entityName=User"));
+	}
+
+	private void loadUserForChangePassword(String userId, Model model) {
+		Query query = null;
+		query = entityManager.createNamedQuery("getUserLoginById");
+		query.setParameter("id", userId);
+		UserLogin formObject = (UserLogin)query.getSingleResult();
+		formObject.setPassword("");	
+		formObject.setVerifyPassword("");	
+		model.addAttribute("formObject", formObject);
 	}
 
 	@Transactional
@@ -213,4 +219,61 @@ public class UserService extends SecureTService {
 		model.addAttribute("formObject", formObject);
 		return DefaultService.ADMIN+"changePassword";
 	}
+
+	@RequestMapping("/user/profile")
+	public String userProfile(@AuthenticationPrincipal org.springframework.security.core.userdetails.User loggedInUser,Model model){
+		model.addAttribute("isProfileEdit", true);
+		return createEditUser(loggedInUser.getUsername(), model);
+	}
+	
+	@RequestMapping(value="/user/saveUser",method=RequestMethod.POST)
+	@Transactional
+	public String saveUserProfile(@Valid @ModelAttribute("formObject") User formObject,BindingResult result,@AuthenticationPrincipal  org.springframework.security.core.userdetails.User loggedInUser,Model model){
+		model.addAttribute("isProfileEdit", true);
+		if(!loggedInUser.getUsername().equals(formObject.getUserId())){
+			FieldError fieldError = new FieldError("formObject", "userId", "You cannot edit this user");
+			result.addError(fieldError); 
+		}else{
+			Query userQuery = entityManager.createNamedQuery("getUserById");
+	        userQuery.setParameter("id", loggedInUser.getUsername());
+	        User user = (User)userQuery.getSingleResult();
+	        ///set back the organization and roles
+	        formObject.setRoles(user.getRoles());
+	        formObject.setOrganization(user.getOrganization());
+	        formObject.setCreatedTimestamp(user.getCreatedTimestamp());
+		}
+		
+		saveUser(formObject, result, model);
+		return createEditUser(loggedInUser.getUsername(), model);
+	}
+
+	@RequestMapping("/user/changePassword")
+	public String changeUserPassword(@AuthenticationPrincipal  org.springframework.security.core.userdetails.User loggedInUser, Model model){
+		model.addAttribute("isProfileEdit", true);
+		String userId = loggedInUser.getUsername();
+		if(userId!=null){
+			loadUserForChangePassword(userId, model);
+		}
+		return DefaultService.ADMIN+"changePassword";
+	}
+
+	@Transactional
+	@RequestMapping("/user/savePassword")
+	public String saveUserPassword(@Valid @ModelAttribute("formObject") UserLogin formObject,BindingResult result,@AuthenticationPrincipal  org.springframework.security.core.userdetails.User loggedInUser,Model model){
+		model.addAttribute("isProfileEdit", true);
+		if(!loggedInUser.getUsername().equals(formObject.getUserId())){
+			FieldError fieldError = new FieldError("formObject", "userId", "You cannot edit this user");
+			result.addError(fieldError); 
+		}
+		return savePassword(formObject, result, model);
+	}
+	
+	public static void saveLastLoginTimestamp(EntityManager entityManager, String userId) {
+		Query userQuery = entityManager.createNamedQuery("getUserById");
+        userQuery.setParameter("id", userId);
+        User user = (User)userQuery.getSingleResult();
+        user.getUserLogin().setLastLoginTimestamp(new Timestamp(new Date().getTime()));
+        entityManager.persist(user);
+	}
+	
 }

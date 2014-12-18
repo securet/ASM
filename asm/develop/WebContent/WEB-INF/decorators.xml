@@ -5,8 +5,11 @@
    		<pattern>/error/*</pattern>
 	</decorator>
 	<decorator name="client" page="clientlayout.ftl">
-		<pattern>/tickets/*</pattern>
-		<pattern>/reports/*</pattern>
+		<pattern>/tickets*</pattern>
+		<pattern>/reports*</pattern>
+	</decorator>
+	<decorator name="singlecolumn" page="singlecolumn.ftl">
+	    <pattern>/user/*</pattern>
 	</decorator>
 	<decorator name="nolayout" page="nolayout.ftl">
 		<pattern>/login</pattern>

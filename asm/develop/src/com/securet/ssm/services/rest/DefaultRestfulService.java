@@ -1,11 +1,16 @@
 package com.securet.ssm.services.rest;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import javax.transaction.Transactional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -23,17 +28,21 @@ import com.securet.ssm.services.SecureTService;
 
 @RestController
 @Repository
+@Service
 public class DefaultRestfulService extends SecureTService  {
 
 
+	@Transactional
 	@RequestMapping("/rest/validateUser")
 	public Object validateUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User user){
 		String status  = "error";
 		Object message = null;
-		Object data = null;
+		User data = null;
 		if(user!=null){
 			status  = "success";
 			data = (User)fetchSingleObject("getUserById", "id", user.getUsername());
+			data.getUserLogin().setLastLoginTimestamp(new Timestamp(new Date().getTime()));
+			entityManager.persist(data);
 		}else{
 			message = new FieldError("ticket", "userId", "Invalid credentials!");
 		}

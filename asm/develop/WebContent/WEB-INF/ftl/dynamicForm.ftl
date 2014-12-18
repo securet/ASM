@@ -54,7 +54,8 @@
 	</#if>
 </#list>
 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
-
-<script src="assets/js/moment.min.js"></script>
-<script src="assets/js/bootstrap-datetime.min.js"></script>
-<link rel="stylesheet"  href="assets/css/bootstrap-datetimepicker.min.css"/>
+<#if includeDateScripts>
+	<script src="assets/js/moment.min.js"></script>
+	<script src="assets/js/bootstrap-datetime.min.js"></script>
+	<link rel="stylesheet"  href="assets/css/bootstrap-datetimepicker.min.css"/>
+</#if>

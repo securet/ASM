@@ -36,6 +36,11 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 })
 @NamedNativeQueries({
 	@NamedNativeQuery(name="getTicketCountByVendorUser",query="SELECT vsa.userId,COUNT(t.ticketId)  FROM ticket t INNER JOIN vendor_service_asset vsa ON vsa.serviceTypeId=t.serviceTypeId AND vsa.assetId=t.assetId AND t.statusId='OPEN' GROUP BY vsa.userId"),
+	@NamedNativeQuery(name="getTicketCountByClientUser",query="SELECT t.reporterUserId,COUNT(t.ticketId)  FROM ticket t GROUP BY t.reporterUserId"),
+	@NamedNativeQuery(
+			  name="getTicketByDateRange",
+			  query="SELECT t.ticketId,s.name siteName,t.reporterUserId,st.name serviceType,it.name issueType,t.resolverUserId,status.enumDescription status,t.description,t.createdTimestamp,t.lastUpdatedTimestamp,sv.enumDescription severity,t.latitude,t.longitude FROM ticket t INNER JOIN site s on t.siteId=s.siteId INNER JOIN service_type st on t.serviceTypeId=st.serviceTypeId INNER JOIN issue_type it on t.issueTypeId=it.issueTypeId INNER JOIN enumeration status on t.statusId=status.enumerationId INNER JOIN enumeration sv on t.statusId=sv.enumerationId WHERE t.createdTimestamp BETWEEN (?1) AND (?2) ORDER BY t.lastUpdatedTimestamp DESC"
+			),
 	@NamedNativeQuery(
 			  name="getClientUserTickets",
 			  query="SELECT t.ticketId,t.shortDesc,t.statusId,t.siteId,s.name siteName,t.serviceTypeId, st.name serviceTypeName, t.createdTimestamp  from ticket t  INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId INNER JOIN site s ON t.siteId=s.siteId  INNER JOIN client_user_site cus ON t.siteId=cus.siteId  LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId  where ( t.statusId IN (?2) and  cus.userId=(?1) ) GROUP BY t.ticketId  ORDER BY t.lastUpdatedTimestamp desc",
