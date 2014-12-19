@@ -165,5 +165,9 @@ public class SecureTUtils {
 		System.out.println(getFieldsCount(Organization.class));
 	}
 
+	public static boolean isEmpty(String str) {
+		return (str== null || str.isEmpty());
+	}
+
 	
 }

@@ -66,7 +66,7 @@
 			    </div><!--/.col-xs-12.col-sm-9-->			
 			</div><!--/row-->
 		</div>
-		<div class="securelogo"> <div>Powered by :</div><a href="http://www.securet.in" target="_blank"><img width="100%" src="assets/images/logo.png"/></a></div>				
+		<div class="securelogo"> <div>Powered by :</div><a href="http://www.securet.in" target="_blank"><img  src="assets/images/logo.png"/></a></div>				
 		<div id="footer">Copyright &copy; SecureT ${now?string("yyyy")}</div>
 	</body>
 </html>

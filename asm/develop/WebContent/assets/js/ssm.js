@@ -140,8 +140,8 @@ function initClientSiteMapping() {
 			}
 		});
 	});
-	if ($("#cityGeoId").size() > 0) {
-		$("#cityGeoId").change(function(eventData) {
+	if ($("#clientUserSiteMapId #cityGeoId").size() > 0) {
+		$("#clientUserSiteMapId #cityGeoId").change(function(eventData) {
 			if ($(this).val() == "") {
 				alert("Please select a city");
 				return false;
@@ -200,70 +200,23 @@ function initVendorAssetMapping() {
 			success : function(data) {
 				$("#userId").html("<option value=''>Select User</option>");
 				$("#userId").append(userOptionTemplate.render(data));
+				resetVendorMappingAssets();
 			},
 			error : function() {
 				alert("No Users found")
 			}
 		});
 	});
-	if ($("#cityGeoId").size() > 0) {
-		$("#cityGeoId").change(function(eventData) {
-			if ($(this).val() == "") {
-				alert("Please select a city");
-				return false;
-			}
-			$.ajax({
-				url : contextPath + "/admin/getSitesForCity?cityGeoId=" + $(this).val(),
-				success : function(data) {
-					$("#siteId").html("<option value=''>Select Sites</option>");
-					$("#siteId").append(siteOptionTemplate.render(data));
-				},
-				error : function() {
-					alert("No Sites found");
-				}
-			});
-		});
-	}
-
-	if ($("#cityGeoId").size() > 0 && $("#assetTypeId").size()>0) {
-		//$(document).on("click","a,area,.sortli span,.subPromo, input.trackgoogleevent, .moziac,#productTag a", function(event) {
-		$("#cityGeoId,#assetTypeId").change(function(eventData) {
-			var cityGeoId=$("#cityGeoId").val();
-			var assetTypeId=$("#assetTypeId").val();
-			if (cityGeoId == "" || assetTypeId=="") {
-				//alert("Please select a site");
-				return false;
-			}
-			$.ajax({
-				url : contextPath + "/admin/getUnassignedAssetsByCityAndAssetType?cityGeoId=" + cityGeoId+"&assetTypeId="+assetTypeId,
-				success : function(data) {
-					allUnAssignedAssets = data;
-					makeAssetsOptions();
-				},
-				error : function() {
-					alert("No Assets found");
-				}
-			});
-		});
-	}
 
 	if ($("#userId").size() > 0) {
-		$("#userId").change(function(eventData) {
-			fetchAndMapVendorAssets(false);
-		});
-	}
-
-	if ($("#serviceTypeId").size() > 0) {
-		$("#serviceTypeId").change(function(eventData) {
+		$("#userId,#serviceTypeId,#cityGeoId,#assetTypeId").change(function(eventData) {
 			fetchAndMapVendorAssets(false);
 		});
 	}
 
 	if ($("#assets").size() > 0) {
 		initMultiSelect("assets");
-	}
-	if ($("#cityGeoId").val() != null && $("#assetTypeId").val() != "") {
-		fetchAndMapVendorAssets(true);
+		fetchAndMapVendorAssets(false);
 	}
 }
 
@@ -331,27 +284,26 @@ function getCitiesForState(stateElementId, cityElementId) {
 }
 
 function fetchAndMapVendorAssets(fetchUnassigned) {
-	if ($("#userId").val() == "" || $("#serviceTypeId").val() == "") {
-		// alert("Please select a user");
+	if ($("#userId").val() == "" || $("#serviceTypeId").val() == "" || $("#cityGeoId").val() == "" || $("#assetTypeId").val() == "") {
+		//reset assets if a change event got triggered 
+		resetVendorMappingAssets();
 		return false;
 	}
 	$.ajax({
-		url : contextPath + "/admin/getUserAssignedAssets?userId=" + $("#userId").val() + "&serviceTypeId=" + $("#serviceTypeId").val(),
+		url : contextPath + "/admin/getUserAssignedAndUnassignedAssets?userId=" + $("#userId").val() + "&serviceTypeId=" + $("#serviceTypeId").val() 
+		+ "&assetTypeId=" + $("#assetTypeId").val() + "&cityGeoId=" + $("#cityGeoId").val(),
 		success : function(data) {
-			if (typeof data != 'undefined' && data.length > 0) {
-				vendorServiceAsset=data;
+			if (typeof data != 'undefined') {
+				allUnAssignedAssets = data.unassignedAssets;
+				vendorServiceAsset=data.assignedAssets;
 				for(i=0;i<vendorServiceAsset.length;i++){
 					vendorServiceAsset[i].assetSelected=true;
 				}
 			}else{
+				allUnAssignedAssets=[]
 				vendorServiceAsset=[];
 			}
-			console.log(vendorServiceAsset);
-			if (fetchUnassigned) {
-				$("#assetTypeId").trigger("change");
-			}else{
-				makeAssetsOptions();
-			}
+			makeAssetsOptions();
 		},
 		error : function() {
 			alert("No Asset mapped for user");
@@ -359,11 +311,16 @@ function fetchAndMapVendorAssets(fetchUnassigned) {
 	});
 }
 
+function resetVendorMappingAssets(){
+	allUnAssignedAssets=[]
+	vendorServiceAsset=[];
+	makeAssetsOptions();
+}
+
 function makeAssetsOptions() {
 	var assetsToShow = [];
 	if (typeof vendorServiceAsset != 'undefined' && typeof allUnAssignedAssets != 'undefined'){
 		assetsToShow= assetsToShow.concat(allUnAssignedAssets);
-		console.log(vendorServiceAsset);
 		assetsToShow = assetsToShow.concat(vendorServiceAsset);
 	}
 	/*	if (typeof vendorServiceAsset != 'undefined' && typeof allUnAssignedAssets != 'undefined') {

@@ -51,7 +51,7 @@
 			    </div><!--/.col-xs-12.col-sm-9-->			
 			</div><!--/row-->
 		</div>
-		<div class="securelogo"> <div>Powered by :</div><a href="http://www.securet.in" target="_blank"><img width="100%" src="assets/images/logo.png"/></a></div>				
+		<div class="securelogo"> <div>Powered by :</div><a href="http://www.securet.in" target="_blank"><img  src="assets/images/logo.png"/></a></div>				
 		<div id="footer">Copyright &copy; SecureT ${now?string("yyyy")}</div>
 		<div id='ajax_loader' style="position: fixed; left: 50%; top: 50%; display: none;">
 			<img src="<@spring.url relativeUrl="/assets/images/loading-b.gif"/>" id="loading-indicator"  />

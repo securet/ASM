@@ -57,7 +57,7 @@
 							</#if>
 							<@formSingleSelectSSM path="formObject.assetTypeId" field={"fieldName":"assetTypeId","label":"Select Asset Type"} options=assetTypeoptions?default("{}")?eval  includeLabelInline=false/>
 							<div class="form-group">
-								<div class="col-sm-9">
+								<div class="col-sm-9 vendorAssets">
 									<@showErrorsSSM "formObject.assets"/>							
 									<div><label class="control-label" for="assets">Select Assets</label></div>
 									<select class="form-control" name="assets" id="assets" multiple="multiple">			
