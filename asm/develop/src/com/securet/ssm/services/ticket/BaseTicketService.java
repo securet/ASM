@@ -232,8 +232,8 @@ public class BaseTicketService extends SecureTService{
 	public void createTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
 		createTicket(formObject,customUser.getUsername());
 		saveAttachments(formObject,ticketAttachments,true);
+		formObject = manageTicketPeristence(formObject);
 		if(!isLog(formObject)){
-			formObject = manageTicketPeristence(formObject);
 			Map<String,Object> bodyParameters = new HashMap<String, Object>();
 			bodyParameters.put("ticket", formObject);
 			sendNotifications(mailService,smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_CREATE_TICKET_NOTIFICATION,bodyParameters);
@@ -527,7 +527,7 @@ public class BaseTicketService extends SecureTService{
 			if(serviceType==null){
 				FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "Service Type does not exist");
 				result.addError(fieldError);
-			}else if(!result.hasErrors()){
+			}else if(!result.hasErrors() & !isLog(formObject)){//if it not a log do not allow 
 				//Identify asset using site and service
 				Query vendorAssetQuery = entityManager.createNamedQuery("getVendorServiceAssetByServiceType");
 				vendorAssetQuery.setParameter("serviceTypeId", formObject.getServiceType().getServiceTypeId());
