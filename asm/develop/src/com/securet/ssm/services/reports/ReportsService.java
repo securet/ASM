@@ -59,7 +59,7 @@ public class ReportsService extends BaseReportsService {
 	}
 
 	@RequestMapping(value="/reports/getTicketsByTimePeriod")
-	public String dashboard(@RequestParam("startDate") @DateTimeFormat(pattern="dd/MM/yyyy") Date startDate, @RequestParam("endDate") @DateTimeFormat(pattern="dd/MM/yyyy") Date endDate, Model model, HttpServletResponse response){
+	public String getTicketsByTimePeriod(@RequestParam("startDate") @DateTimeFormat(pattern="dd/MM/yyyy") Date startDate, @RequestParam("endDate") @DateTimeFormat(pattern="dd/MM/yyyy") Date endDate, Model model, HttpServletResponse response){
 		if(startDate!=null && endDate!=null){
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/YYYY");
 			Query ticketByDateRange = entityManager.createNamedQuery("getTicketByDateRange");
@@ -68,7 +68,7 @@ public class ReportsService extends BaseReportsService {
 			List<Object[]> ticketSummary = ticketByDateRange.getResultList();
 			response.setContentType("application/vnd.ms-excel");
 			//response.setHeader("Content-Type", "application/vnd.ms-excel");;
-			response.setHeader( "Content-Disposition", "filename=TICKETS_" + simpleDateFormat.format(startDate)+"_"+simpleDateFormat.format(endDate));
+			response.setHeader( "Content-Disposition", "filename=TICKETS_" + simpleDateFormat.format(startDate)+"_"+simpleDateFormat.format(endDate)+".xls");
 			model.addAttribute("columnNames", DOWNLOAD_REPORT_FIELDS);
 			model.addAttribute("ticketSummary", ticketSummary);
 			return DefaultService.REPORTS+"downloadReport";
