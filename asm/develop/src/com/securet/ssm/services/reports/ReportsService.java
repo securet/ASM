@@ -68,7 +68,7 @@ public class ReportsService extends BaseReportsService {
 			List<Object[]> ticketSummary = ticketByDateRange.getResultList();
 			response.setContentType("application/vnd.ms-excel");
 			//response.setHeader("Content-Type", "application/vnd.ms-excel");;
-			response.setHeader( "Content-Disposition", "filename=TICKETS_" + simpleDateFormat.format(startDate)+"_"+simpleDateFormat.format(endDate)+".xls");
+			response.setHeader( "Content-Disposition", "filename=TICKETS_" + simpleDateFormat.format(startDate)+"_"+simpleDateFormat.format(endDate)+".xls"); 
 			model.addAttribute("columnNames", DOWNLOAD_REPORT_FIELDS);
 			model.addAttribute("ticketSummary", ticketSummary);
 			return DefaultService.REPORTS+"downloadReport";

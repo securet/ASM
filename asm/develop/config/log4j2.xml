@@ -2,18 +2,18 @@
 <Configuration>
 	<Appenders>
 		<RollingFile name="RollingFile" fileName="logs/ssm.log" filePattern="logs/ssm-%d{MM-dd-yyyy}.log.gz" ignoreExceptions="false">
-			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+			<PatternLayout pattern="%d{dd-MM-YYYY HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 			<TimeBasedTriggeringPolicy />
 		</RollingFile>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
+			<PatternLayout pattern="%d{dd-MM-YYYY HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n" />
 		</Console>
 	</Appenders>
 	<Loggers>
-		<Logger name="org.springframework.web" level="info"></Logger>
+		<Logger name="org.springframework.web" level="warn"></Logger>
 	    <Logger name="com.securet.ssm" level="trace"></Logger>
-	    <Logger name="org.hibernate.type" level="trace"></Logger>
-	    <Root level="debug">
+	    <Logger name="org.hibernate.type" level="warn"></Logger>
+	    <Root level="warn">
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="RollingFile" />
 		</Root>
