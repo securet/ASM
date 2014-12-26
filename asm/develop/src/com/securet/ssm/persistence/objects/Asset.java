@@ -36,8 +36,8 @@ import com.securet.ssm.persistence.views.SimpleAsset;
 })
 @NamedNativeQueries({
 	@NamedNativeQuery(
-			  name="getUnAssignedAssetsByCityAndAssetType",
-			  query="SELECT  a.assetId, a.name, a.assetTag, ast.name assetType, s.name siteName, a.installedDate FROM asset a INNER JOIN site s ON a.siteId=s.siteId INNER JOIN asset_type ast ON a.assetTypeId=ast.assetTypeId LEFT JOIN vendor_service_asset vsa ON a.assetId=vsa.assetId WHERE s.city=(?1) AND a.assetTypeId=(?2) AND vsa.assetId IS NULL",
+			  name="getUnAssignedAssetsByServiceCityAndAssetType",
+			  query="SELECT  a.assetId, a.name, a.assetTag, ast.name assetType, s.name siteName, a.installedDate FROM asset a INNER JOIN site s ON a.siteId=s.siteId INNER JOIN asset_type ast ON a.assetTypeId=ast.assetTypeId LEFT JOIN vendor_service_asset vsa ON a.assetId=vsa.assetId AND vsa.serviceTypeId=(?1) WHERE s.city=(?2) AND a.assetTypeId=(?3) AND vsa.assetId IS NULL",
 			  resultSetMapping="simpleAsset"
 			)
 })

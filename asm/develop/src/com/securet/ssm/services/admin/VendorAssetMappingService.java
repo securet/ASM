@@ -111,10 +111,11 @@ public class VendorAssetMappingService extends SecureTService{
 	}
 
 	@RequestMapping(value="/admin/getUnassignedAssetsByCityAndAssetType",produces="application/json")
-	public @ResponseBody List<SimpleAsset> getUnassignedAssetsByCityAndAssetType(@RequestParam String cityGeoId,@RequestParam String assetTypeId){
-		Query assetsByCityAndAssetType = entityManager.createNamedQuery("getUnAssignedAssetsByCityAndAssetType");
-		assetsByCityAndAssetType.setParameter(1, cityGeoId);
-		assetsByCityAndAssetType.setParameter(2, assetTypeId);
+	public @ResponseBody List<SimpleAsset> getUnAssignedAssetsByServiceCityAndAssetType(@RequestParam String serviceTypeId, @RequestParam String cityGeoId,@RequestParam String assetTypeId){
+		Query assetsByCityAndAssetType = entityManager.createNamedQuery("getUnAssignedAssetsByServiceCityAndAssetType");
+		assetsByCityAndAssetType.setParameter(1, serviceTypeId);
+		assetsByCityAndAssetType.setParameter(2, cityGeoId);
+		assetsByCityAndAssetType.setParameter(3, assetTypeId);
 		return assetsByCityAndAssetType.getResultList();
 	}
 
@@ -131,7 +132,7 @@ public class VendorAssetMappingService extends SecureTService{
 	@RequestMapping(value="/admin/getUserAssignedAndUnassignedAssets",produces="application/json")
 	public @ResponseBody Map<String,List<SimpleAsset>> getUserAssignedAndUnassignedAssets(@RequestParam String userId,@RequestParam String serviceTypeId,@RequestParam String assetTypeId,@RequestParam String cityGeoId){
 		Map<String,List<SimpleAsset>> allAssets = new HashMap<String, List<SimpleAsset>>();
-		List<SimpleAsset> unassignedAssets = getUnassignedAssetsByCityAndAssetType(cityGeoId, assetTypeId);
+		List<SimpleAsset> unassignedAssets = getUnAssignedAssetsByServiceCityAndAssetType(serviceTypeId,cityGeoId, assetTypeId);
 		List<SimpleAsset> assingedAssets =  getUserAssignedAssets(userId, serviceTypeId, assetTypeId, cityGeoId);
 		allAssets.put("unassignedAssets",unassignedAssets);
 		allAssets.put("assignedAssets",assingedAssets);
