@@ -384,8 +384,19 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	public void sendNotifications(MailService mailService,SMSService smsService,String emailTemplate, String smsTemplate,Map<String,Object> bodyParameters) {
-		sendEmail(mailService,bodyParameters,emailTemplate);
-		sendSMS(smsService,bodyParameters,smsTemplate);
+		//run notifications in a  thread to avoid response delay with SMTP and SMS connections
+		Runnable notifications = new Runnable() {
+			
+			@Override
+			public void run() {
+				sendEmail(mailService,bodyParameters,emailTemplate);
+				sendSMS(smsService,bodyParameters,smsTemplate);
+			}
+		};
+		
+		Ticket formObject = (Ticket)bodyParameters.get("ticket");
+		Thread notificationThread = new Thread(notifications,"Notification#"+formObject.getTicketId());
+		notificationThread.start();
 	}
 
 	public void sendSMS(SMSService smsService, Map<String,Object> bodyParameters,String templateName) {
