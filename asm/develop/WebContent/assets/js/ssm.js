@@ -140,53 +140,17 @@ function initClientSiteMapping() {
 			}
 		});
 	});
-	if ($("#clientUserSiteMapId #cityGeoId").size() > 0) {
-		$("#clientUserSiteMapId #cityGeoId").change(function(eventData) {
-			if ($(this).val() == "") {
-				alert("Please select a city");
-				return false;
-			}
-			$.ajax({
-				url : contextPath + "/admin/getSitesForCity?cityGeoId=" + $(this).val(),
-				success : function(data) {
-					allSites = data;
-					makeSiteSelectOptions();
-				},
-				error : function() {
-					alert("No Sites found");
-				}
-			});
+	if ($("#clientUserSiteMapId").size() > 0) {
+		$("#clientUserSiteMapId #cityGeoId, #userId").change(function(eventData) {
+			fetchClientUserSiteMappings();
 		});
-	}
-	if ($("#userId").size() > 0) {
-		$("#userId").change(function(eventData) {
-			if ($(this).val() == "") {
-				alert("Please select a user");
-				return false;
-			}
-			$.ajax({
-				url : contextPath + "/admin/getUserAssignedSites?userId=" + $(this).val(),
-				success : function(data) {
-					if (typeof data != 'undefined' && data.length > 0) {
-						for (var i = 0; i < data.length; i++) {
-							userSites[data[i].siteId] = data[i].name;
-						}
-						makeSiteSelectOptions();
-					}
-				},
-				error : function() {
-					alert("No Sites found");
-				}
-			});
-		});
-	}
-	if ($("#userId").val() != null && $("#userId").val() != "" && $("#cityGeoId").val() != null && $("#cityGeoId").val() != "") {
-		$("#cityGeoId").trigger("change");
 	}
 	if ($("#siteId").size() > 0) {
 		initMultiSelect("siteId");
+		if ($("#userId").val() != null && $("#userId").val() != "" && $("#cityGeoId").val() != null && $("#cityGeoId").val() != "") {
+			fetchClientUserSiteMappings();
+		}
 	}
-
 }
 
 function initVendorAssetMapping() {
@@ -241,10 +205,7 @@ function planify(data) {
 }
 
 function makeSiteSelectOptions() {
-	if ($("#userId").val() != null && $("#userId").val() != "" && userSites.length == 0) {
-		$("#userId").trigger("change");
-	}
-	if (typeof allSites != 'undefined' && allSites != null && allSites.length > 0) {
+/*	if (typeof allSites != 'undefined' && allSites != null && allSites.length > 0) {
 		for (var j = 0; j < allSites.length; j++) {
 			if (typeof userSites[allSites[j].siteId] != 'undefined') {
 				allSites[j].siteSelected = true;
@@ -252,8 +213,14 @@ function makeSiteSelectOptions() {
 				allSites[j].siteSelected = false;
 			}
 		}
-		addMultiSelectOptions("siteId", siteOptionTemplate, allSites);
+*/	
+//	}
+	var sitesToShow = [];
+	if (typeof userSites != 'undefined' && typeof allSites != 'undefined'){
+		sitesToShow= sitesToShow.concat(allSites);
+		sitesToShow = sitesToShow.concat(userSites);
 	}
+	addMultiSelectOptions("siteId", siteOptionTemplate, sitesToShow);
 }
 
 function addMultiSelectOptions(elementId, templateObj, dataObj) {
@@ -283,6 +250,33 @@ function getCitiesForState(stateElementId, cityElementId) {
 	}
 }
 
+function fetchClientUserSiteMappings(){
+	if ($("#cityGeoId").val() == "" || $("#userId").val() == "") {
+		resetClientUserMappingSites();
+		//alert("Please select a city");
+		return false;
+	}
+	$.ajax({
+		url : contextPath + "/admin/getUserAssignedAndUnAssignedSites?cityGeoId=" + $("#cityGeoId").val() +"&userId="+ $("#userId").val(),
+		success : function(data) {
+			if(typeof data!='undefined'){
+				allSites = data.allRegionSites;
+				userSites=data.userAssignedSites;
+				for(var i=0; i< userSites.length; i++){
+					userSites[i].siteSelected=true;
+				}
+			}else{
+				allSites=[];
+				userSites=[];
+			}
+			makeSiteSelectOptions();
+		},
+		error : function() {
+			alert("No Sites found");
+		}
+	});
+}
+
 function fetchAndMapVendorAssets(fetchUnassigned) {
 	if ($("#userId").val() == "" || $("#serviceTypeId").val() == "" || $("#cityGeoId").val() == "" || $("#assetTypeId").val() == "") {
 		//reset assets if a change event got triggered 
@@ -309,6 +303,12 @@ function fetchAndMapVendorAssets(fetchUnassigned) {
 			alert("No Asset mapped for user");
 		}
 	});
+}
+
+function resetClientUserMappingSites(){
+	allSites=[];
+	userSites=[];
+	makeSiteSelectOptions();
 }
 
 function resetVendorMappingAssets(){

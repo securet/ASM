@@ -11,7 +11,8 @@ import javax.persistence.Table;
 @Entity
 @Table(name="client_user_site")
 @NamedQueries({
-	@NamedQuery(name="getUserAssignedSites",query="SELECT site FROM ClientUserSite cus WHERE cus.clientUser.userId=:userId")
+	@NamedQuery(name="getUserAssignedSites",query="SELECT site FROM ClientUserSite cus WHERE cus.clientUser.userId=:userId"),
+	@NamedQuery(name="getUserAssignedSitesByRegion",query="SELECT NEW com.securet.ssm.persistence.views.SimpleSite(cus.site.siteId, cus.site.name, cus.site.area, cus.site.city, cus.site.state, cus.site.latitude, cus.site.longitude, cus.site.organization.name) FROM ClientUserSite cus WHERE cus.site.city.geoId=:cityGeoId AND cus.clientUser.userId=:userId")
 })
 public class ClientUserSite extends SecureTObject{
 

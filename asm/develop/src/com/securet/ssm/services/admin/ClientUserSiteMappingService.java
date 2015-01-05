@@ -19,13 +19,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.User;
+import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.vo.ClientUserSite;
@@ -104,6 +104,18 @@ public class ClientUserSiteMappingService extends SecureTService{
 		return fetchQueriedObjects(namedQuery, namedParameter, userId);
 	}
 	
+	@RequestMapping(value="/admin/getUserAssignedAndUnAssignedSites",produces="application/json")
+	public @ResponseBody Map<String,List> getUserAssignedAndUnAssignedSites(@RequestParam String userId, @RequestParam String cityGeoId){
+		Query userSitesAssignedByRegion =  entityManager.createNamedQuery("getUserAssignedSitesByRegion");
+		userSitesAssignedByRegion.setParameter("cityGeoId", cityGeoId);
+		userSitesAssignedByRegion.setParameter("userId", userId);
+		List userAssignedSites = userSitesAssignedByRegion.getResultList();
+		List allRegionSites =  adminService.getSitesForCity(cityGeoId);
+		Map<String,List> siteMapping = new HashMap<String, List>(); 
+		siteMapping.put("userAssignedSites", userAssignedSites);
+		siteMapping.put("allRegionSites", allRegionSites);
+		return siteMapping;
+	}
 
 	@Transactional
 	@RequestMapping("/admin/saveClientUserSiteMapping")
@@ -112,9 +124,9 @@ public class ClientUserSiteMappingService extends SecureTService{
 			User clientUser = new User();
 			clientUser.setUserId(formObject.getUserId());
 			//do not persist existing assignments as they exist.
-			Query existingAssignments = entityManager.createQuery("SELECT cus.site.siteId FROM ClientUserSite cus WHERE cus.clientUser.userId=:userId and cus.site.siteId IN (:sites)");
+			Query existingAssignments = entityManager.createQuery("SELECT cus.site.siteId FROM ClientUserSite cus WHERE cus.clientUser.userId=:userId AND cus.site.city.geoId=:cityGeoId");
 			existingAssignments.setParameter("userId", formObject.getUserId());
-			existingAssignments.setParameter("sites", formObject.getSites());
+			existingAssignments.setParameter("cityGeoId", formObject.getCityGeoId());
 			List<Integer> existingSites = existingAssignments.getResultList();
 			_logger.debug("existing assignments: "+existingSites);
 			List<Integer> newSites = new ArrayList<Integer>(formObject.getSites());
@@ -128,12 +140,18 @@ public class ClientUserSiteMappingService extends SecureTService{
 				clientUserSiteObject.setSite(site);
 				entityManager.persist(clientUserSiteObject);
 			}
-			//delete old assignments
-			Query deleteOldQuery = entityManager.createQuery("DELETE FROM ClientUserSite cus WHERE cus.clientUser.userId=:userId and cus.site.siteId NOT IN (:sites)");
-			deleteOldQuery.setParameter("userId", formObject.getUserId());
-			deleteOldQuery.setParameter("sites", formObject.getSites());
-			int deletes = deleteOldQuery.executeUpdate();
-			_logger.info("Deleted "+ deletes+ "ClientUserMapping on save");
+
+			//remove unmapped sites...for the user selected criteria..   
+			List<Integer> allSitesToDelete = new ArrayList<Integer>(existingSites);
+			allSitesToDelete.removeAll(formObject.getSites());
+			if(allSitesToDelete.size()>0){
+				Query deleteOldQuery = entityManager.createNativeQuery("DELETE cus FROM client_user_site cus,site s WHERE cus.siteId=s.siteId  AND cus.userId=(?1) AND s.city=(?2) AND cus.siteId IN (?3)");
+				deleteOldQuery.setParameter(1, formObject.getUserId());
+				deleteOldQuery.setParameter(2, formObject.getCityGeoId());
+				deleteOldQuery.setParameter(3, allSitesToDelete);
+				int deletes = deleteOldQuery.executeUpdate();
+				_logger.info("Deleted "+ deletes+ "ClientUserMapping on save");
+			}
 			model.addAttribute("saved", "Saved site mapping successfully for user: "+formObject.getUserId());
 		}
 		if(formObject.getOrganizationId()!=null && formObject.getOrganizationId()>0){
