@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -157,16 +158,27 @@ public class SecureTUtils {
 			return ""; 
 		}
 	}
-	public static void main(String[] args) {
-		_logger.debug("password 'shabhu' = "+bCryptText("admin"));
-		//field test
-		List<FormField> fields = getFieldsFromClass(Organization.class);
-		System.out.println(fields);
-		System.out.println(getFieldsCount(Organization.class));
-	}
-
 	public static boolean isEmpty(String str) {
 		return (str== null || str.isEmpty());
+	}
+
+	public static List<String> fetchCSVAsList(String mobile) {
+		if(!isEmpty(mobile)){
+			return Arrays.asList(mobile.split(","));
+		}
+		return null;
+	}
+
+	public static void main(String[] args) {
+		String[] empIds = {"3071650","4264622","3391019","3894207","3044505","3054144","3079473","2761181","3046036","3046036","4492005","3056538","3381714","2760533","1799339","3056791","3357252","3372626","4170113","3396525","5236088","3040429","1796720","3881660","3040429","3088073","3052176","3378349","3880567","3059081","3047962","3528359","3360989","4238435","4243595","2762870","3047520","4258789","4238176","5650631","3072509","3083802","4234669","4182596","5855810","4270746","3528022","2765284","4253647","4273494","4240200","3888770","3887774","3042421","3886638","3862771","3047903","3360571","3056139"};
+		/*for(int i=0;i<empIds.length;i++){
+			System.out.println(empIds[i]+"="+bCryptText(empIds[i]));
+		}*/
+		_logger.debug("password 'securet' = "+bCryptText("securet"));
+		//field test
+		//List<FormField> fields = getFieldsFromClass(Organization.class);
+		//System.out.println(fields);
+		//System.out.println(getFieldsCount(Organization.class));
 	}
 
 	

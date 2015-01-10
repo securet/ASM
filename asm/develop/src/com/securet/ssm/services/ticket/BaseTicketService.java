@@ -405,11 +405,19 @@ public class BaseTicketService extends SecureTService{
 		switch (formObject.getStatus().getEnumerationId()) {
 		case "OPEN":
 		case "CLOSED":
-			receiverContacts.add(formObject.getResolver().getMobile());
+			//check for comma separated numbers .. and add them.
+			List<String> resolverContacts = SecureTUtils.fetchCSVAsList(formObject.getResolver().getMobile());
+			if(resolverContacts!=null){
+				receiverContacts.addAll(resolverContacts);
+			}
 			break;
 		case "WORK_IN_PROGRESS":
 		case "RESOLVED":
-			receiverContacts.add(formObject.getReporter().getMobile());
+			//check for comma separated numbers .. and add them.
+			List<String> reporterContacts = SecureTUtils.fetchCSVAsList(formObject.getReporter().getMobile());
+			if(reporterContacts!=null){
+				receiverContacts.addAll(reporterContacts);
+			}
 			break;
 		default:
 			break;

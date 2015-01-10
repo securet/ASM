@@ -116,7 +116,8 @@ public class UserService extends SecureTService {
 		boolean createNew = verifyPassword!=null;
 		if(createNew && formObject.getUserId()!=null){
 			validateUser(formObject, result, verifyPassword);
-			
+		}else{
+			model.addAttribute("mode","edit");
 		}
 		if(result.hasErrors()){
 			makeUIData(entityManager,formObject,model);
