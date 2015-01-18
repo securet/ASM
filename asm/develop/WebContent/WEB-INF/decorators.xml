@@ -13,6 +13,7 @@
 	</decorator>
 	<decorator name="singlecolumn" page="singlecolumn.ftl">
 	    <pattern>/user/*</pattern>
+	    <pattern>/content/*</pattern>
 	</decorator>
 	<decorator name="nolayout" page="nolayout.ftl">
 		<pattern>/login</pattern>

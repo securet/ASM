@@ -16,6 +16,7 @@ public class DefaultService {
 	public static final String ADMIN = "admin/";
 	public static final String TICKET = "ticket/";
 	public static final String REPORTS = "reports/";
+	public static final String CONTENT = "content/";
 	
 	private static final Logger _logger =  LoggerFactory.getLogger(DefaultService.class);
 
