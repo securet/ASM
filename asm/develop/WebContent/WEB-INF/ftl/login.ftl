@@ -13,9 +13,13 @@
 		<div class="col-sm-4 login-row center-block">
 			<img class="box-start" src="assets/images/wrapper_top.png" width="100%"/>			
 			<div id="login-box">				
-				<h1 class="login">SecureT Service Management</h1>		 
-				<#if error?exists>
-					<div class="error">${error}</div>
+				<h1 class="login">SecureT Service Management</h1>		
+				<#if RequestParameters.error?exists>
+					<div class="alert alert-danger" role="alert">
+					  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+					  <span class="sr-only">Error:</span>
+					  Please check your credentials
+					</div>
 				</#if>
 				<#if msg?exists>
 					<div class="error">${msg}</div>

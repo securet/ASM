@@ -1,7 +1,7 @@
 <#macro formInputSSM path field attributes="" fieldType="text" >
 	<@spring.bind path/>
 	<#if fieldType="hidden">
-		<input type="hidden" name="${spring.status.expression}" value="${spring.stringStatusValue}"<@spring.closeTag/>
+		<input type="hidden" id="${spring.status.expression}" name="${spring.status.expression}" value="${spring.stringStatusValue}"<@spring.closeTag/>
 	<#else>
 		<#if spring.status.errorCodes?exists && (spring.status.errorCodes?size >0) >
 			<div class="alert alert-danger" role="alert">
@@ -12,7 +12,7 @@
 		</#if>	
 		<div class="form-group">
 			<label class="col-sm-3 control-label" for="${field.fieldName}"><#if field.label?exists>${field.label}<#else>${field.fieldName?cap_first}</#if></label>
-			<div class="col-sm-9<#if fieldType=='checkbox'> checkbox</#if><#if fieldType="datetime" || fieldType="date"> input-group  date</#if>" id="${spring.status.expression}">
+			<div class="col-sm-9<#if fieldType=='checkbox'> checkbox</#if><#if fieldType="datetime" || fieldType="date"> input-group  date</#if>" id="${spring.status.expression}Wrap">
 		    	<input id="${spring.status.expression}" <#if fieldType="date">data-date-format="DD-MM-YYYY"</#if> class="<#if fieldType!='checkbox'>form-control</#if> <#if fieldType="file">asminputfile</#if>" type="<#if fieldType="datetime" || fieldType="date">text<#else>${fieldType}</#if>" name="${spring.status.expression}<#if fieldType="file">File</#if>" value="<#if fieldType!="password">${spring.stringStatusValue}</#if>" ${attributes} <@spring.closeTag/>
 				<#if fieldType=="file" && spring.stringStatusValue?exists && spring.stringStatusValue?has_content><input id="${spring.status.expression}-hidden" type="hidden" name="${spring.status.expression}" value="${spring.stringStatusValue}"/></#if>
 				<#if fieldType="datetime" || fieldType="date"><span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span></#if>
@@ -129,6 +129,12 @@
 		</div>	
 	</div>	
 </#macro>
+
+<#macro autoSuggestField path field  attributes="">
+	<@formInputSSM path=path?replace(field.fieldName+"Id","name") field=field attributes=attributes fieldType="text" />
+	<@formInputSSM path=path field=field attributes=attributes fieldType="hidden" />
+</#macro>
+
 
 <#macro ticketTimeLine ticket>
 	<#if ticket?exists>

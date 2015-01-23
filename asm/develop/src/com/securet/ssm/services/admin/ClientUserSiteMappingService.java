@@ -110,10 +110,14 @@ public class ClientUserSiteMappingService extends SecureTService{
 		userSitesAssignedByRegion.setParameter("cityGeoId", cityGeoId);
 		userSitesAssignedByRegion.setParameter("userId", userId);
 		List userAssignedSites = userSitesAssignedByRegion.getResultList();
-		List allRegionSites =  adminService.getSitesForCity(cityGeoId);
+		Query userUnAssignedByRegion =  entityManager.createNamedQuery("getUserUnAssignedSitesByRegion");
+		userUnAssignedByRegion.setParameter(1, cityGeoId);
+		userUnAssignedByRegion.setParameter(2, userId);
+		userUnAssignedByRegion.setMaxResults(1000);
+		List userUnAssignedRegionSites = userUnAssignedByRegion.getResultList();
 		Map<String,List> siteMapping = new HashMap<String, List>(); 
 		siteMapping.put("userAssignedSites", userAssignedSites);
-		siteMapping.put("allRegionSites", allRegionSites);
+		siteMapping.put("allRegionSites", userUnAssignedRegionSites);
 		return siteMapping;
 	}
 

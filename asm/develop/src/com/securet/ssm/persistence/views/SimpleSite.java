@@ -2,6 +2,7 @@ package com.securet.ssm.persistence.views;
 
 import com.securet.ssm.persistence.objects.Geo;
 
+
 public class SimpleSite {
 
 	private int siteId;
@@ -13,12 +14,37 @@ public class SimpleSite {
 	private double longitude;
 	private String organizationName;
 
+	public SimpleSite (int siteId,String name){
+		this.siteId=siteId;
+		this.name=name;
+	}
+	
 	public SimpleSite(int siteId, String name, String area, Geo city, Geo state, double latitude, double longitude, String organizationName) {
 		this.siteId = siteId;
 		this.name = name;
 		this.area = area;
 		this.city = city;
 		this.state = state;
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.organizationName = organizationName;
+	}
+
+	public SimpleSite(int siteId, String name, String area,String cityGeoId,  String city,String stateGeoId, String state, double latitude, double longitude, String organizationName) {
+		this.siteId = siteId;
+		this.name = name;
+		this.area = area;
+		
+		Geo cityGeo = new Geo();
+		cityGeo.setGeoId(cityGeoId);
+		cityGeo.setName(city);
+		this.city = cityGeo;
+
+		Geo stateGeo = new Geo();
+		stateGeo.setGeoId(stateGeoId);
+		stateGeo.setName(state);
+		this.state = stateGeo;
+
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.organizationName = organizationName;

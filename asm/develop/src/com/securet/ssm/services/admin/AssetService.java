@@ -60,7 +60,7 @@ public class AssetService extends SecureTService {
 	public static List<String> getDataViewNames() {
 		if(dataViewNames==null){
 			dataViewNames=new ArrayList<String>();
-			dataViewNames.add("getSiteForView");
+			//dataViewNames.add("getSiteForView");
 			dataViewNames.add("getAssetTypeForView");
 		}
 		return dataViewNames;
@@ -77,8 +77,13 @@ public class AssetService extends SecureTService {
 	@RequestMapping(value="/admin/saveAsset",method=RequestMethod.POST)
 	@Transactional
 	public String saveAsset(@Valid @ModelAttribute("formObject") Asset formObject,BindingResult result,Model model){
-		//check for unique asset id 
+		//check for unique asset id
 		boolean createNew = (formObject.getAssetId()==0);//default is 0..
+		validate(createNew,formObject,result);
+		return adminService.saveObject(formObject, result, model,createNew);
+	}
+
+	private void validate(boolean createNew,Asset formObject, BindingResult result) {
 		if(formObject.getAssetTag()!=null){
 			Query query = null;
 			if(createNew){
@@ -94,7 +99,14 @@ public class AssetService extends SecureTService {
 				result.addError(fieldError);
 			}
 		}
-		return adminService.saveObject(formObject, result, model,createNew);
+		if(formObject.getAssetType()==null || formObject.getAssetType().getAssetTypeId()==0){
+			FieldError fieldError = new FieldError("formObject", "assetType.assetTypeId", "Asset Type cannot be empty");
+			result.addError(fieldError);
+		}
+		if(formObject.getSite()==null || formObject.getSite().getSiteId()==0){
+			FieldError fieldError = new FieldError("formObject", "site.name", "Site is not valid");
+			result.addError(fieldError);
+		}
 	}
 
 }

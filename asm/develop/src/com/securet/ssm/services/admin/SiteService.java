@@ -19,10 +19,13 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.securet.ssm.persistence.objects.Organization;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
+import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.SecureTService;
 
 @Repository
@@ -121,6 +124,15 @@ public class SiteService extends SecureTService{
 			dataViewNames.add("getSiteTypeForView");
 		}
 		return dataViewNames;
+	}
+	
+	@RequestMapping(value="/admin/searchSites",produces="application/json")
+	public @ResponseBody List<SimpleSite> searchSites(@RequestParam String searchString){
+		Query siteSearchQuery = entityManager.createNamedQuery("searchSites");
+		siteSearchQuery.setParameter("siteName", "%"+searchString+"%");
+		siteSearchQuery.setMaxResults(100);
+		List<SimpleSite> sites = (List<SimpleSite>) siteSearchQuery.getResultList();
+		return sites;
 	}
 
 }

@@ -4,4 +4,4 @@ Call Log No ${ticket.ticketId} has been moved to Work In Progress
 Call Log No  ${ticket.ticketId} has been moved to Resolved. Pending your action.  
 <#elseif previousStatus?exists && previousStatus=="RESOLVED" && ticket.status.enumerationId=="WORK_IN_PROGRESS">
 Call Log No ${ticket.ticketId} has been moved to Work In Progress, Ticket Resent from Channel Manager
-</#if>	
+</#if>

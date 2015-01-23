@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<title>Create/Edit ${entityName}</title>
+		<script src="assets/js/typeahead.min.js"></script>
 		<script id="logoPreviewTemplate" type="text/x-jsrender">
 			<div id="preview-1-0" class="file-preview-frame">
 			   <img style="width:100%;height:auto;" alt="logo" title="logo" src="{{:path}}" class="file-preview-image"/>
@@ -17,7 +18,7 @@
 					<select class="form-control" name="{{:elementId}}" id="{{:elementId}}">
 						<option value="">Select {{:elementLabel}}</option>
 						{{for options}}
-							<option value="{{:value}}" {{if geoSelected }} selected='selected' {{/if}} >{{:text}}</option>
+							<option value="{{:value}}" {{if selected }} selected='selected' {{/if}} >{{:text}}</option>
 						{{/for}}	
 					</select>
 				</div>	
@@ -34,7 +35,7 @@
 					<#include "../dynamicForm.ftl">
 					<div style="text-align:right">
 						<input  class="btn btn-primary right" name="submit" type="submit"  value="Save" />
-					</div>	              	
+					</div>	            			
 				</form>
 			</div>
 	    </div>

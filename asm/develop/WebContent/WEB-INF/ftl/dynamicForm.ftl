@@ -1,5 +1,5 @@
-<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date"}>
-<#assign dataTypeMapping={"int":"number","double":"number","organization":"number"}>
+<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","site":"suggestbox"}>
+<#assign dataTypeMapping={"int":"number","double":"number","organization":"number","assetType":"number"}>
 <#include "formMacros.ftl">
 <#assign includeDateScripts = false>
 <#setting number_format="0.##">
@@ -12,6 +12,9 @@
 		<#else>
 			<@formInputSSM path="formObject.${field.fieldName}.${field.fieldName}Id" field=field fieldType="hidden"/>
 		</#if>
+	<#elseif field.canDisplay && (fieldTypeMapping[field.fieldType]?exists && fieldTypeMapping[field.fieldType]='suggestbox')>
+		<#assign fieldOne = {"label":(field.fieldName?cap_first), "fieldName":"formObject."}>
+		<@autoSuggestField  path="formObject.${field.fieldName}.${field.fieldName}Id" field=field/> 
 	<#elseif fieldTypeMapping[field.fieldType]?exists && (fieldTypeMapping[field.fieldType]='text'|| fieldTypeMapping[field.fieldType]='file' || fieldTypeMapping[field.fieldType]='datetime' || fieldTypeMapping[field.fieldType]='date')>
 	    <@formInputSSM path="formObject.${field.fieldName}" field=field fieldType=fieldTypeMapping[field.fieldType]/>
 	<#elseif .data_model["get"+field.fieldName?cap_first+"ForView"]?exists>
@@ -41,7 +44,6 @@
 		</#if>
 		<#attempt>
 			<#-- Check  if the options are evaluating  to any object if not it is a custom list -->
-			<#assign options>{"<#if dataTypeMapping[field.fieldType]?default("")=='number'>0</#if>":"Select ${field.fieldName?cap_first}"<#if (uiObjects?size>0)>, </#if><#list uiObjects as uiObject>"${fieldStr?eval}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 			<#assign fieldIdPrefix = field.fieldName+"."+fieldIdPrefix+"Id">
 			<@spring.bind path="formObject.${fieldIdPrefix}"/>
 			<span id="default-${fieldIdPrefix}" class="hide" data-default="${spring.stringStatusValue}"></span>
@@ -50,7 +52,7 @@
 		
 	</#if>
 	<#if !includeDateScripts && (field.fieldType="datetime" || field.fieldType="date")>
-		<#assign includeDateScripts = false>
+		<#assign includeDateScripts = true>
 	</#if>
 </#list>
 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
