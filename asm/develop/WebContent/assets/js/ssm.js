@@ -122,25 +122,27 @@ $(document).ready(function() {
 			}
 		}
 	}
-	var siteSearch = new Bloodhound({
-		datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-		queryTokenizer: Bloodhound.tokenizers.whitespace,
-		remote: contextPath+'/admin/searchSites?searchString=%QUERY'
-	});
-	 
-	siteSearch.initialize();
-	 
-	$('#AssetForm #site\\.name').typeahead(null, {
-		name: 'siteName',
-		displayKey: 'name',
-		source: siteSearch.ttAdapter()
-	}); 
-	$("#AssetForm #site\\.name").on("typeahead:opened",function(tpObj,selectedObj,fieldName){
-		$("#site\\.siteId").val(0);
-	})
-	$("#AssetForm #site\\.name").on("typeahead:selected",function(tpObj,selectedObj,fieldName){
-		$("#site\\.siteId").val(selectedObj.siteId);
-	})
+	
+	if(typeof Bloodhound !='undefined'){
+		var siteSearch = new Bloodhound({
+			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+			remote: contextPath+'/admin/searchSites?searchString=%QUERY'
+		});
+		 
+		siteSearch.initialize();
+		$('#AssetForm #site\\.name').typeahead(null, {
+			name: 'siteName',
+			displayKey: 'name',
+			source: siteSearch.ttAdapter()
+		}); 
+		$("#AssetForm #site\\.name").on("typeahead:opened",function(tpObj,selectedObj,fieldName){
+			$("#site\\.siteId").val(0);
+		});
+		$("#AssetForm #site\\.name").on("typeahead:selected",function(tpObj,selectedObj,fieldName){
+			$("#site\\.siteId").val(selectedObj.siteId);
+		});
+	}
 });
 
 function initClientSiteMapping() {
