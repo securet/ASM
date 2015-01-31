@@ -106,7 +106,7 @@
 								<#elseif formObject.status.enumerationId=='OPEN'>
 									<#assign statusOptions>{"":"Select Status","OPEN":"Open","CLOSED":"Closed"}</#assign>
 								<#elseif formObject.status.enumerationId=='RESOLVED'>
-									<#assign statusOptions>{"":"Select Status","OPEN":"Reject", "CLOSED":"Closed"}</#assign>								
+									<#assign statusOptions>{"":"Select Status","WORK_IN_PROGRESS":"Reject", "CLOSED":"Closed"}</#assign>								
 								</#if>
 							</@security.authorize>	
 							<@formSingleSelectSSM path="formObject.status.enumerationId" field={"fieldName":"formObject.status.enumerationId","label":"Select Status"} options=statusOptions?default("{}")?eval />
