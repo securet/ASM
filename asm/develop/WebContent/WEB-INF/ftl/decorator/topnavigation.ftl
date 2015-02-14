@@ -18,13 +18,15 @@
 			<li class="dropdown">
 				<a href="<@spring.url relativeUrl="/content/help"/>"  role="button" aria-expanded="false"><i class="glyphicon glyphicon-question-sign"></i> Help</a>
 			</li>	
-			<li class="dropdown">
-				<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="glyphicon glyphicon-user"></i> <b> Hi <@security.authentication property="principal.username" /> !</b> <i class="caret"></i></span></a>
-				<ul class="dropdown-menu" role="menu">
-					<li><a href="<@spring.url relativeUrl="/user/profile"/>"> <i class="glyphicon glyphicon-edit"> </i> &nbsp;&nbsp; Profile</a></li>
-					<li><a href="<@spring.url relativeUrl="/logout"/>"> <i class="glyphicon glyphicon-log-out"> </i> &nbsp;&nbsp; Logout</a></li>
-				</ul>
-			</li>
+			<@security.authorize access="hasAnyRole('ADMIN','CLIENT_CONTROLLER','CLIENT_USER','RESOLVER')">
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="glyphicon glyphicon-user"></i> <b> Hi <@security.authentication property="principal.username" /> !</b> <i class="caret"></i></span></a>
+					<ul class="dropdown-menu" role="menu">
+						<li><a href="<@spring.url relativeUrl="/user/profile"/>"> <i class="glyphicon glyphicon-edit"> </i> &nbsp;&nbsp; Profile</a></li>
+						<li><a href="<@spring.url relativeUrl="/logout"/>"> <i class="glyphicon glyphicon-log-out"> </i> &nbsp;&nbsp; Logout</a></li>
+					</ul>
+				</li>
+			</@security.authorize>
 		</ul>		
 	</div>
 </nav>		
