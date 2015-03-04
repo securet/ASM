@@ -68,7 +68,8 @@
 	<bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
     	<property name="host" value="${mail.smtp.host}"/>
     	<property name="port" value="${mail.smtp.port}"/>
-	    <property name="username" value="st@securet.in"></property> <!--  should be configurable.. based on from address for now.. at the application level -->
+    	<property name="protocol" value="${mail.smtp.protocol}"/>
+    	<property name="username" value="st@securet.in"></property> <!--  should be configurable.. based on from address for now.. at the application level -->
 	    <property name="password" value="password@123"></property>
 	</bean>
 

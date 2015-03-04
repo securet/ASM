@@ -65,7 +65,7 @@ public class Ping{
 		_logger.info("start sending email");
 		Map<String,Object> mailContext = new HashMap<String,Object>();
 		mailContext.put("to","sharadbhushank@gmail.com");
-		mailContext.put("from","sharad@securet.in");
+		mailContext.put("from","st@securet.in");
 		mailContext.put("subject","Test Mail from ${name!}!");
 		mailContext.put("template","test.ftl");
 		mailContext.put("contentType","text/html");
