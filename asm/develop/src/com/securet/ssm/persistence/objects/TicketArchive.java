@@ -50,8 +50,8 @@ public class TicketArchive{
 		this.reporter=ticket.getReporter();
 		this.resolver=ticket.getResolver();
 		this.status=ticket.getStatus();
-		this.setCreatedTimestamp(ticket.getCreatedTimestamp());
-		this.setLastUpdatedTimestamp(ticket.getLastUpdatedTimestamp());
+		this.setCreatedTimestamp(new Timestamp(ticket.getCreatedTimestamp().getTime()));
+		this.setLastUpdatedTimestamp(new Timestamp(ticket.getLastUpdatedTimestamp().getTime()));
 	}
 	
 	@Id
@@ -83,6 +83,8 @@ public class TicketArchive{
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
+    private Integer relatedArchiveId;
+    
 	public int getTicketArchiveId() {
 		return ticketArchiveId;
 	}
@@ -147,22 +149,22 @@ public class TicketArchive{
 		this.createdTimestamp = createdTimestamp;
 	}
 
-	@PrePersist
+/*	@PrePersist
 	public void setCreateTimestamp(){
 		setCreatedTimestamp(new Timestamp(new Date().getTime()));
 		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
 	}
-	
+*/	
 
 	public Timestamp getLastUpdatedTimestamp() {
 		return lastUpdatedTimestamp;
 	}
 	
-	@PreUpdate
+/*	@PreUpdate
 	public void setLastUpdatedTimestamp(){
 		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
 	}
-
+*/
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
 	}
@@ -175,4 +177,11 @@ public class TicketArchive{
 		this.status = status;
 	}
 
+	public int getRelatedArchiveId() {
+		return relatedArchiveId;
+	}
+
+	public void setRelatedArchiveId(int relatedArchiveId) {
+		this.relatedArchiveId = relatedArchiveId;
+	}
 }

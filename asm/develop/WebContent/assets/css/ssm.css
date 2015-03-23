@@ -134,6 +134,9 @@ span.twitter-typeahead {
 .margintop10{
 	margin-top:10px; 	
 }
+.marginbottom10{
+	margin-bottom: 10px;
+}
 .toggleleftmenu {
 	margin-left: -13px;
 	width: 22px;
@@ -422,3 +425,28 @@ div.dataTables_filter input{
 	padding-left: 15px;
 	width:73.7%
 }	
+
+table.dataTable.dtr-inline.collapsed tbody td:first-child:before, table.dataTable.dtr-inline.collapsed tbody th:first-child:before{
+	display: inline-table !important;
+	padding-top: 2px;
+	width:18px
+}
+table.dataTable.dtr-inline.collapsed tbody tr.child td.child:before{
+	display: none !important;
+}
+.dashboardarrowGlyph{
+	padding-bottom: 7px;
+	padding-top: 7px;
+	text-align: center;
+}
+@media(max-width:450px){
+	.dashboardarrowGlyph{
+		padding-top: 0px;
+	}
+}
+.tbldwnldbtn{
+	float: right;
+}
+.hiddenForm{
+	display:none;
+}

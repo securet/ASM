@@ -10,6 +10,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.types.Expression;
+import com.mysema.query.types.Order;
+import com.mysema.query.types.OrderSpecifier;
+import com.mysema.query.types.path.StringPath;
 import com.securet.ssm.utils.SecureTUtils;
 
 public class DataTableCriteria implements Serializable{
@@ -214,6 +219,41 @@ public class DataTableCriteria implements Serializable{
 		return columns;
 	}
 
+	public void makeOrderByExpression(DataTableCriteria columns, JPASQLQuery listTicketsQuery, Map<String, Expression> fieldExprMapping) {
+		for(Map<OrderCriterias, String> orderByField :columns.getOrder()){
+			String indexStr = orderByField.get(OrderCriterias.column);
+			try{
+				int index = Integer.valueOf(indexStr);
+				Map<ColumnCriterias,String> columnCriteria = columns.getColumns().get(index);
+				if(columnCriteria!=null){
+					String fieldName=columnCriteria.get(ColumnCriterias.data);
+					try{
+						Integer.parseInt(fieldName);
+						//if fieldName is a number.. try looking up on name...
+						fieldName=columnCriteria.get(ColumnCriterias.name);
+					}catch(Exception e){
+						//if it is not a number continue.. 
+					}
+					String dir =orderByField.get(OrderCriterias.dir);
+					Order order = Order.ASC;
+					if(dir.equals("desc")){
+						order = Order.DESC;
+					}
+					Expression fieldNameExpr = fieldExprMapping.get(fieldName);
+					if(fieldNameExpr==null){
+						fieldNameExpr = new StringPath(fieldName);
+					}
+					listTicketsQuery.orderBy(new OrderSpecifier(order, fieldNameExpr));
+					_logger.debug("Orderby fieldName:"+fieldName);
+				}else{
+					_logger.warn("No field on index:"+index + " for columns " + columns.getColumns());
+				}
+			}catch(NumberFormatException e){
+				_logger.error("could not format index: "+indexStr,e);
+			}
+		}
+	}
+	
 	@Override
 	public String toString() {
 		return "DataTableCriteria [draw=" + draw + ", start=" + start + ", length=" + length + ", search=" + search + ", columns=" + columns + ", order=" + order + "]";

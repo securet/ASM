@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import com.securet.ssm.persistence.objects.SecureTObject;
+import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.ActionHelpers;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.SecureTService;
@@ -135,6 +136,9 @@ public class AdminService extends SecureTService{
 		List<SecureTObject> geoCities = fetchQueriedObjects(namedQuery, namedParameter,stateGeoId);
 		return geoCities;
 	}
-
 	
+	@RequestMapping(value="/admin/searchSites",produces="application/json")
+	public @ResponseBody List<SimpleSite> searchSitesForAdmin(@RequestParam String searchString,@RequestParam int resultsSize){
+		return searchSites(searchString, resultsSize);
+	}
 }

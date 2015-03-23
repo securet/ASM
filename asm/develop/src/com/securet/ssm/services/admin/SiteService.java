@@ -19,13 +19,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.securet.ssm.persistence.objects.Organization;
-import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
-import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.SecureTService;
 
 @Repository
@@ -112,6 +108,14 @@ public class SiteService extends SecureTService{
 			FieldError fieldError = new FieldError("formObject", "state.geoId", "Please select a state");
 			result.addError(fieldError);
 		}
+		if(formObject.getModule()==null || formObject.getModule().getModuleId()==0 ){
+			FieldError fieldError = new FieldError("formObject", "module.moduleId", "Please select a module");
+			result.addError(fieldError);
+		}
+		if(formObject.getCircle()==null || formObject.getCircle().getGeoId()==null || formObject.getCircle().getGeoId().equals("")){
+			FieldError fieldError = new FieldError("formObject", "circle.geoId", "Please select a circle");
+			result.addError(fieldError);
+		}
 		
 	}
 
@@ -122,17 +126,9 @@ public class SiteService extends SecureTService{
 			dataViewNames.add("getStateForView");
 			//dataViewNames.add("getCityForView");
 			dataViewNames.add("getSiteTypeForView");
+			dataViewNames.add("getModuleForView");
 		}
 		return dataViewNames;
 	}
 	
-	@RequestMapping(value="/admin/searchSites",produces="application/json")
-	public @ResponseBody List<SimpleSite> searchSites(@RequestParam String searchString){
-		Query siteSearchQuery = entityManager.createNamedQuery("searchSites");
-		siteSearchQuery.setParameter("siteName", "%"+searchString+"%");
-		siteSearchQuery.setMaxResults(100);
-		List<SimpleSite> sites = (List<SimpleSite>) siteSearchQuery.getResultList();
-		return sites;
-	}
-
 }

@@ -1,5 +1,7 @@
 package com.securet.ssm.persistence.views;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.securet.ssm.persistence.objects.Geo;
 
 
@@ -7,13 +9,27 @@ public class SimpleSite {
 
 	private int siteId;
 	private String name;
+	@JsonInclude(Include.NON_NULL)
 	private String area;
+	@JsonInclude(Include.NON_NULL)
 	private Geo city;
+	@JsonInclude(Include.NON_NULL)
 	private Geo state;
+	@JsonInclude(Include.NON_NULL)
 	private double latitude;
+	@JsonInclude(Include.NON_NULL)
 	private double longitude;
+	@JsonInclude(Include.NON_NULL)
 	private String organizationName;
+	@JsonInclude(Include.NON_NULL)
+	private String circle;
+	@JsonInclude(Include.NON_NULL)
+	private String module;
 
+	public SimpleSite() {
+		//Nothing here
+	}
+	
 	public SimpleSite (int siteId,String name){
 		this.siteId=siteId;
 		this.name=name;
@@ -112,5 +128,21 @@ public class SimpleSite {
 
 	public void setOrganizationName(String organizationName) {
 		this.organizationName = organizationName;
+	}
+
+	public String getCircle() {
+		return circle;
+	}
+
+	public void setCircle(String circle) {
+		this.circle = circle;
+	}
+
+	public String getModule() {
+		return module;
+	}
+
+	public void setModule(String module) {
+		this.module = module;
 	}
 }

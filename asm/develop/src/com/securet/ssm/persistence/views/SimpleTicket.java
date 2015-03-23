@@ -3,42 +3,63 @@ package com.securet.ssm.persistence.views;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.securet.ssm.persistence.objects.IssueType;
+import com.securet.ssm.persistence.objects.ServiceType;
 
 public class SimpleTicket {
 
 	private String ticketId;
 	private String shortDesc;
+	@JsonInclude(Include.NON_NULL)
 	private String statusId;
-	private String siteId;
-	private String siteName;
-	private String serviceTypeId;
-	private String serviceTypeName;
+	@JsonInclude(Include.NON_NULL)
+	private String ticketType;
+	@JsonInclude(Include.NON_NULL)
+	private SimpleSite site;
+	@JsonInclude(Include.NON_NULL)
+	private ServiceType serviceType;
+	@JsonInclude(Include.NON_NULL)
+	private IssueType issueType;
+	@JsonInclude(Include.NON_NULL)
+	private SimpleUser clientUser;
+	@JsonInclude(Include.NON_NULL)
+	private SimpleUser vendorUser;
+
+	
 	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Date createdTimestamp;
-
+	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
+	private Date lastUpdatedTimestamp;
+	
+	private int actualTat;
+	private int tat;
+	private int stopClock;
+	
 	public SimpleTicket() {
 	}
 	
 	
-	public SimpleTicket(String ticketId, String shortDesc, String statusId, String siteId, String siteName, String serviceTypeId, String serviceTypeName, Date createdTimestamp) {
+	public SimpleTicket(String ticketId, String shortDesc, String statusId, int siteId, String siteName, int serviceTypeId, String serviceTypeName, Date createdTimestamp) {
 		this.ticketId = ticketId;
 		this.shortDesc = shortDesc;
 		this.statusId = statusId;
-		this.siteId = siteId;
-		this.siteName = siteName;
-		this.serviceTypeId = serviceTypeId;
-		this.serviceTypeName = serviceTypeName;
+		this.site=new SimpleSite(siteId, siteName);
+		this.serviceType=new ServiceType();
+		this.serviceType.setServiceTypeId(serviceTypeId);
+		this.serviceType.setName(serviceTypeName);
 		this.createdTimestamp = createdTimestamp;
 	}
 
 
-	public SimpleTicket(String ticketId, String statusId, String siteId, String siteName, String serviceTypeId, String serviceTypeName, Date createdTimestamp) {
+	public SimpleTicket(String ticketId, String statusId, int siteId, String siteName, int serviceTypeId, String serviceTypeName, Date createdTimestamp) {
 		this.ticketId = ticketId;
 		this.statusId = statusId;
-		this.siteId = siteId;
-		this.siteName = siteName;
-		this.serviceTypeId = serviceTypeId;
-		this.serviceTypeName = serviceTypeName;
+		this.site=new SimpleSite(siteId, siteName);
+		this.serviceType=new ServiceType();
+		this.serviceType.setServiceTypeId(serviceTypeId);
+		this.serviceType.setName(serviceTypeName);
 		this.createdTimestamp = createdTimestamp;
 	}
 
@@ -68,37 +89,45 @@ public class SimpleTicket {
 		this.statusId = statusId;
 	}
 
-	public String getSiteId() {
-		return siteId;
+	public SimpleSite getSite() {
+		return site;
 	}
 
-	public void setSiteId(String siteId) {
-		this.siteId = siteId;
+
+	public void setSite(SimpleSite site) {
+		this.site = site;
 	}
 
-	public String getSiteName() {
-		return siteName;
+
+	public ServiceType getServiceType() {
+		return serviceType;
 	}
 
-	public void setSiteName(String siteName) {
-		this.siteName = siteName;
+
+	public void setServiceType(ServiceType serviceType) {
+		this.serviceType = serviceType;
 	}
 
-	public String getServiceTypeId() {
-		return serviceTypeId;
+
+	public SimpleUser getClientUser() {
+		return clientUser;
 	}
 
-	public void setServiceTypeId(String serviceTypeId) {
-		this.serviceTypeId = serviceTypeId;
+
+	public void setClientUser(SimpleUser clientUser) {
+		this.clientUser = clientUser;
 	}
 
-	public String getServiceTypeName() {
-		return serviceTypeName;
+
+	public SimpleUser getVendorUser() {
+		return vendorUser;
 	}
 
-	public void setServiceTypeName(String serviceTypeName) {
-		this.serviceTypeName = serviceTypeName;
+
+	public void setVendorUser(SimpleUser vendorUser) {
+		this.vendorUser = vendorUser;
 	}
+
 
 	public Date getCreatedTimestamp() {
 		return createdTimestamp;
@@ -106,6 +135,66 @@ public class SimpleTicket {
 
 	public void setCreatedTimestamp(Date createdTimestamp) {
 		this.createdTimestamp = createdTimestamp;
+	}
+
+
+	public int getActualTat() {
+		return actualTat;
+	}
+
+
+	public void setActualTat(int actualTat) {
+		this.actualTat = actualTat;
+	}
+
+
+	public int getTat() {
+		return tat;
+	}
+
+
+	public void setTat(int tat) {
+		this.tat = tat;
+	}
+
+
+	public int getStopClock() {
+		return stopClock;
+	}
+
+
+	public void setStopClock(int stopClock) {
+		this.stopClock = stopClock;
+	}
+
+
+	public String getTicketType() {
+		return ticketType;
+	}
+
+
+	public void setTicketType(String ticketType) {
+		this.ticketType = ticketType;
+	}
+
+
+	public IssueType getIssueType() {
+		return issueType;
+	}
+
+
+	public void setIssueType(IssueType issueType) {
+		this.issueType = issueType;
+	}
+
+
+	public Date getLastUpdatedTimestamp() {
+		return lastUpdatedTimestamp;
+	}
+
+
+	public void setLastUpdatedTimestamp(Date lastUpdatedTimestamp) {
+		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
 	}
 	
 	//t.ticketId,t.statusId,t.siteId,s.name site,t.serviceTypeId, st.name serviceType, t.createdTimestamp

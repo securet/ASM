@@ -3,6 +3,7 @@
 <html>
 	<head>
 		<title>Submit New Ticket</title>
+		<script src="assets/js/typeahead.min.js"></script>
 		<script id="errorMessageTmpl" type="text/x-jsrender">
 			<div id="{{:elementId}}" class="alert alert-danger" role="alert">
 			  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
@@ -15,7 +16,7 @@
 				<label for="{{:elementId}}" class="col-sm-3 control-label">Select {{:elementLabel}}</label>
 				<div class="col-sm-9">
 					<select class="form-control" name="{{:elementId}}" id="{{:elementId}}">
-						<option value="">Select {{:elementLabel}}</option>
+						<option value="{{:elementDefault}}">Select {{:elementLabel}}</option>
 						{{for options}}
 							<option value="{{:value}}">{{:text}}</option>
 						{{/for}}	
@@ -32,6 +33,7 @@
 			<div  id="newTicket" class="panel-body" >
 				<#assign mode=mode?default("new")>
 				<form class="form-horizontal" role="form" method="POST" action="<@spring.url relativeUrl="/tickets/saveTicket"/>?${_csrf.parameterName}=${_csrf.token}" enctype="multipart/form-data" >
+<#--
 					<#assign contextData="">
 					<#if userAssignedSites?exists && (userAssignedSites?size>0)>
 						<#assign optionsText="{\"0\":\"Select Site\",">
@@ -49,7 +51,10 @@
 					<#else>
 						<#assign optionsText>{"0":"You have not been assigned a site"}</#assign>
 					</#if>
-					<@formSingleSelectSSM path="formObject.site.siteId" field={"fieldName":"site.siteId","label":"Site"} options=optionsText?eval attributes="data-site='${contextData}'"/>
+					<@formSingleSelectSSM path="formObject.site.siteId" field={"fieldName":"site.siteId","label":"Site"} options=optionsText?eval attributes="data-site='${contextData?xhtml}'"/>
+-->
+					<@showErrorsSSM path="formObject.site.siteId"/>
+					<@formInputSSM path="formObject.site.name" field={"fieldName":"site.name","label":"Site"} attributes="" fieldType="text" />
 					<#assign hideSite="hide">
 					<#assign area="">
 					<#if selectedSite?exists>		
@@ -93,7 +98,7 @@
 					</div>
 					<#if issueTypes?exists && (issueTypes?size>0)>
 						<#if issueTypes?exists && (issueTypes?size>0) >
-							<#assign issueTypeOptions>{"":"Select Issue Type",<#list issueTypes as type>"${type.issueTypeId}":"${type.name}"<#if type_has_next>,</#if></#list>}</#assign>
+							<#assign issueTypeOptions>{"0":"Select Issue Type",<#list issueTypes as type>"${type.issueTypeId}":"${type.name}"<#if type_has_next>,</#if></#list>}</#assign>
 						</#if>
 						<@formSingleSelectSSM path="formObject.issueType.issueTypeId" field={"fieldName":"formObject.issueType.issueTypeId","label":"Select Issue Type"} options=issueTypeOptions?default("{}")?eval />
 					</#if>	
@@ -105,7 +110,8 @@
 					<@formTextAreaSSM path="formObject.description" field={"fieldName":"description","label":"Description"} attributes="class=\"form-control\"" />
 					<div style="text-align:right">
 						<input  class="btn btn-primary right" name="submit" type="submit"  value="Save" />
-					</div>	              	
+					</div>	       
+					<@formInputSSM path="formObject.site.siteId" field={"fieldName":"site.siteId","label":"Site"} attributes="" fieldType="hidden" />       	
 					<input type="hidden" name="latitude" value="0.0" />
 					<input type="hidden" name="longitude" value="0.0" />
 					<input type="hidden" name="source" value="WEB" />

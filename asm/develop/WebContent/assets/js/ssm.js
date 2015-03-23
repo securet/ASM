@@ -10,6 +10,10 @@ var allSites = null;
 var allUnAssignedAssets = null;
 var userSites = new Array();
 var vendorServiceAsset = new Array();
+var orderIndex=0;
+var stateCitiesList = new Array();
+var TYPE_AHEAD_LIMIT = 10;
+
 
 $(document).ready(function() {
 	$(document).ajaxSend(function(event, request, settings) {
@@ -70,9 +74,12 @@ $(document).ready(function() {
 	if ($("#asmdatatable").size() > 0) {
 		$('#asmdatatable').dataTable({
 			"processing" : true,
+			"scrollX": true,
+			"responsive":true,
 			"language" : {
 				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
 			},
+			"order": [[ orderIndex, "desc" ]],
 			"serverSide" : true,
 			ajax : {
 				"url" : dataUrl,
@@ -88,29 +95,39 @@ $(document).ready(function() {
 		});
 	}
 	if ($("#clientUserSiteMapId").size() > 0) {
+		initMultiSelect("userId");
 		initClientSiteMapping();
 	}
 	if ($("#vendorAssetMapId").size() > 0) {
+		initMultiSelect("userId");
 		initVendorAssetMapping();
 	}
 	if ($("#state\\.geoId").size() > 0) {
 		if ($("#SiteForm #city\\.geoId").size() == 0) {
 			// initialize the city option
 			$("#state\\.geoId").parents(".form-group").after(selectBoxTemplate.render({
+				elementId : "circle.geoId",
+				elementLabel : "Circle",
+				options : []
+			}));
+			$("#circle\\.geoId").parents(".form-group").after(selectBoxTemplate.render({
 				elementId : "city.geoId",
 				elementLabel : "City",
 				options : []
 			}));
 		}
 		$("#state\\.geoId").change(function(eventData) {
-			getCitiesForState("state\\.geoId", "city\\.geoId");
+			initCircleAndCity();
 		});
 		initMultiSelect("state\\.geoId");
 	}
 	if ($("#city\\.geoId").size() > 0) {
-		getCitiesForState("state\\.geoId", "city\\.geoId");
+		initCircleAndCity();
 		initMultiSelect("city\\.geoId");
+		initMultiSelect("circle\\.geoId");
+		initMultiSelect("module\\.moduleId");
 	}
+	
 	if ($("input[name='logoFile']").size() > 0) {
 		var imagePath = $("input[name='logoFile']").attr("value");
 		if (imagePath != "") {
@@ -124,16 +141,18 @@ $(document).ready(function() {
 	}
 	
 	if(typeof Bloodhound !='undefined'){
+		$("#AssetForm #site\\.name").attr("placeholder","Start typing area or site tag to select site");
 		var siteSearch = new Bloodhound({
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
-			remote: contextPath+'/admin/searchSites?searchString=%QUERY'
+			limit:TYPE_AHEAD_LIMIT,
+			remote: contextPath+'/admin/searchSites?searchString=%QUERY&resultsSize='+TYPE_AHEAD_LIMIT
 		});
-		 
 		siteSearch.initialize();
 		$('#AssetForm #site\\.name').typeahead(null, {
 			name: 'siteName',
 			displayKey: 'name',
+			items: TYPE_AHEAD_LIMIT,
 			source: siteSearch.ttAdapter()
 		}); 
 		$("#AssetForm #site\\.name").on("typeahead:opened",function(tpObj,selectedObj,fieldName){
@@ -143,10 +162,26 @@ $(document).ready(function() {
 			$("#site\\.siteId").val(selectedObj.siteId);
 		});
 	}
+	
+	if($("#transferFromUserId").size()>0){
+		initMultiSelect("transferFromUserId");
+		initMultiSelect("transferToUserId");
+	}
+	
 });
 
+function initCircleAndCity(){
+	var cityElementId=[];
+	if ($("#circle\\.geoId").size() > 0) {
+		cityElementId.push("circle\\.geoId");
+		//getCitiesForState("state\\.geoId", "circle\\.geoId");
+	}
+	cityElementId.push("city\\.geoId");
+	getCitiesForState("state\\.geoId", cityElementId);
+}
+
 function initClientSiteMapping() {
-	$("#organizationId").change(function(eventData) {
+/*	$("#organizationId").change(function(eventData) {
 		if ($(this).val() == "") {
 			alert("Please select an organization");
 			return false;
@@ -154,14 +189,17 @@ function initClientSiteMapping() {
 		$.ajax({
 			url : contextPath + "/admin/getUsersForOrganization?organizationId=" + $(this).val(),
 			success : function(data) {
-				$("#userId").html("<option value=''>Select User</option>");
-				$("#userId").append(userOptionTemplate.render(data));
+				data.unshift({"userId":"","fullName":"Select User ","emailId":"","mobile":"","organizationName":""});
+				addMultiSelectOptions("userId", userOptionTemplate, data);
+//				$("#userId").html("<option value=''>Select User</option>");
+//				$("#userId").append(userOptionTemplate.render(data));
 			},
 			error : function() {
 				alert("No Users found")
 			}
 		});
 	});
+*/
 	if ($("#clientUserSiteMapId").size() > 0) {
 		$("#clientUserSiteMapId #cityGeoId, #userId").change(function(eventData) {
 			fetchClientUserSiteMappings();
@@ -182,10 +220,12 @@ function initVendorAssetMapping() {
 			return false;
 		}
 		$.ajax({
-			url : contextPath + "/admin/getVendorsForOrganization?organizationId=" + $(this).val(),
+			url : VENDOR_FOR_ORG_URL+ "?organizationId=" + $(this).val(),
 			success : function(data) {
-				$("#userId").html("<option value=''>Select User</option>");
-				$("#userId").append(userOptionTemplate.render(data));
+				data.unshift({"userId":"","fullName":"Select User ","emailId":"","mobile":"","organizationName":""});
+				addMultiSelectOptions("userId", userOptionTemplate, data);
+				//$("#userId").html("<option value=''>Select User</option>");
+				//$("#userId").append(userOptionTemplate.render(data));
 				resetVendorMappingAssets();
 			},
 			error : function() {
@@ -213,6 +253,23 @@ function initMultiSelect(elementId) {
 		enableCaseInsensitiveFiltering : true,
 		includeSelectAllOption : true,
 		buttonWidth : "100%",
+		buttonText: function(options, select) {
+			var textToDisplay = "";
+			if (options.length === 0) {
+				textToDisplay= "None selected";
+			}else if (options.length === 1) {
+				/*if(options.val()==""){
+					textToDisplay = options[0].text;
+				}else{
+					textToDisplay = options.val();
+				}*/
+				var max = options[0].text.length>30?30:options[0].text.length;
+				textToDisplay = options[0].text.substring(0,max);
+			}else{
+				textToDisplay = options.length + " selected";
+			}
+			return textToDisplay+' <b class="caret"></b>';
+		},
 		maxHeight : 300,
 		numberDisplayed : 1
 	});
@@ -227,16 +284,6 @@ function planify(data) {
 }
 
 function makeSiteSelectOptions() {
-/*	if (typeof allSites != 'undefined' && allSites != null && allSites.length > 0) {
-		for (var j = 0; j < allSites.length; j++) {
-			if (typeof userSites[allSites[j].siteId] != 'undefined') {
-				allSites[j].siteSelected = true;
-			} else {
-				allSites[j].siteSelected = false;
-			}
-		}
-*/	
-//	}
 	var sitesToShow = [];
 	if (typeof userSites != 'undefined' && typeof allSites != 'undefined'){
 		sitesToShow= sitesToShow.concat(allSites);
@@ -251,18 +298,24 @@ function addMultiSelectOptions(elementId, templateObj, dataObj) {
 	$("#" + elementId).multiselect('rebuild');
 }
 
-function getCitiesForState(stateElementId, cityElementId) {
+function getCitiesForState(stateElementId, cityElementIds) {
 	if ($("#" + stateElementId).val() != "") {
 		var stateId = $("#" + stateElementId).val();
 		$.ajax({
 			url : contextPath + "/admin/getCitiesForState?stateGeoId=" + stateId,
 			success : function(data) {
-				addMultiSelectOptions(cityElementId, geoTemplate, data);
-				$("#default-" + cityElementId).data("default");
-				if ($("#default-" + cityElementId).size() > 0 && $("#default-" + cityElementId).data("default") != "") {
-					// keep the default selected..
-					$("#" + cityElementId + " option[value='" + $("#default-" + cityElementId).data("default") + "']").attr("selected", "selected");
-					$("#" + cityElementId).multiselect("rebuild");
+				if(!$.isArray(cityElementIds)){
+					cityElementIds=[cityElementIds];
+				}
+				for(var i=0;i<cityElementIds.length;i++){
+					var cityElementId = cityElementIds[i];
+					addMultiSelectOptions(cityElementId, geoTemplate, data);
+					$("#default-" + cityElementId).data("default");
+					if ($("#default-" + cityElementId).size() > 0 && $("#default-" + cityElementId).data("default") != "") {
+						// keep the default selected..
+						$("#" + cityElementId + " option[value='" + $("#default-" + cityElementId).data("default") + "']").attr("selected", "selected");
+						$("#" + cityElementId).multiselect("rebuild");
+					}
 				}
 			},
 			error : function() {
@@ -306,7 +359,7 @@ function fetchAndMapVendorAssets(fetchUnassigned) {
 		return false;
 	}
 	$.ajax({
-		url : contextPath + "/admin/getUserAssignedAndUnassignedAssets?userId=" + $("#userId").val() + "&serviceTypeId=" + $("#serviceTypeId").val() 
+		url : GET_VENDOR_ASSIGNED_UNASSIGNED_URL +"?userId=" + $("#userId").val() + "&serviceTypeId=" + $("#serviceTypeId").val() 
 		+ "&assetTypeId=" + $("#assetTypeId").val() + "&cityGeoId=" + $("#cityGeoId").val(),
 		success : function(data) {
 			if (typeof data != 'undefined') {
@@ -345,20 +398,6 @@ function makeAssetsOptions() {
 		assetsToShow= assetsToShow.concat(allUnAssignedAssets);
 		assetsToShow = assetsToShow.concat(vendorServiceAsset);
 	}
-	/*	if (typeof vendorServiceAsset != 'undefined' && typeof allUnAssignedAssets != 'undefined') {
-		
-	}
-	if (typeof allUnAssignedAssets != 'undefined' && assetsToShow != null && assetsToShow.length > 0) {
-		for (var j = 0; j < assetsToShow.length; j++) {
-			var key = $("#userId").val() + "_" + $("#serviceTypeId").val() + "_" + assetsToShow[j].assetId;
-			if (typeof vendorServiceAsset[key] != 'undefined') {
-				assetsToShow[j].assetSelected = true
-			} else {
-				assetsToShow[j].assetSelected = false;
-			}
-		}
-	}
-*/	
 	addMultiSelectOptions("assets", assetOptionTemplate, assetsToShow);
 }
 
@@ -367,4 +406,34 @@ function logoDisplay(data, type, full, meta) {
 		imgclass : "tablelogo",
 		path : data
 	});
+}
+
+function formatTimeinHrsMins( data, type, full, meta){
+	// get total seconds between the times
+	var delta = data;
+	// calculate (and subtract) whole days
+	var days = Math.floor(delta / 86400);
+	delta -= days * 86400;
+	// calculate (and subtract) whole hours
+	var hours = Math.floor(delta / 3600) % 24;
+	delta -= hours * 3600;
+	// calculate (and subtract) whole minutes
+	var minutes = Math.floor(delta / 60) % 60;
+	delta -= minutes * 60;
+	// what's left is seconds
+	var seconds = delta % 60;  // in theory the modulus is not required
+	var formatStrParts = [];
+	if(days>0){
+		formatStrParts.push(days+(days>1?" days ":" day "));
+	}
+	if(hours >0){
+		formatStrParts.push(hours+(hours>1?" hrs ":" hr "));
+	}
+	if(formatStrParts.length<2){
+		formatStrParts.push(minutes+(minutes>1?" mins ":" min "));
+	}
+	if(formatStrParts.length<2){
+		formatStrParts.push(seconds+(seconds>1?" secs ":" sec "));
+	}
+	return formatStrParts.join();
 }

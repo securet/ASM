@@ -16,7 +16,7 @@
 				<label for="{{:elementId}}" class="col-sm-3 control-label">Select {{:elementLabel}}</label>
 				<div class="col-sm-9">
 					<select class="form-control" name="{{:elementId}}" id="{{:elementId}}">
-						<option value="">Select {{:elementLabel}}</option>
+						<option value="{{:elementDefault}}">Select {{:elementLabel}}</option>
 						{{for options}}
 							<option value="{{:value}}">{{:text}}</option>
 						{{/for}}	
@@ -91,6 +91,12 @@
 							<label for="currentStatus" class="col-sm-3 control-label">Current Status</label>
 						    <div id="currentStatus"  class="col-sm-9">
 								<p class="form-control-static normaltext">${formObject.status.enumDescription!}</p>
+						    </div>
+						</div>
+						<div class="form-group labelblock">
+							<label for="currentStatus" class="col-sm-3 control-label">TAT</label>
+						    <div id="currentStatus"  class="col-sm-9">
+								<p class="form-control-static normaltext"><@formatTimeinHrsMins data=formObject.actualTat/><i class="glyphicon glyphicon-hourglass"></i></p>
 						    </div>
 						</div>
 						<#if formObject.status.enumerationId!='CLOSED'>

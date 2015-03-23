@@ -51,6 +51,6 @@ public class Geo extends SecureTObject {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(GeoType.STATE.ordinal());
+		System.out.println(GeoType.COUNTRY.ordinal());
 	}
 }

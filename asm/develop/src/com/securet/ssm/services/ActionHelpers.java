@@ -12,6 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mysema.query.jpa.JPQLQuery;
+import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.types.Expression;
+import com.mysema.query.types.expr.NumberExpression;
+import com.mysema.query.types.expr.SimpleExpression;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -88,4 +93,33 @@ public class ActionHelpers {
 		return listObjects;
 	}
 
+	public static ListObjects listSimpleObjectFromQueryDSL(DataTableCriteria columns, Map<String,JPASQLQuery> queriesToRun, Expression<?> resultListExpression, NumberExpression<Long> countExpression) {
+		JPASQLQuery query = queriesToRun.get(DataTableCriteria.DATA_QUERY);
+		int viewSize = columns.getLength();
+		int startIndex = columns.getStart();
+		viewSize = (viewSize!=0)?viewSize:10;		
+		int maxResults = viewSize;		
+		query.offset(startIndex);
+		query.limit(viewSize);
+		
+		@SuppressWarnings("rawtypes")
+		List data = query.list(resultListExpression);
+		
+		JPASQLQuery countQuery = queriesToRun.get(DataTableCriteria.COUNT_QUERY);
+		
+		Long totalResults = countQuery.uniqueResult(countExpression);
+		int totalRecords = ((Long)totalResults).intValue();
+		_logger.debug("query count : "+totalResults);
+		
+		ListObjects listObjects = new ListObjects();
+		listObjects.setData(data);
+		listObjects.setRecordsTotal(totalRecords);
+		if(maxResults>totalRecords){
+			maxResults=totalRecords;
+		}
+		
+		listObjects.setDraw(columns.getDraw());
+		listObjects.setRecordsFiltered(totalRecords);
+		return listObjects;
+	}
 }

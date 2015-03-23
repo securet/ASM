@@ -21,6 +21,7 @@ import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -155,6 +156,14 @@ public class Ticket{
 	
 	private String source;
 
+	@Transient
+	private transient int actualTat;
+	@Transient
+	private transient int tat;
+	@Transient
+	private transient int stopClock;
+
+	
 	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
 	private Timestamp createdTimestamp;
 	@JsonFormat(pattern="dd-MM-yyyy HH:mm:ss a",timezone="IST")
@@ -355,6 +364,30 @@ public class Ticket{
 
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+	}
+
+	public int getActualTat() {
+		return actualTat;
+	}
+
+	public void setActualTat(int actualTat) {
+		this.actualTat = actualTat;
+	}
+
+	public int getTat() {
+		return tat;
+	}
+
+	public void setTat(int tat) {
+		this.tat = tat;
+	}
+
+	public int getStopClock() {
+		return stopClock;
+	}
+
+	public void setStopClock(int stopClock) {
+		this.stopClock = stopClock;
 	}
 
 }

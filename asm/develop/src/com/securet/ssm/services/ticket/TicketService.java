@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.Query;
-import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
@@ -28,13 +26,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.types.Projections;
+import com.mysema.query.types.QBean;
 import com.securet.ssm.components.authentication.SecureTAuthenticationSuccessHandler;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject;
-import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
+import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -102,10 +106,10 @@ public class TicketService extends BaseTicketService {
 	}
 
 	private void loadDefaults(Model model, String userId) {
-		List userAssignedSites = fetchQueriedObjects("getUserAssignedSites", "userId", userId);
-		List serviceTypes = entityManager.createNamedQuery("getServiceTypeForView").getResultList();
-		List severity = entityManager.createNamedQuery("getSeverityForView").getResultList();
-		model.addAttribute("userAssignedSites", userAssignedSites);
+		//List<SecureTObject> userAssignedSites = fetchQueriedObjects("getUserAssignedSites", "userId", userId);
+		List<SecureTObject> serviceTypes = entityManager.createNamedQuery("getServiceTypeForView").getResultList();
+		List<SecureTObject> severity = entityManager.createNamedQuery("getSeverityForView").getResultList();
+		//model.addAttribute("userAssignedSites", userAssignedSites);
 		model.addAttribute("serviceTypes", serviceTypes);
 		model.addAttribute("severity", severity);
 	}
@@ -219,7 +223,6 @@ public class TicketService extends BaseTicketService {
 			Map<String,Object> vendorsAndIssueTypes = loadVendorsAndIssueTypes(serviceTypeId, siteId);
 			model.addAllAttributes(vendorsAndIssueTypes);
 		}
-		
 	}
 
 	
@@ -230,5 +233,23 @@ public class TicketService extends BaseTicketService {
 		userColumn.put(ColumnCriterias.searchValue,value);
 		return userColumn;
 	}
+	
+	@RequestMapping(value="/tickets/searchSites",produces="application/json")
+	public @ResponseBody List<SimpleSite> searchSitesForTickets(@RequestParam String searchString,@RequestParam int resultsSize,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser){
+		JPASQLQuery jpasqlQuery = new JPASQLQuery(entityManager, sqlTemplates);
+	
+		
+		String searchStringExpr = "%"+searchString+"%";
+		QBean<SimpleSite> simpleSiteExpr = Projections.fields(SimpleSite.class, sqlSite.siteId,sqlSite.name,sqlSite.area);
+		
+		jpasqlQuery.from(sqlSite).innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId))
+		.innerJoin(sqlClientUserSite).on(sqlSite.siteId.eq(sqlClientUserSite.siteId))
+		.where(sqlClientUserSite.userId.eq(customUser.getUsername()).and(sqlSite.name.like(searchStringExpr).or(sqlSite.area.like(searchStringExpr).or(sqlSite.circle.like(searchStringExpr)).or(sqlModule.name.like(searchStringExpr)))));
+		
+		jpasqlQuery.limit(resultsSize);//show top 50 results.. 
+		List<SimpleSite> sites = (List<SimpleSite>) jpasqlQuery.list(simpleSiteExpr);
+		return sites;
+	}
+
 	
 }

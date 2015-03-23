@@ -6,7 +6,6 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.securet.ssm.persistence.objects.Organization;
 import com.securet.ssm.persistence.objects.SecureTObject;
 
 public class SecureTUtils {
@@ -158,8 +156,21 @@ public class SecureTUtils {
 			return ""; 
 		}
 	}
+
 	public static boolean isEmpty(String str) {
 		return (str== null || str.isEmpty());
+	}
+
+	public static boolean isNotEmpty(String str) {
+		return !isEmpty(str);
+	}
+
+	public static boolean isEmpty(List<?> list){
+		return (list==null || list.isEmpty());
+	}
+	
+	public static boolean isNotEmpty(List<?> list){
+		return !isEmpty(list);
 	}
 
 	public static List<String> fetchCSVAsList(String mobile) {
@@ -170,16 +181,14 @@ public class SecureTUtils {
 	}
 
 	public static void main(String[] args) {
-		String[] empIds = {"3071650","4264622","3391019","3894207","3044505","3054144","3079473","2761181","3046036","3046036","4492005","3056538","3381714","2760533","1799339","3056791","3357252","3372626","4170113","3396525","5236088","3040429","1796720","3881660","3040429","3088073","3052176","3378349","3880567","3059081","3047962","3528359","3360989","4238435","4243595","2762870","3047520","4258789","4238176","5650631","3072509","3083802","4234669","4182596","5855810","4270746","3528022","2765284","4253647","4273494","4240200","3888770","3887774","3042421","3886638","3862771","3047903","3360571","3056139"};
-		/*for(int i=0;i<empIds.length;i++){
+		String[] empIds = {"securet","1122053","1131001","1146823","1862359","1869175","1874551","2850672","2850729","2861208","2861836","2867907","2869691","2870924","2872242","2936941","3322122","3324443","3325636","3339785","3345181","3345378","4156854","4229002","4310446","4312864","4318781","4318838","4319680","4320182","4320271","4320344","4326709","4331621","4335287","5237289","5552346","5552370","5556023","5784026","5787793","6063322","6080235","6081320","6084230","6087604","6089070","6092497"};
+		for(int i=0;i<empIds.length;i++){
 			System.out.println(empIds[i]+"="+bCryptText(empIds[i]));
-		}*/
-		_logger.debug("password 'securet' = "+bCryptText("securet"));
+		}
+		//_logger.debug("password 'securet' = "+bCryptText("securet"));
 		//field test
 		//List<FormField> fields = getFieldsFromClass(Organization.class);
 		//System.out.println(fields);
 		//System.out.println(getFieldsCount(Organization.class));
 	}
-
-	
 }

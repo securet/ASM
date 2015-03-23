@@ -17,18 +17,23 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mysema.query.jpa.impl.JPAUpdateClause;
+import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.User;
-import com.securet.ssm.persistence.views.SimpleSite;
+import com.securet.ssm.persistence.objects.querydsl.jpa.JPAClientUserSite;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.vo.ClientUserSite;
+import com.securet.ssm.utils.SecureTUtils;
 
 @Controller
 @Repository
@@ -79,6 +84,7 @@ public class ClientUserSiteMappingService extends SecureTService{
 			dataViewNames=new ArrayList<String>();
 			dataViewNames.add("getClientOrganizationForView");
 			dataViewNames.add("getCityWithSitesForView");
+			dataViewNames.add("getAllClientUsers");
 		}
 		return dataViewNames;
 	}
@@ -113,7 +119,7 @@ public class ClientUserSiteMappingService extends SecureTService{
 		Query userUnAssignedByRegion =  entityManager.createNamedQuery("getUserUnAssignedSitesByRegion");
 		userUnAssignedByRegion.setParameter(1, cityGeoId);
 		userUnAssignedByRegion.setParameter(2, userId);
-		userUnAssignedByRegion.setMaxResults(1000);
+		//userUnAssignedByRegion.setMaxResults(1000);
 		List userUnAssignedRegionSites = userUnAssignedByRegion.getResultList();
 		Map<String,List> siteMapping = new HashMap<String, List>(); 
 		siteMapping.put("userAssignedSites", userAssignedSites);
@@ -158,12 +164,38 @@ public class ClientUserSiteMappingService extends SecureTService{
 			}
 			model.addAttribute("saved", "Saved site mapping successfully for user: "+formObject.getUserId());
 		}
-		if(formObject.getOrganizationId()!=null && formObject.getOrganizationId()>0){
+/*		if(formObject.getOrganizationId()!=null && formObject.getOrganizationId()>0){
 			List clientUsers = fetchQueriedObjects( "getUsersForOrganization", "organizationId",formObject.getOrganizationId());
 			model.addAttribute("getUsersForOrganization", clientUsers);
 		}
-		
+*/		
 		makeUIData(entityManager,model,"ClientUserSite");
+		return DefaultService.ADMIN+"viewClientUserSites";
+	}
+	
+	@Transactional
+	@RequestMapping("/admin/transferClientUserSiteMapping")
+	public String transferClientUserSiteMapping(@RequestParam("transferFromUserId") String transferFromUserId,@RequestParam("transferToUserId") String transferToUserId,Model model){
+		if(!SecureTUtils.isEmpty(transferFromUserId) && !SecureTUtils.isEmpty(transferToUserId)){
+			JPASQLQuery toUserSites = new JPASQLQuery(entityManager, sqlTemplates);
+			JPAClientUserSite clientUserSite = JPAClientUserSite.clientUserSite;
+			SQLClientUserSite sqlClientUserSite = SQLClientUserSite.clientUserSite;
+
+			List<Integer> fromUserSiteIds =  toUserSites.from(sqlClientUserSite).where(sqlClientUserSite.userId.eq(transferToUserId)).list(sqlClientUserSite.siteId);
+
+			JPAUpdateClause updateClientUserSite =  new JPAUpdateClause(entityManager,JPAClientUserSite.clientUserSite);
+			updateClientUserSite.set(clientUserSite.clientUser.userId, transferToUserId);
+			updateClientUserSite.where(clientUserSite.clientUser.userId.eq(transferFromUserId).and(clientUserSite.site.siteId.notIn(fromUserSiteIds)));
+
+			long sitesTransferred = updateClientUserSite.execute();
+			entityManager.flush();
+			model.addAttribute("saved", "Transfered "+sitesTransferred+ " sites from "+ transferFromUserId +" to " + transferToUserId);
+			
+		}else{
+			FieldError error = new FieldError("formObject","transferError", "Please select both from and to user to initiate transfer");
+			model.addAttribute("transferError", error);
+		}
+		viewClientUserSite(model);
 		return DefaultService.ADMIN+"viewClientUserSites";
 	}
 }

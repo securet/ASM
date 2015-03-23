@@ -37,10 +37,37 @@ function initTicketEvents(){
 	var serviceTypeElement = $("#newTicket #serviceType\\.serviceTypeId");
 	var vendorOrgElement = $("#newTicket #vendorOrgblock");
 	var vendorUserElement = $("#newTicket #vendorUserblock");
-	if(siteElement.size()>0){
-		initMultiSelectDropDown("site\\.siteId");
-		bindSiteChange(siteElement,serviceTypeElement);;
+
+	if(siteElement.size()>0 && typeof Bloodhound !='undefined'){
+		var siteNameElement = $('#newTicket #site\\.name');
+		siteNameElement.attr("placeholder","Start typing area or site tag to select site");
+		var siteSearchForTickets = new Bloodhound({
+			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+			queryTokenizer: Bloodhound.tokenizers.whitespace,
+			limit:TYPE_AHEAD_LIMIT,
+			remote: contextPath+'/tickets/searchSites?searchString=%QUERY&resultsSize='+TYPE_AHEAD_LIMIT
+		});
+		siteSearchForTickets.initialize();
+		siteNameElement.typeahead(null, {
+			name: 'siteName',
+			displayKey: 'name',
+			items: TYPE_AHEAD_LIMIT,
+			source: siteSearchForTickets.ttAdapter()
+		}); 
+		siteNameElement.on("typeahead:opened",function(tpObj,selectedObj,fieldName){
+			siteElement.val(0);
+			$("#newTicket #areablock").addClass("hide");
+			$("#newTicket #area").html("");
+		});
+		siteNameElement.on("typeahead:selected",function(tpObj,selectedObj,fieldName){
+			siteElement.val(selectedObj.siteId);
+			$("#newTicket #areablock").removeClass("hide");
+			$("#newTicket #area").html(selectedObj.area);
+			serviceTypeElement.prop("disabled",false);
+		});
 	}
+	
+	
 	attachBootstrapUpload("ticketAttachments");
 	if(serviceTypeElement.size()>0){
 		fetchVendorAndIssueType(serviceTypeElement,siteElement,vendorOrgElement,vendorUserElement);
@@ -82,7 +109,7 @@ function makeIssueTypeOptions(vendorUserElement,data){
 			 option.text=data.issueTypes[i].name;
 			 issueOptions[i]=option;
 		 }
-		 vendorUserElement.after(selectBoxTemplate.render({elementId:"issueType.issueTypeId",elementLabel:"Issue Type",options:issueOptions}));
+		 vendorUserElement.after(selectBoxTemplate.render({elementId:"issueType.issueTypeId",elementDefault:0,elementLabel:"Issue Type",options:issueOptions}));
 	 }
 }
 

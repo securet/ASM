@@ -1,6 +1,7 @@
 package com.securet.ssm.services.ticket;
 
 import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +17,26 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.sql.DatePart;
+import com.mysema.query.sql.SQLExpressions;
+import com.mysema.query.types.Expression;
+import com.mysema.query.types.Projections;
+import com.mysema.query.types.QBean;
+import com.mysema.query.types.QMap;
+import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.expr.CaseBuilder;
+import com.mysema.query.types.expr.Coalesce;
+import com.mysema.query.types.expr.DateTimeExpression;
+import com.mysema.query.types.expr.DateTimeOperation;
+import com.mysema.query.types.expr.NumberExpression;
 import com.securet.ssm.components.authentication.SecureTAuthenticationSuccessHandler;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.SequenceGeneratorHelper;
 import com.securet.ssm.persistence.objects.Asset;
 import com.securet.ssm.persistence.objects.Enumeration;
+import com.securet.ssm.persistence.objects.IssueType;
 import com.securet.ssm.persistence.objects.MailTemplate;
 import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Ticket;
@@ -29,6 +44,21 @@ import com.securet.ssm.persistence.objects.TicketArchive;
 import com.securet.ssm.persistence.objects.TicketAttachment;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.persistence.objects.VendorServiceAsset;
+import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicket;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLEnumeration;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLIssueType;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLOrganization;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLServiceType;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicketArchive;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLUser;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLVendorServiceAsset;
+import com.securet.ssm.persistence.views.SimpleSite;
+import com.securet.ssm.persistence.views.SimpleTicket;
+import com.securet.ssm.persistence.views.SimpleUser;
 import com.securet.ssm.services.ActionHelpers;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -42,40 +72,50 @@ public class BaseTicketService extends SecureTService{
 	public static final String WORK_IN_PROGRESS_DESC = "Work in progress";
 	public static final int MAX_SHORT_DESC = 80;
 	public static final List<String> TICKET_STATUS = new ArrayList<String>();
+	public static final Map<String,Expression> fieldExprMapping=new HashMap<String, Expression>();
+
 	static{
 		TICKET_STATUS.add("OPEN");
 		TICKET_STATUS.add("WORK_IN_PROGRESS");
 		TICKET_STATUS.add("RESOLVED");
 		TICKET_STATUS.add("CLOSED");
+
+		fieldExprMapping.put("ticketId",SQLTicket.ticket.ticketId);
+		fieldExprMapping.put("shortDesc",SQLTicket.ticket.shortDesc);
+		fieldExprMapping.put("statusId",SQLEnumeration.enumeration.enumerationId.as("statusId"));
+		fieldExprMapping.put("ticketType",SQLTicket.ticket.ticketType);
+		fieldExprMapping.put("site.name",SQLSite.site.name);
+		fieldExprMapping.put("site.circle",SQLSite.site.circle);
+		fieldExprMapping.put("serviceType.name",SQLServiceType.serviceType.name);
+		fieldExprMapping.put("issueType.name",SQLIssueType.issueType.name);
+		fieldExprMapping.put("clientUser.userId",SQLClientUserSite.clientUserSite.userId);
+		fieldExprMapping.put("vendorUser.userId",SQLVendorServiceAsset.vendorServiceAsset.userId);
+		fieldExprMapping.put("vendorUser.organizationName",SQLOrganization.organization.name);
+		fieldExprMapping.put("createdTimestamp",SQLTicket.ticket.createdTimestamp);
+		fieldExprMapping.put("lastUpdatedTimestamp",SQLTicket.ticket.lastUpdatedTimestamp);
+	
 	}
+
+	
+	SQLTicket sqlTicket = SQLTicket.ticket;
+	SQLServiceType sqlServiceType = SQLServiceType.serviceType;
+	SQLSite sqlSite = SQLSite.site;
+	SQLIssueType sqlIssueType = SQLIssueType.issueType;
+	SQLClientUserSite sqlClientUserSite = SQLClientUserSite.clientUserSite;
+	SQLVendorServiceAsset sqlVendorServiceAsset = SQLVendorServiceAsset.vendorServiceAsset;
+	SQLUser sqlVendorUser = SQLUser.user;
+	SQLModule sqlModule = SQLModule.module;
+	SQLOrganization sqlVendorOrganization = SQLOrganization.organization;
+	SQLTicketArchive sqlTicketArchiveResolved = new SQLTicketArchive("tar");
+	SQLTicketArchive sqlTicketArchiveResolvedRelated = new SQLTicketArchive("tarRelated");;
+	SQLEnumeration sqlStatus=new SQLEnumeration("status");
+
+	private static final JPATicket jpaTicket = JPATicket.ticket;
 
 	// should make a query planner, to many queries - TODO - data table query planner for custom queries 
 	public static final String CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
 	public static final String VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 
-	public static final String TICKET_NATIVE_QUERY = "SELECT t.* from ticket t ";
-	private static final String TICKET_SIMPLE_FIELDS_NATIVE_QUERY = "SELECT t.ticketId,t.statusId,t.siteId,s.name site,t.serviceTypeId, st.name serviceType, t.createdTimestamp  from ticket t ";
-	public static final String TICKET_COUNT_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t ";
-	
-	public static final String SERVICE_TYPE_JOIN_CLAUSE = " INNER JOIN service_type st ON t.serviceTypeId=st.serviceTypeId";
-	public static final String SITE_JOIN_CLAUSE = " INNER JOIN site s ON t.siteId=s.siteId ";
-	public static final String ISSUE_TYPE_JOIN_CLAUSE = " LEFT JOIN issue_type it ON t.issueTypeId=it.issueTypeId ";
-	
-	//client queries
-	public static final String CLIENT_USER_SITE_JOIN_CLAUSE = " INNER JOIN client_user_site cus ON t.siteId=cus.siteId ";
-	public static final String CLIENT_USER_FILTER = " cus.userId=(?1) ";
-	
-	//vendor queries
-	public static final String VENDOR_SERVICE_ASSET_JOIN_CLAUSE = " INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId ";
-	public static final String VENDOR_USER_FILTER = " t.ticketType!='LOG' AND vsa.userId=(?1) ";
-	
-	//Common Join and Filters
-	public static final String TICKET_STATUS_FILTER = " t.statusId IN (?2) ";
-	public static final String TICKET_COMMON_FILTER_CLAUSE=" (t.statusId like (?3) OR t.Description like (?4) OR  st.name like (?5) OR it.name like (?6) OR t.ticketType like (?7)  OR t.ticketId like (?8)) ";
-	public static final String TICKET_DEFAULT_SORT_BY = " ORDER BY t.lastUpdatedTimestamp desc";
-	public static final String TICKET_GROUP_BY = " GROUP BY t.ticketId ";
-	public static final int TICKET_COMMON_FILTER_PARAMS_SIZE=5;  
-	
 	//Queries to show navigation filters 
 	public static final String COUNT_CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
 	public static final String COUNT_VENDOR_SITE_TICKET_NATIVE_QUERY = "SELECT COUNT(DISTINCT t.ticketId) from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
@@ -96,21 +136,16 @@ public class BaseTicketService extends SecureTService{
 	
 	public static final String ALL_OK = "ALL OK";
 	public static final String TICKET_PREFIX = "C";
-	private static final int MAX_PARAM_COUNT = 8;
 
 	public Ticket getUserTicket(String ticketId, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
 		Ticket currentTicket = null;
 		//consider admin as the client as of now
-		String selectedQuery = CLIENT_USER_TICKET_NATIVE_QUERY;
+
 		boolean isResolver = customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
-		if(isResolver){
-			//find the logged in user, assigned service types and sites 
-			selectedQuery=VENDOR_SITE_TICKET_NATIVE_QUERY;			
-		}
-		List<Ticket> userTickets =  getUserTickets(customUser,selectedQuery,ticketId);
+		Ticket userTicket =  getUserTickets(customUser,ticketId);
 		//if tickets found, the user should be allowed to view, else.. show him his tickets list - error message??
-		if(userTickets.size()>0){
-			currentTicket = userTickets.get(0);
+		if(userTicket!=null){
+			currentTicket = userTicket;
 			if(isResolver && currentTicket.getStatus().getEnumerationId().equals(OPEN)){
 				//set the status to WORK IN PROGRESS
 				entityManager.detach(currentTicket);
@@ -125,20 +160,199 @@ public class BaseTicketService extends SecureTService{
 		return currentTicket;
 	}
 
-	public List<Ticket> getUserTickets(org.springframework.security.core.userdetails.User customUser,String query, String ticketId){
-		StringBuilder queryString = new StringBuilder(query);
-		if(ticketId!=null){
-			queryString.append(" AND ").append("t.ticketId=(?2)");
+	public Ticket getUserTickets(org.springframework.security.core.userdetails.User customUser, String ticketId){
+		boolean isResolver = customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+		JPASQLQuery ticketQuery = new JPASQLQuery(entityManager, sqlTemplates);
+//"SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+//"SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+		ticketQuery.from(sqlTicket);
+		BooleanExpression whereExpression = sqlTicket.ticketId.eq(ticketId);
+		innerJoinClientUserSiteForTicket(ticketQuery);
+		if(isResolver){
+			//find the logged in user, assigned service types and sites 
+			innerJoinVendorUserAssetForTicket(ticketQuery);
+			ticketQuery.where(vendorTicketFilterExpr(customUser));
+		}else{
+			//consider admin as the client as of now
+			ticketQuery.where(clientUserTicketFilter(customUser));
 		}
-		Query clientTickets = entityManager.createNativeQuery(queryString.toString(),Ticket.class);
-		clientTickets.setParameter(1, customUser.getUsername());
-		if(ticketId!=null){
-			clientTickets.setParameter(2, ticketId);
-		}
-		return clientTickets.getResultList();
+		leftJoinTicketArchiveForTAT(ticketQuery);
+
+		NumberExpression<Integer> tatExpr = ticketTATExpr();
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		
+		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat");
+		stopClockExpr = stopClockExpr.as("stopClock");
+
+		QMap jpaTicketBeanExpr = Projections.map(jpaTicket, tatExpr,actualTATExpr,stopClockExpr);
+		ticketQuery.where(whereExpression);
+		Map<Expression<?>, ?> result = ticketQuery.uniqueResult(jpaTicketBeanExpr);
+		Ticket ticket = (Ticket) result.get(jpaTicket);
+		ticket.setTat((Integer) result.get(tatExpr));
+		ticket.setActualTat((Integer) result.get(actualTATExpr));
+		ticket.setStopClock((Integer) result.get(stopClockExpr));
+		return ticket;
 	}
+
 	
+	public ListObjects listUserTicketsDSL(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser) {
+
+		JPASQLQuery listTicketsQuery = simpleTicketQuery(customUser, columns,filterStatus);
+		JPASQLQuery countTicketsQuery  = listTicketsQuery.clone();
+		
+		QBean<SimpleTicket> resultListExpression = simpleTicketBeanExpression();
+		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
+		listTicketsQuery.groupBy(sqlTicket.ticketId);
+
+		if(columns.getOrder()!=null && columns.getOrder().size()>0){
+    		columns.makeOrderByExpression(columns, listTicketsQuery,fieldExprMapping);
+    	}else{
+    		listTicketsQuery.orderBy(sqlTicket.lastUpdatedTimestamp.desc());
+    	}
+
+		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
+		
+		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countTicketsQuery);
+
+		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
+		return ActionHelpers.listSimpleObjectFromQueryDSL(columns, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+	}
+
+
+	private JPASQLQuery simpleTicketQuery(org.springframework.security.core.userdetails.User customUser, DataTableCriteria columns, String filterStatus) {
+		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
+
+		boolean isReporter;
+		
+		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
+		jpaSQLQuery.from(sqlTicket)
+		//service type and site join
+		.innerJoin(sqlServiceType).on(sqlTicket.serviceTypeId.eq(sqlServiceType.serviceTypeId))
+		.innerJoin(sqlSite).on(sqlTicket.siteId.eq(sqlSite.siteId));
+		//client and vendor join..
+		innerJoinClientUserSiteForTicket(jpaSQLQuery)
+		.innerJoin(sqlStatus).on(sqlTicket.statusId.eq(sqlStatus.enumerationId));
+		
+		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
+		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
+		//also add the archive tables to find tat... 
+		leftJoinTicketArchiveForTAT(jpaSQLQuery);
+		
+		BooleanExpression whereExpression = null;
+		if(filterStatus!=null && !filterStatus.isEmpty()){
+			whereExpression = sqlTicket.statusId.eq(filterStatus);
+		}else{
+			whereExpression = sqlTicket.statusId.in(TICKET_STATUS);
+		}
+
+		whereExpression = ticketUserFilterExpr(customUser, whereExpression);
+
+		boolean textSearchEnabled = textToSearch!=null && !textToSearch.isEmpty();
+		if(textSearchEnabled){
+			String searchString = DataTableCriteria.PERCENTILE+textToSearch+DataTableCriteria.PERCENTILE;
+			whereExpression = whereExpression.and(sqlTicket.ticketId.like(searchString).or(sqlTicket.statusId.like(searchString)).or(sqlTicket.ticketType.like(searchString))
+					.or(sqlTicket.description.like(searchString)).or(sqlServiceType.name.like(searchString)).or(sqlIssueType.name.like(searchString))
+					.or(sqlClientUserSite.userId.like(searchString)).or(sqlVendorUser.userId.like(searchString)).or(sqlVendorOrganization.name.like(searchString))		
+			);
+		}
+		//whereExpression = whereExpression.and(ticketArchiveResolved.ticketArchiveId.isNull().or(ticketArchiveResolved.statusId.eq(RESOLVED)));
+		jpaSQLQuery.where(whereExpression);
+		
+
+		return jpaSQLQuery;
+	}
+
+	private BooleanExpression ticketUserFilterExpr(org.springframework.security.core.userdetails.User customUser, BooleanExpression whereExpression) {
+		boolean isReporter;
+		if(customUser!=null){
+			isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+			if(isReporter){
+				//also add the where filter..
+				whereExpression= whereExpression.and(clientUserTicketFilter(customUser));
+			}else{
+				whereExpression=whereExpression.and(vendorTicketFilterExpr(customUser));
+			}
+		}
+		return whereExpression;
+	}
+
+	private JPASQLQuery leftJoinVendorUserAssetForTicket(JPASQLQuery jpaSQLQuery) {
+		return jpaSQLQuery.leftJoin(sqlVendorServiceAsset).on(sqlTicket.assetId.eq(sqlVendorServiceAsset.assetId).and(sqlTicket.serviceTypeId.eq(sqlVendorServiceAsset.serviceTypeId)))
+		.leftJoin(sqlVendorUser).on(sqlVendorServiceAsset.userId.eq(sqlVendorUser.userId))
+		.leftJoin(sqlVendorOrganization).on(sqlVendorUser.organizationId.eq(sqlVendorOrganization.organizationId));
+	}
+
+	private JPASQLQuery innerJoinVendorUserAssetForTicket(JPASQLQuery jpaSQLQuery) {
+		return jpaSQLQuery.innerJoin(sqlVendorServiceAsset).on(sqlTicket.assetId.eq(sqlVendorServiceAsset.assetId).and(sqlTicket.serviceTypeId.eq(sqlVendorServiceAsset.serviceTypeId)))
+		.innerJoin(sqlVendorUser).on(sqlVendorServiceAsset.userId.eq(sqlVendorUser.userId))
+		.innerJoin(sqlVendorOrganization).on(sqlVendorUser.organizationId.eq(sqlVendorOrganization.organizationId));
+	}
+
+	private BooleanExpression clientUserTicketFilter(org.springframework.security.core.userdetails.User customUser) {
+		return sqlClientUserSite.userId.eq(customUser.getUsername());
+	}
+
+	private BooleanExpression vendorTicketFilterExpr(org.springframework.security.core.userdetails.User customUser) {
+		return sqlTicket.ticketType.ne(LOG).and(sqlVendorServiceAsset.userId.endsWith(customUser.getUsername()));
+	}
+
+	private void leftJoinTicketArchiveForTAT(JPASQLQuery jpaSQLQuery) {
+		jpaSQLQuery.leftJoin(sqlTicketArchiveResolved).on(sqlTicket.ticketId.eq(sqlTicketArchiveResolved.ticketId).and(sqlTicketArchiveResolved.statusId.eq(RESOLVED)))
+		.leftJoin(sqlTicketArchiveResolvedRelated).on(sqlTicketArchiveResolved.ticketId.eq(sqlTicketArchiveResolvedRelated.ticketId).and(sqlTicketArchiveResolved.ticketArchiveId.eq(sqlTicketArchiveResolvedRelated.relatedArchiveId)));
+	}
+
+	private JPASQLQuery innerJoinClientUserSiteForTicket(JPASQLQuery jpaSQLQuery) {
+		return jpaSQLQuery.innerJoin(sqlClientUserSite).on(sqlTicket.siteId.eq(sqlClientUserSite.siteId));
+	}
+
+	private QBean<Ticket> jpaTicketBeanExpr() {
+		NumberExpression<Integer> tatExpr = ticketTATExpr();
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		
+		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat").as("actualTat");
+		stopClockExpr = stopClockExpr.as("stopClock").as("stopClock");
+
+		QBean<Ticket> jpaTicketBeanExpr = Projections.bean(Ticket.class, jpaTicket,tatExpr.as("tat"),stopClockExpr,actualTATExpr);
+		return jpaTicketBeanExpr;
+	}
+
+	private QBean<SimpleTicket> simpleTicketBeanExpression() {
+
+		NumberExpression<Integer> tatExpr = ticketTATExpr();
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		
+		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat").as("actualTat");
+		stopClockExpr = stopClockExpr.as("stopClock").as("stopClock");
+		
+		QBean<SimpleSite> simpleSiteExpr = Projections.bean(SimpleSite.class, sqlTicket.siteId,sqlSite.name,sqlSite.circle);  
+		QBean<ServiceType> serviceTypeExpr = Projections.bean(ServiceType.class, sqlTicket.serviceTypeId,sqlServiceType.name);
+		QBean<IssueType> issueTypeExpr = Projections.bean(IssueType.class, sqlTicket.issueTypeId,sqlIssueType.name);
+		QBean<SimpleUser> clientUserExpr = Projections.bean(SimpleUser.class, sqlTicket.reporterUserId.as("userId"));
+		QBean<SimpleUser> vendorUserExpr = Projections.bean(SimpleUser.class, sqlVendorUser.userId,sqlVendorOrganization.name.as("organizationName"));
+		QBean<SimpleTicket> resultListExpression = Projections.bean(SimpleTicket.class, sqlTicket.ticketId,sqlTicket.shortDesc,sqlStatus.enumDescription.as("statusId"),sqlTicket.ticketType,simpleSiteExpr.as("site"),
+				serviceTypeExpr.as("serviceType"),clientUserExpr.as("clientUser"),vendorUserExpr.as("vendorUser"),issueTypeExpr.as("issueType"),
+				sqlTicket.createdTimestamp,sqlTicket.lastUpdatedTimestamp,tatExpr.as("tat"),
+				actualTATExpr,stopClockExpr);
+		return resultListExpression;
+	}
+
+	private NumberExpression<Integer> ticketStopClockExpr() {
+		Coalesce<Timestamp> clockEndTsExpr = (Coalesce<Timestamp>)sqlTicketArchiveResolvedRelated.lastUpdatedTimestamp.coalesce(sqlTicket.lastUpdatedTimestamp);
+
+		NumberExpression<Integer> stopClockExpr = SQLExpressions.datediff(DatePart.second, sqlTicketArchiveResolved.lastUpdatedTimestamp, clockEndTsExpr.asDateTime());
+		stopClockExpr = stopClockExpr.coalesce(0).asNumber().sum().divide(sqlClientUserSite.userId.countDistinct()).intValue();
+		return stopClockExpr;
+	}
+
+	private NumberExpression<Integer> ticketTATExpr() {
+		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentDate(Timestamp.class));
+		NumberExpression<Integer> tatExpr = SQLExpressions.datediff(DatePart.second,sqlTicket.createdTimestamp,closeTimeExpr);
+		return tatExpr;
+	}
+
 	public ListObjects listUserTickets(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser,boolean allFields) {
+		return listUserTicketsDSL(columns, filterStatus, customUser);
+		/*
 		boolean isReporter = false;
 		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
 		StringBuilder ticketQueryStr = new StringBuilder();
@@ -227,6 +441,7 @@ public class BaseTicketService extends SecureTService{
 
 		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
 		return ActionHelpers.listSimpleObjectFromQuery(entityManager, columns, jpaQueriesToRun);
+	*/
 	}
 
 	public void createTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {
@@ -310,10 +525,18 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	public Ticket updateTicket(Ticket ticket, String newStatus, String description,String modifiedUser){
-		///load the ticket first 
+		//load the ticket first 
 		Ticket storedTicket = entityManager.find(Ticket.class, ticket.getTicketId());
 		TicketArchive ticketArchive = new TicketArchive(storedTicket);
 		ticket.setDescription(description);
+		//also attach the relate the previous ticket id 
+		Query archiveQuery = entityManager.createNamedQuery("getLatestTicketArchivesForTicketId");
+		archiveQuery.setParameter("ticketId", ticket.getTicketId());
+		archiveQuery.setMaxResults(1);
+		List<TicketArchive> ticketArchives = archiveQuery.getResultList();
+		if(ticketArchives.size()>0){
+			ticketArchive.setRelatedArchiveId(ticketArchives.get(0).getTicketArchiveId());
+		}
 		
 		User currentUser = new User();
 		currentUser.setUserId(modifiedUser);

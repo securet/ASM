@@ -21,6 +21,7 @@ import javax.validation.constraints.Size;
 	@NamedQuery(name = "getCityWithSitesForView", query = "SELECT distinct o.city from Site o JOIN o.city city"),
 	@NamedQuery(name = "getSitesForCity", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleSite(o.siteId, o.name, o.area, o.city, o.state, o.latitude, o.longitude, o.organization.name) from Site o JOIN o.city city WHERE city.geoId=:cityGeoId"),
 	@NamedQuery(name = "searchSites", query = "SELECT NEW  com.securet.ssm.persistence.views.SimpleSite(o.siteId, o.name) from Site o where o.name like :siteName"),
+	@NamedQuery(name = "getMappedCircles", query = "SELECT DISTINCT o.circle from Site o JOIN o.circle circle")
 })
 public class Site extends SecureTObject{
 
@@ -47,10 +48,20 @@ public class Site extends SecureTObject{
 	@JoinColumn(name="city",referencedColumnName="geoId")
 	private Geo city;
 
+	@ManyToOne
+	@JoinColumn(name="circle",referencedColumnName="geoId")
+	private Geo circle;
+	
+	@ManyToOne
+	@JoinColumn(name="moduleId",referencedColumnName="moduleId")
+	private Module module;
+	
+
 	private double latitude;
 	private double longitude;
 	private String siteType;
 	private String comments;
+
 	public int getSiteId() {
 		return siteId;
 	}
@@ -110,6 +121,19 @@ public class Site extends SecureTObject{
 	}
 	public void setName(String siteName) {
 		this.name = siteName;
+	}
+
+	public Geo getCircle() {
+		return circle;
+	}
+	public void setCircle(Geo circle) {
+		this.circle = circle;
+	}
+	public Module getModule() {
+		return module;
+	}
+	public void setModule(Module module) {
+		this.module = module;
 	}
 
 	@Override

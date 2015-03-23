@@ -42,6 +42,7 @@
 			    <div class="col-xs-6 col-sm-2 sidebar-offcanvas" id="sidebar" role="navigation">
 					<div class="list-group">
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Organization"/>" class="list-group-item ">Organization <i class="glyphicon glyphicon-chevron-right"></i></a>
+						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Module"/>" class="list-group-item ">Module   <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Site"/>" class="list-group-item ">Site   <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=ServiceType"/>" class="list-group-item ">Service Type  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=IssueType"/>" class="list-group-item ">Issue Type  <i class="glyphicon glyphicon-chevron-right"></i></a>

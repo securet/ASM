@@ -29,6 +29,8 @@ import com.fasterxml.jackson.annotation.JsonView;
 	@NamedQuery(name = "getUserById", query = "SELECT o FROM User o WHERE lower(o.userId)=:id"),
 	@NamedQuery(name = "getOrganizationWithUsersForView", query = "SELECT DISTINCT o.organization FROM User o JOIN o.organization org WHERE org.organizationId IS NOT NULL"),
 	@NamedQuery(name = "getUsersForOrganization", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleUser(o.userId, o.fullName, o.emailId, o.mobile, o.organization.name) FROM User o WHERE o.organization.organizationId=:organizationId"),
+	@NamedQuery(name = "getAllClientUsers", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleUser(o.userId, o.fullName, o.emailId, o.mobile, o.organization.name) FROM User o JOIN o.roles role WHERE role.roleType IN ('CLIENT_CONTROLLER','CLIENT_USER')"),
+	@NamedQuery(name = "getAllVendors", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleUser(o.userId, o.fullName, o.emailId, o.mobile, o.organization.name) FROM User o JOIN o.roles role WHERE role.roleType IN ('RESOLVER')"),
 	@NamedQuery(name = "getVendorsForOrganization", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleUser(o.userId, o.fullName, o.emailId, o.mobile, o.organization.name) FROM User o JOIN o.roles role WHERE o.organization.organizationId=:organizationId and role.roleType IN ('RESOLVER')")
 })
 public class User extends SecureTObject {

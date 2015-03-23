@@ -1,5 +1,5 @@
 <#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","site":"suggestbox"}>
-<#assign dataTypeMapping={"int":"number","double":"number","organization":"number","assetType":"number"}>
+<#assign dataTypeMapping={"int":"number","double":"number","organization":"number","assetType":"number","module":"number"}>
 <#include "formMacros.ftl">
 <#assign includeDateScripts = false>
 <#setting number_format="0.##">

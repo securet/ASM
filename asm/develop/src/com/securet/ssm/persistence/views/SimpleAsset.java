@@ -14,7 +14,10 @@ public class SimpleAsset {
 	@JsonFormat(pattern="dd-MM-yyyy")
 	private Date installedDate;
 
-
+	public SimpleAsset() {
+		//Nothing here
+	}
+	
 	public SimpleAsset(int assetId, String name, String assetTag, String assetType, String siteName, Date installedDate) {
 		this.assetId = assetId;
 		this.name = name;

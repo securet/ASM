@@ -15,13 +15,24 @@ import javax.persistence.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
+import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.sql.SQLTemplates;
+import com.mysema.query.types.Projections;
+import com.mysema.query.types.QBean;
 import com.securet.ssm.persistence.objects.SecureTObject;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
+import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.admin.AssetService;
 import com.securet.ssm.services.admin.AssetTypeService;
 import com.securet.ssm.services.admin.ClientUserSiteMappingService;
 import com.securet.ssm.services.admin.IssueTypeService;
+import com.securet.ssm.services.admin.ModuleService;
 import com.securet.ssm.services.admin.OrganizationService;
 import com.securet.ssm.services.admin.ServiceTypeService;
 import com.securet.ssm.services.admin.SiteService;
@@ -74,7 +85,11 @@ public abstract class SecureTService {
 		uiFieldConfig.put("vendorServiceAssetExcludeInDisplay",VendorAssetMappingService.getFieldsToExcludeInDisplay());
 		uiFieldConfig.put("vendorServiceAssetCustomFieldTypes",VendorAssetMappingService.getCustomFieldTypes());
 		uiFieldConfig.put("vendorServiceAssetDataViews",VendorAssetMappingService.getDataViewNames());
-	}
+
+		uiFieldConfig.put("moduleExcludeInDisplay",ModuleService.getFieldsToExcludeInDisplay());
+		uiFieldConfig.put("moduleCustomFieldTypes",ModuleService.getCustomFieldTypes());
+		uiFieldConfig.put("moduleDataViews",ModuleService.getDataViewNames());
+}
 
 	
 	@Autowired
@@ -85,6 +100,9 @@ public abstract class SecureTService {
 
 	@PersistenceContext(type=PersistenceContextType.TRANSACTION)
 	protected EntityManager entityManager;
+
+	@Autowired//querydsl template based on database configuration..
+	protected SQLTemplates sqlTemplates;
 
 	public void setEntityManagerFactory(EntityManagerFactory entityManagerFactory){
 		this.entityManagerFactory=entityManagerFactory;
@@ -102,7 +120,10 @@ public abstract class SecureTService {
 		this.freemarkerConfig = freemarkerConfig;
 	}
 
-
+	public void setSqlTemplates(SQLTemplates sqlTemplates){
+		this.sqlTemplates=sqlTemplates;
+	}
+	
 	public void makeUIData(EntityManager entityManager, SecureTObject ssmObject, Model model) {
 		String entityName = ssmObject.getClass().getSimpleName();
 		makeUIData(entityManager, model, entityName);
@@ -175,4 +196,20 @@ public abstract class SecureTService {
 		return errors;
 	}
 
+	public @ResponseBody List<SimpleSite> searchSites(@RequestParam String searchString,@RequestParam int resultsSize){
+		JPASQLQuery jpasqlQuery = new JPASQLQuery(entityManager, sqlTemplates);
+		SQLModule module = SQLModule.module;
+		SQLSite site = SQLSite.site;
+		
+		String searchStringExpr = "%"+searchString+"%";
+		QBean<SimpleSite> simpleSiteExpr = Projections.fields(SimpleSite.class, site.siteId,site.name,site.area);
+		
+		jpasqlQuery.from(site).innerJoin(module).on(site.moduleId.eq(module.moduleId))
+		.where(site.name.like(searchStringExpr).or(site.area.like(searchStringExpr).or(site.circle.like(searchStringExpr)).or(module.name.like(searchStringExpr))));
+		
+		jpasqlQuery.limit(resultsSize);//show top 50 results.. 
+		List<SimpleSite> sites = (List<SimpleSite>) jpasqlQuery.list(simpleSiteExpr);
+		return sites;
+	}
+	
 }

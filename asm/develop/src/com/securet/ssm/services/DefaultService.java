@@ -53,4 +53,8 @@ public class DefaultService {
 		return "error/error.404";
 	}
 	
+	@RequestMapping("error/500")
+	public String serverError(Model model) {
+		return "error/error.500";
+	}
 }

@@ -2,14 +2,55 @@ var TICKET_STATUS = ["OPEN","WORK_IN_PROGRESS","RESOLVED","CLOSED"];
 var TICKET_STATUS_DESC = ["Open","Work in Progress","Resolved","Closed"];
 var allTicketsDataTable = null;
 $(document).ready(function(){
+	if($("#dashboard").size()>0){
+		initMultiSelect("circleIds");
+		initMultiSelect("moduleIds");
+		initMultiSelect("clientUserIds");
+	}
 	if($("#ticketCountByStatusAndServiceType").size()>0){
 		drawServiceTypeChart();
 	}
-	if($('#vendorUserTicketCount')!=null){
-		dashboardSimpleTable("vendorUserTicketCountTable","vendorUserTicketCount",1);
+	if($('#vendorUserTicketCountTable')!=null){
+		$('#vendorUserTicketCountTable').dataTable({
+			"processing" : true,
+			"scrollX": false,
+			"responsive":true,
+			"language" : {
+				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
+			},
+			"order": [[ 1, "desc" ]],
+			"serverSide" : true,
+			ajax : {
+				"url" : VENDOR_USER_COUNT_URL,
+				"type" : "POST",
+				"data" : function(data) {
+					return parsePostDataForDT(data);
+				}
+			},
+			"columns" : [{ "name": "resolverUserId","defaultContent":"No Vendor Assigned" },{ "name": "noOfTickets" }]
+		});
+		//dashboardSimpleTable("vendorUserTicketCountTable","vendorUserTicketCount",1);
 	}
-	if($('#clientUserTicketCount')!=null){
-		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
+	if($('#clientUserTicketCountTable')!=null){
+		$('#clientUserTicketCountTable').dataTable({
+			"processing" : true,
+			"scrollX": false,
+			"responsive":true,
+			"language" : {
+				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
+			},
+			"order": [[ 1, "desc" ]],
+			"serverSide" : true,
+			ajax : {
+				"url" : CLIENT_USER_COUNT_URL,
+				"type" : "POST",
+				"data" : function(data) {
+					return parsePostDataForDT(data);
+				}
+			},
+			"columns" : [{ "name": "reporterUserId","defaultContent":"No Client Assigned" },{ "name": "noOfTickets" }]
+		});
+//		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
 	}
 	if($(".ticketStatusFilter").size()>0 && allTicketsDataTable!=null){
 		$(".ticketStatusFilter").click(function(){
@@ -29,6 +70,13 @@ $(document).ready(function(){
        $('#reportStartDate').data("DateTimePicker").setMaxDate(e.date);
 	});
     
+    $("#dashboardStartDate").on("dp.change",function (e) {
+       $('#dashboardEndDate').data("DateTimePicker").setMinDate(e.date);
+    });
+    $("#dashboardEndDate").on("dp.change",function (e) {
+       $('#dashboardStartDate').data("DateTimePicker").setMaxDate(e.date);
+	});
+
     $("#downloadReport").click(function(){
     	var startDate = null;
     	var endDate = null;
@@ -47,10 +95,59 @@ $(document).ready(function(){
     	if(startDate==null || endDate==null){
     		return false;
     	}
-    	var downloadUrl = TICKET_DOWNLOAD_URL+"?startDate="+startDate+"&endDate="+endDate;
+    	var downloadUrl = TICKET_DOWNLOAD_URL+"?dashboardStartDate="+startDate+"&dashboardEndDate="+endDate;
     	window.location = downloadUrl;
     })
+    $(".dashboardDownload").click(function(){
+    	//var downloadUrl = $(this).data("url")+"?"+addDashboardFilterQueryString();
+    	addDashboardFiltertoHiddenFields("downloadDashboard");
+    	$("#downloadDashboard").attr("action",$(this).data("url"));
+    	$("#downloadDashboard").submit();
+//    	window.location = downloadUrl;
+    });
 });
+
+function parsePostDataForDT(data){
+	var dF = {};
+	addDashboardFields(dF);					
+	planify(data);
+	var parsedData = $.param(data);
+	parsedData = parsedData+"&"+$.param(dF,true);
+	data=parsedData
+	return parsedData;
+}
+
+
+function addDashboardFields(data){
+	data.dashboardStartDate=$("#dashboardStartDate").val();
+	data.dashboardEndDate=$("#dashboardEndDate").val();
+	data.circleIds=$("#circleIds").val();
+	data.moduleIds=$("#moduleIds").val();
+	data.clientUserIds=$("#clientUserIds").val();
+}
+
+function addDashboardFiltertoHiddenFields(formElement){
+	$("#"+formElement).remove();
+	$("body").append($("<form class='hiddenForm' method='POST' id='"+formElement+"' >"));
+	cloneAppendFormField(formElement,"dashboardStartDate","#dashboardStartDate");
+	cloneAppendFormField(formElement,"dashboardEndDate","#dashboardEndDate");
+	cloneAppendFormField(formElement,"circleIds",$("#circleIds").siblings().find("input:checkbox:checked"));
+	cloneAppendFormField(formElement,"moduleIds",$("#moduleIds").siblings().find("input:checkbox:checked"));
+	cloneAppendFormField(formElement,"clientUserIds",$("#clientUserIds").siblings().find("input:checkbox:checked"));
+}
+
+function cloneAppendFormField(formElement,elementName,elementId){
+	var elementClone=$(elementId).clone();
+	elementClone.attr("name",elementName);
+	elementClone.attr("id","");
+	$("#"+formElement).append(elementClone);
+}
+
+function addDashboardFilterQueryString(){
+	var queryString = "dashboardStartDate="+$("#dashboardStartDate").val()+"&dashboardEndDate="+$("#dashboardEndDate").val();
+	queryString = queryString+"&circleIds="+$("#circleIds").val()+"&moduleIds="+$("#moduleIds").val()+"&clientUserIds="+$("#clientUserIds").val()
+	return queryString;
+}
 
 function drawServiceTypeChart() {
 	var ticketCountByStatusAndServiceType = $("#ticketCountByStatusAndServiceType").data("value");
@@ -68,6 +165,23 @@ function drawServiceTypeChart() {
 	};
 	var chart = new google.visualization.BarChart(document.getElementById("ticketCountByStatusAndServiceType"));
 	chart.draw(dataTable, options);
+	google.visualization.events.addListener(chart, 'select', selectHandler);
+
+	// The select handler. Call the chart's getSelection() method
+	function selectHandler() {
+		var selectedItem = chart.getSelection()[0];
+		if (selectedItem) {
+			var value = serviceTypeArray[selectedItem.row+1];
+	    	addDashboardFiltertoHiddenFields("downloadDashboard");
+	    	$("#downloadDashboard").append("<input type='hidden' name='serviceType' value='"+value[0]+"' />");
+	    	$("#downloadDashboard").append("<input type='hidden' name='statusId' value='"+TICKET_STATUS[selectedItem.column-1]+"' />");
+	    	$("#downloadDashboard").attr("action",TICKET_DOWNLOAD_URL);
+	    	$("#downloadDashboard").submit();
+	    	//var downloadUrl = TICKET_DOWNLOAD_URL+"?dashboardStartDate="+$("#dashboardStartDate").val()+"&dashboardEndDate="+$("#dashboardEndDate").val();
+	    	//downloadUrl=downloadUrl+"&serviceType="+encodeURI(value[0])+"&statusId="+TICKET_STATUS[selectedItem.column-1];
+	    	//window.location = downloadUrl;
+		}
+	}
 }
 
 function dashboardSimpleTable(elementId,dataElementId,orderIndex){

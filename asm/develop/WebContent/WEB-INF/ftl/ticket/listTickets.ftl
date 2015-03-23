@@ -18,12 +18,13 @@
 			<div class="panel-body">
 				<script type="text/javascript">
 					dataUrl="<@spring.url relativeUrl="/tickets/listUserTickets?${_csrf.parameterName}=${_csrf.token}&entityName=Ticket&operator=or"/><#if filterStatus?exists>&filterStatus=${filterStatus}</#if>";
-					columnsToDisplay=[{ "data": "ticketId" },{ "data": "site.name" },{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "status.enumDescription" },{ "data": "resolver.organization.name","defaultContent":"None" },{ "data": "resolver.userId", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType.enumDescription","defaultContent":"None" }];
+					columnsToDisplay=[{ "data": "ticketId" },{ "data": "site.name" },{ "data": "lastUpdatedTimestamp",className: "never","visible":false},{ "data": "serviceType.name" },{"name":"Description", "data": "shortDesc"},{ "data": "statusId" },{"data":"actualTat","defaultContent":"0","render":function( data, type, full, meta ){return formatTimeinHrsMins( data, type, full, meta);}},{ "data": "vendorUser.userId","defaultContent":"None" },{ "data": "vendorUser.organizationName", "defaultContent":"None" },{ "data": "issueType.name","defaultContent":"None" },{ "data": "ticketType","defaultContent":"None" },{ "data": "site.circle","defaultContent":"None" }];
+					orderIndex=2;
 					function makeEditLink(row,data){
 						var cellToModify = $(row).find("td:eq(0)");
 						var text = $(cellToModify).html();
 						$(cellToModify).html('<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="/>'+data.ticketId+'">'+text+'</a>');
-					}				
+					}
 				</script>
 				
 				
@@ -43,34 +44,42 @@
 						</div>
 					</div>
 				</@security.authorize>				
-				<table id="asmdatatable" class="display table table-striped table-hover dt-responsive" width="100%" cellspacing="0">
-			        <thead>
-			            <tr>
-			                <th>Ticket Id</th>
-			                <th>SiteId</th>
-			                <th>ServiceType</th>
-			                <th>Description</th>
-			                <th>Status</th>
-			                <th>Vendor Organization</th>
-			                <th>Vendor User</th>
-			                <th>Issue Type</th>
-			                <th>Ticket Type</th>
-			            </tr>
-			        </thead>
-			        <tfoot>
-			            <tr>
-			                <th>Ticket Id</th>
-			                <th>SiteId</th>
-			                <th>ServiceType</th>
-			                <th>Description</th>
-			                <th>Status</th>
-			                <th>Vendor Organization</th>
-			                <th>Vendor User</th>
-			                <th>Issue Type</th>
-			                <th>Ticket Type</th>
-			            </tr>
-			        </tfoot>
-			    </table>
+				<div> 
+					<table id="asmdatatable" class="display table table-striped table-hover responsive " width="100%" cellspacing="0">
+				        <thead>
+				            <tr>
+				                <th>Ticket Id</th>
+				                <th>SiteId</th>
+				                <th class="none">Last Modified Time</th>
+				                <th>ServiceType</th>
+				                <th style="width:50px">Description</th>
+				                <th>Status</th>
+				                <th>TAT</th>
+				                <th>Vendor</th>
+				                <th>Vendor Organization</th>
+				                <th>Issue Type</th>
+				                <th>Ticket Type</th>
+				                <th>Circle</th>
+				            </tr>
+				        </thead>
+				        <tfoot>
+				            <tr>
+				                <th>Ticket Id</th>
+				                <th>SiteId</th>
+				                <th class="none">Last Modified Time</th>
+				                <th>ServiceType</th>
+				                <th style="width:50px">Description</th>
+				                <th>Status</th>
+				                <th>TAT</th>
+				                <th>Vendor</th>
+				                <th>Vendor Organization</th>
+				                <th>Issue Type</th>
+				                <th>Ticket Type</th>
+				                <th>Circle</th>
+				            </tr>
+				        </tfoot>
+				    </table>
+				 </div>   
 			</div>
 		</div>		   
 	</body>

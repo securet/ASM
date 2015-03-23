@@ -44,14 +44,16 @@ public class TicketRestfulService extends BaseTicketService{
 
 	private static final List<String> columnNames = new ArrayList<String>();
 	static{
-		columnNames.add("ticketId");
+/*		columnNames.add("ticketId");
+		columnNames.add("shortDesc");
 		columnNames.add("statusId");
+		columnNames.add("ticketType");
 		columnNames.add("siteId");
 		columnNames.add("site");
 		columnNames.add("serviceTypeId");
 		columnNames.add("serviceType");
 		columnNames.add("createdTimestamp");
-	}
+*/	}
 	
 	private static final List<String> historyColumnNames = new ArrayList<String>();
 	static{
@@ -126,7 +128,7 @@ public class TicketRestfulService extends BaseTicketService{
 			userTickets = listUserTickets(columns, statusFilter, user, false);
 			ObjectMapper mapper = new ObjectMapper();
 			//Object t = mapper.convertValue(userTickets.getData(), Ticket.class);
-			userTickets.setColumnsNames(columnNames);
+//			userTickets.setColumnsNames(columnNames);
 //			Object simpleTicket = mapper.convertValue(userTickets.getData(), new TypeReference<List<SimpleTicket>>() {});
 			data=userTickets;
 			status="success";
