@@ -24,7 +24,9 @@ import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.sql.SQLTemplates;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.QBean;
+import com.mysema.query.types.expr.BooleanExpression;
 import com.securet.ssm.persistence.objects.SecureTObject;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.views.SimpleSite;
@@ -197,19 +199,36 @@ public abstract class SecureTService {
 	}
 
 	public @ResponseBody List<SimpleSite> searchSites(@RequestParam String searchString,@RequestParam int resultsSize){
+		return searchSites(searchString, resultsSize,null);
+	}
+	
+	protected List<SimpleSite> searchSites(String searchString, int resultsSize, org.springframework.security.core.userdetails.User customUser) {
 		JPASQLQuery jpasqlQuery = new JPASQLQuery(entityManager, sqlTemplates);
-		SQLModule module = SQLModule.module;
-		SQLSite site = SQLSite.site;
+		SQLModule sqlModule = SQLModule.module;
+		SQLSite sqlSite = SQLSite.site;
+		SQLClientUserSite sqlClientUserSite = SQLClientUserSite.clientUserSite;
 		
+
 		String searchStringExpr = "%"+searchString+"%";
-		QBean<SimpleSite> simpleSiteExpr = Projections.fields(SimpleSite.class, site.siteId,site.name,site.area);
+		QBean<SimpleSite> simpleSiteExpr = Projections.fields(SimpleSite.class, sqlSite.siteId,sqlSite.name,sqlSite.area);
 		
-		jpasqlQuery.from(site).innerJoin(module).on(site.moduleId.eq(module.moduleId))
-		.where(site.name.like(searchStringExpr).or(site.area.like(searchStringExpr).or(site.circle.like(searchStringExpr)).or(module.name.like(searchStringExpr))));
+		BooleanExpression searchCriteriaExpr = sqlSite.name.like(searchStringExpr).or(sqlSite.area.like(searchStringExpr).or(sqlSite.circle.like(searchStringExpr)).or(sqlModule.name.like(searchStringExpr)));
+
+		jpasqlQuery.from(sqlSite).innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId));
+		if(customUser!=null){
+			jpasqlQuery.innerJoin(sqlClientUserSite).on(sqlSite.siteId.eq(sqlClientUserSite.siteId));
+		}
+		
+		if(customUser!=null){
+			searchCriteriaExpr = sqlClientUserSite.userId.eq(customUser.getUsername()).and(searchCriteriaExpr);
+		}
+
+		jpasqlQuery.where(searchCriteriaExpr);
 		
 		jpasqlQuery.limit(resultsSize);//show top 50 results.. 
 		List<SimpleSite> sites = (List<SimpleSite>) jpasqlQuery.list(simpleSiteExpr);
 		return sites;
 	}
+	
 	
 }

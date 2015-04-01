@@ -26,18 +26,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mysema.query.jpa.sql.JPASQLQuery;
-import com.mysema.query.types.Projections;
-import com.mysema.query.types.QBean;
 import com.securet.ssm.components.authentication.SecureTAuthenticationSuccessHandler;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.Ticket;
-import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
-import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
-import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.admin.AdminService;
@@ -236,20 +230,10 @@ public class TicketService extends BaseTicketService {
 	
 	@RequestMapping(value="/tickets/searchSites",produces="application/json")
 	public @ResponseBody List<SimpleSite> searchSitesForTickets(@RequestParam String searchString,@RequestParam int resultsSize,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser){
-		JPASQLQuery jpasqlQuery = new JPASQLQuery(entityManager, sqlTemplates);
-	
-		
-		String searchStringExpr = "%"+searchString+"%";
-		QBean<SimpleSite> simpleSiteExpr = Projections.fields(SimpleSite.class, sqlSite.siteId,sqlSite.name,sqlSite.area);
-		
-		jpasqlQuery.from(sqlSite).innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId))
-		.innerJoin(sqlClientUserSite).on(sqlSite.siteId.eq(sqlClientUserSite.siteId))
-		.where(sqlClientUserSite.userId.eq(customUser.getUsername()).and(sqlSite.name.like(searchStringExpr).or(sqlSite.area.like(searchStringExpr).or(sqlSite.circle.like(searchStringExpr)).or(sqlModule.name.like(searchStringExpr)))));
-		
-		jpasqlQuery.limit(resultsSize);//show top 50 results.. 
-		List<SimpleSite> sites = (List<SimpleSite>) jpasqlQuery.list(simpleSiteExpr);
+		List<SimpleSite> sites = searchSites(searchString, resultsSize, customUser);
 		return sites;
 	}
+
 
 	
 }
