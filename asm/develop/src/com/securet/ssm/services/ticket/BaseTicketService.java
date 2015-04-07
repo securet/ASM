@@ -63,6 +63,7 @@ import com.securet.ssm.services.ActionHelpers;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
+import com.securet.ssm.services.vo.TicketFilter;
 import com.securet.ssm.utils.SecureTUtils;
 
 public class BaseTicketService extends SecureTService{
@@ -163,8 +164,8 @@ public class BaseTicketService extends SecureTService{
 	public Ticket getUserTickets(org.springframework.security.core.userdetails.User customUser, String ticketId){
 		boolean isResolver = customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
 		JPASQLQuery ticketQuery = new JPASQLQuery(entityManager, sqlTemplates);
-//"SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
-//"SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
+		//"SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
+		//"SELECT t.* from ticket t INNER JOIN vendor_service_asset vsa ON t.assetId=vsa.assetId AND t.serviceTypeId=vsa.serviceTypeId WHERE t.ticketType!='LOG' AND vsa.userId=(?1)";
 		ticketQuery.from(sqlTicket);
 		BooleanExpression whereExpression = sqlTicket.ticketId.eq(ticketId);
 		innerJoinClientUserSiteForTicket(ticketQuery);
@@ -194,6 +195,28 @@ public class BaseTicketService extends SecureTService{
 		return ticket;
 	}
 
+	public ListObjects listUserTicketsDSL(TicketFilter ticketFilter, org.springframework.security.core.userdetails.User customUser) {
+
+		JPASQLQuery listTicketsQuery = simpleTicketQueryByFilter(customUser, ticketFilter);
+		JPASQLQuery countTicketsQuery  = listTicketsQuery.clone();
+		
+		QBean<SimpleTicket> resultListExpression = simpleTicketBeanExpression();
+		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
+		listTicketsQuery.groupBy(sqlTicket.ticketId);
+
+		if(ticketFilter.getOrder()!=null && ticketFilter.getOrder().size()>0){
+			ticketFilter.makeOrderByExpression(ticketFilter, listTicketsQuery,fieldExprMapping);
+    	}else{
+    		listTicketsQuery.orderBy(sqlTicket.lastUpdatedTimestamp.desc());
+    	}
+
+		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
+		
+		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countTicketsQuery);
+
+		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
+		return ActionHelpers.listSimpleObjectFromQueryDSL(ticketFilter, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+	}
 	
 	public ListObjects listUserTicketsDSL(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser) {
 
@@ -255,6 +278,40 @@ public class BaseTicketService extends SecureTService{
 					.or(sqlClientUserSite.userId.like(searchString)).or(sqlVendorUser.userId.like(searchString)).or(sqlVendorOrganization.name.like(searchString))		
 			);
 		}
+		//whereExpression = whereExpression.and(ticketArchiveResolved.ticketArchiveId.isNull().or(ticketArchiveResolved.statusId.eq(RESOLVED)));
+		jpaSQLQuery.where(whereExpression);
+		
+
+		return jpaSQLQuery;
+	}
+
+	private JPASQLQuery simpleTicketQueryByFilter(org.springframework.security.core.userdetails.User customUser, TicketFilter ticketFilter) {
+
+		boolean isReporter;
+		
+		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
+		jpaSQLQuery.from(sqlTicket)
+		//service type and site join
+		.innerJoin(sqlServiceType).on(sqlTicket.serviceTypeId.eq(sqlServiceType.serviceTypeId))
+		.innerJoin(sqlSite).on(sqlTicket.siteId.eq(sqlSite.siteId));
+		//client and vendor join..
+		innerJoinClientUserSiteForTicket(jpaSQLQuery)
+		.innerJoin(sqlStatus).on(sqlTicket.statusId.eq(sqlStatus.enumerationId));
+		
+		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
+		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
+		//also add the archive tables to find tat... 
+		leftJoinTicketArchiveForTAT(jpaSQLQuery);
+		
+		BooleanExpression whereExpression = null;
+		if(ticketFilter.getStatusFilter()!=null && !ticketFilter.getStatusFilter().isEmpty()){
+			whereExpression = sqlTicket.statusId.in(ticketFilter.getStatusFilter());
+		}else{
+			whereExpression = sqlTicket.statusId.in(TICKET_STATUS);
+		}
+
+		whereExpression = ticketUserFilterExpr(customUser, whereExpression);
+
 		//whereExpression = whereExpression.and(ticketArchiveResolved.ticketArchiveId.isNull().or(ticketArchiveResolved.statusId.eq(RESOLVED)));
 		jpaSQLQuery.where(whereExpression);
 		
@@ -352,96 +409,10 @@ public class BaseTicketService extends SecureTService{
 
 	public ListObjects listUserTickets(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser,boolean allFields) {
 		return listUserTicketsDSL(columns, filterStatus, customUser);
-		/*
-		boolean isReporter = false;
-		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
-		StringBuilder ticketQueryStr = new StringBuilder();
-		//ticketQueryStr.append(TICKET_NATIVE_QUERY);
-		ticketQueryStr.append(SERVICE_TYPE_JOIN_CLAUSE);
-		ticketQueryStr.append(SITE_JOIN_CLAUSE);
-		String userFilterQuery = "";
-		if(customUser!=null){
-			isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
-			if(isReporter){
-				ticketQueryStr.append(CLIENT_USER_SITE_JOIN_CLAUSE);
-				userFilterQuery=CLIENT_USER_FILTER;
-			}else{
-				ticketQueryStr.append(VENDOR_SERVICE_ASSET_JOIN_CLAUSE);
-				userFilterQuery=VENDOR_USER_FILTER;
-			}
-		}
-		ticketQueryStr.append(ISSUE_TYPE_JOIN_CLAUSE).append(DataTableCriteria.WHERE);
-		ticketQueryStr.append(DataTableCriteria.START_BRACKET).append(TICKET_STATUS_FILTER);
-		if(!userFilterQuery.isEmpty()){
-			ticketQueryStr.append(DataTableCriteria.AND).append(DataTableCriteria.SPACE).append(userFilterQuery);
-		}
-		ticketQueryStr.append(DataTableCriteria.END_BRACKET);
-		
-		boolean textSearchEnabled = textToSearch!=null && !textToSearch.isEmpty();
-		if(textSearchEnabled){
-			ticketQueryStr.append(DataTableCriteria.SPACE).append(DataTableCriteria.AND).append(DataTableCriteria.SPACE);
-			ticketQueryStr.append(TICKET_COMMON_FILTER_CLAUSE);
-		}
-		
-		StringBuilder ticketListQueryStr = new StringBuilder();
+	}
 
-		if(allFields){
-			ticketListQueryStr.append(TICKET_NATIVE_QUERY);
-		}else{
-			ticketListQueryStr.append(TICKET_SIMPLE_FIELDS_NATIVE_QUERY);
-		}
-		ticketListQueryStr.append(ticketQueryStr.toString());
-		ticketListQueryStr.append(TICKET_GROUP_BY);
-		ticketListQueryStr.append(TICKET_DEFAULT_SORT_BY);
-		
-		Query ticketListQuery = null;
-		if(allFields){
-			ticketListQuery = entityManager.createNativeQuery(ticketListQueryStr.toString(), Ticket.class);
-		}else if(customUser!=null){
-			if(isReporter){
-				if(textSearchEnabled){
-					ticketListQuery = entityManager.createNamedQuery("getFilteredClientUserTickets");
-				}else{
-					ticketListQuery = entityManager.createNamedQuery("getClientUserTickets");
-				}
-			}else{
-				if(textSearchEnabled){
-					ticketListQuery = entityManager.createNamedQuery("getFilteredVendorUserTickets");
-				}else{
-					ticketListQuery = entityManager.createNamedQuery("getVendorUserTickets");
-				}
-			}
-		}
-		StringBuilder ticketCountQueryStr = new StringBuilder();
-		ticketCountQueryStr.append(TICKET_COUNT_NATIVE_QUERY).append(ticketQueryStr.toString());
-		Query ticketCountQuery = entityManager.createNativeQuery(ticketCountQueryStr.toString());
-		if(customUser!=null){
-			ticketListQuery.setParameter(1, customUser.getUsername());
-			ticketCountQuery.setParameter(1, customUser.getUsername());
-		}
-		if(filterStatus!=null && !filterStatus.isEmpty()){
-			ticketListQuery.setParameter(2, filterStatus);
-			ticketCountQuery.setParameter(2, filterStatus);
-		}else{
-			ticketListQuery.setParameter(2, TICKET_STATUS);
-			ticketCountQuery.setParameter(2, TICKET_STATUS);
-		}
-			
-		//int paramCount = ticketListQuery.getParameters().size();
-		if(textSearchEnabled){
-			textToSearch = DataTableCriteria.PERCENTILE+textToSearch+DataTableCriteria.PERCENTILE;
-			for(int i=3;i<=MAX_PARAM_COUNT;i++){
-				ticketListQuery.setParameter(i, textToSearch);
-				ticketCountQuery.setParameter(i, textToSearch);
-			}
-		}
-		Map<String,Query> jpaQueriesToRun = new HashMap<String, Query>();
-		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, ticketListQuery);
-		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, ticketCountQuery);
-
-		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
-		return ActionHelpers.listSimpleObjectFromQuery(entityManager, columns, jpaQueriesToRun);
-	*/
+	public ListObjects listUserTicketsByTicketFilter(TicketFilter ticketFilter, org.springframework.security.core.userdetails.User customUser,boolean allFields) {
+		return listUserTicketsDSL(ticketFilter, customUser);
 	}
 
 	public void createTicketAndNotify(Ticket formObject, List<MultipartFile> ticketAttachments, org.springframework.security.core.userdetails.User customUser, MailService mailService, SMSService smsService) {

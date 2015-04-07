@@ -36,6 +36,7 @@ import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
+import com.securet.ssm.services.vo.TicketFilter;
 
 @RestController
 @Repository
@@ -113,19 +114,19 @@ public class TicketRestfulService extends BaseTicketService{
 	}
 
 	@RequestMapping("/rest/ticket/forUser")
-	public Object getTicketsForUser(@AuthenticationPrincipal User user,@RequestParam(value="filter",required=false) String statusFilter, @ModelAttribute DataTableCriteria columns){
+	public Object getTicketsForUser(@AuthenticationPrincipal User user, @ModelAttribute TicketFilter ticketFilter){
 		String status = "error";
 		Object messages = null;
 		Object data = null;
-		if(columns.getLength()==0){
-			columns.setLength(100);
+		if(ticketFilter.getLength()==0){
+			ticketFilter.setLength(100);
 		}
-		if(columns.getStart()<0){
-			columns.setStart(0);
+		if(ticketFilter.getStart()<0){
+			ticketFilter.setStart(0);
 		}
 		ListObjects  userTickets = null;
 		if(user!=null){
-			userTickets = listUserTickets(columns, statusFilter, user, false);
+			userTickets = listUserTicketsByTicketFilter(ticketFilter, user, false);
 			ObjectMapper mapper = new ObjectMapper();
 			//Object t = mapper.convertValue(userTickets.getData(), Ticket.class);
 //			userTickets.setColumnsNames(columnNames);

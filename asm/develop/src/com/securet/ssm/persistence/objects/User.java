@@ -48,7 +48,7 @@ public class User extends SecureTObject {
     @JsonView(SimpleObject.class)
 	@NotNull
 	@Size(min=1,message="Email cannot be empty")
-	@Email(message="Invalid Email Id")
+//	@Email(message="Invalid Email Id")
 	private String emailId;
 	
     @JsonView(SimpleObject.class)
