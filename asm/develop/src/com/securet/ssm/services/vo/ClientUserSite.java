@@ -17,8 +17,10 @@ public class ClientUserSite {
 	
 	private String cityGeoId;
 	
+	private boolean replicate;
+	
 	@NotNull(message="Please select atleast one site")
-	@Size(min=1,message="Please select atleast one site")
+	//@Size(min=1,message="Please select atleast one site")
 	private List<Integer> sites;
 
 	public String getUserId() {
@@ -52,6 +54,13 @@ public class ClientUserSite {
 	public void setCityGeoId(String cityGeoId) {
 		this.cityGeoId = cityGeoId;
 	}
-	
+
+	public boolean isReplicate() {
+		return replicate;
+	}
+
+	public void setReplicate(boolean replicate) {
+		this.replicate = replicate;
+	}
 	
 }

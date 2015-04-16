@@ -135,6 +135,15 @@
 	</div>	
 </#macro>
 
+<#macro simpleCheckboxSSM field selectedValue attributes="">
+	<div class="form-group">
+		<label for="${field.fieldName}" class="col-sm-3 control-label">${field.label}</label>
+		<div class="col-sm-9 checkbox">
+			<input id="${field.fieldName}" name="${field.fieldName}" value="${field.fieldValue!}" <#if field.fieldValue?default("false")==selectedValue> checked="checked"</#if> type="checkbox" ${attributes}/>
+		</div>	
+	</div>	
+</#macro>
+
 <#macro autoSuggestField path field  attributes="">
 	<@formInputSSM path=path?replace(field.fieldName+"Id","name") field=field attributes=attributes fieldType="text" />
 	<@formInputSSM path=path field=field attributes=attributes fieldType="hidden" />

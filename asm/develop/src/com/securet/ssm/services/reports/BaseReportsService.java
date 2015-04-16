@@ -114,7 +114,7 @@ public class BaseReportsService extends SecureTService {
 		//Final query join will be 
 		SQLServiceType allServiceTypes = new SQLServiceType("allServiceTypes");
 		SQLEnumeration allStatus = new SQLEnumeration("allStatus");
-		Path<String> p = new SimplePath<String>(String.class, "ticketDetails");
+		Path<String> ticketDetailsAlias = new SimplePath<String>(String.class, "ticketDetails");
 		SQLServiceType ticketDetailsServiceType = new SQLServiceType("ticketDetails");
 		SQLTicket ticketDetails = new SQLTicket("ticketDetails");
 		//expression final result
@@ -123,7 +123,7 @@ public class BaseReportsService extends SecureTService {
 		//Join Cartesian between service types and ticket status.. 
 		query.from(allServiceTypes).join(allStatus)//.on(allServiceTypes.name.ne("ALL OK"))
 		//join with ticket filter subquery in service type and ticket status
-		.leftJoin(ticketFilterSubquery.list(resultSetExpr), p).on(allServiceTypes.serviceTypeId.eq(ticketDetailsServiceType.serviceTypeId).and(allStatus.enumerationId.eq(ticketDetails.statusId)));
+		.leftJoin(ticketFilterSubquery.list(resultSetExpr), ticketDetailsAlias).on(allServiceTypes.serviceTypeId.eq(ticketDetailsServiceType.serviceTypeId).and(allStatus.enumerationId.eq(ticketDetails.statusId)));
 		query.where(allStatus.enumerationId.ne("REOPEN").and(allStatus.enumTypeId.eq("TICKET_STATUS")));
 
 		//result...

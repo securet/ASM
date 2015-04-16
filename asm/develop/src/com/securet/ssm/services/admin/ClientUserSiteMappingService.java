@@ -1,5 +1,6 @@
 package com.securet.ssm.services.admin;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,16 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.mysema.query.jpa.impl.JPAUpdateClause;
 import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.sql.SQLSubQuery;
+import com.mysema.query.sql.dml.SQLInsertClause;
+import com.mysema.query.types.ArrayConstructorExpression;
+import com.mysema.query.types.Path;
+import com.mysema.query.types.Projections;
+import com.mysema.query.types.expr.DateTimeOperation;
+import com.mysema.query.types.expr.SimpleExpression;
+import com.mysema.query.types.path.SimplePath;
+import com.mysema.query.types.query.ListSubQuery;
+import com.mysema.query.types.template.StringTemplate;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.User;
@@ -175,21 +186,51 @@ public class ClientUserSiteMappingService extends SecureTService{
 	
 	@Transactional
 	@RequestMapping("/admin/transferClientUserSiteMapping")
-	public String transferClientUserSiteMapping(@RequestParam("transferFromUserId") String transferFromUserId,@RequestParam("transferToUserId") String transferToUserId,Model model){
+	public String transferClientUserSiteMapping(@RequestParam("transferFromUserId") String transferFromUserId,@RequestParam("transferToUserId") String transferToUserId, @RequestParam(value="replicate",required=false)boolean replicate,Model model){
 		if(!SecureTUtils.isEmpty(transferFromUserId) && !SecureTUtils.isEmpty(transferToUserId)){
 			JPASQLQuery toUserSites = new JPASQLQuery(entityManager, sqlTemplates);
 			JPAClientUserSite clientUserSite = JPAClientUserSite.clientUserSite;
 			SQLClientUserSite sqlClientUserSite = SQLClientUserSite.clientUserSite;
+			String message = null;
+			if(replicate){
+				SQLSubQuery sourceQuery = new SQLSubQuery();
+				SQLSubQuery transferToSubQuery = new SQLSubQuery();
+				SQLClientUserSite transferToSites = new SQLClientUserSite("transferToSites");
+				
+				transferToSubQuery.from(transferToSites).where(sqlClientUserSite.userId.eq(transferToUserId));
 
-			List<Integer> fromUserSiteIds =  toUserSites.from(sqlClientUserSite).where(sqlClientUserSite.userId.eq(transferToUserId)).list(sqlClientUserSite.siteId);
+				StringBuilder sb = new StringBuilder();
+				sb.append("\"").append(transferToUserId).append("\"");
+				
+				sourceQuery.from(sqlClientUserSite)
+				.leftJoin(transferToSites).on(sqlClientUserSite.siteId.eq(transferToSites.siteId).and(sqlClientUserSite.userId.eq(transferFromUserId)).and(transferToSites.userId.eq(transferToUserId)))
+				.where(sqlClientUserSite.userId.eq(transferFromUserId).and(transferToSites.siteId.isNull()));
+				ArrayConstructorExpression<Object> sourceFieldExpr = Projections.array(Object[].class, (SimpleExpression)DateTimeOperation.currentTimestamp(Timestamp.class),(SimpleExpression)DateTimeOperation.currentTimestamp(Timestamp.class),(SimpleExpression)sqlClientUserSite.siteId,
+						(SimpleExpression)StringTemplate.create(sb.toString()));
+				ListSubQuery<Object[]> transferClientUserSiteList = sourceQuery.list(sourceFieldExpr);
 
-			JPAUpdateClause updateClientUserSite =  new JPAUpdateClause(entityManager,JPAClientUserSite.clientUserSite);
-			updateClientUserSite.set(clientUserSite.clientUser.userId, transferToUserId);
-			updateClientUserSite.where(clientUserSite.clientUser.userId.eq(transferFromUserId).and(clientUserSite.site.siteId.notIn(fromUserSiteIds)));
+				//Avoiding use of sql connection, instead fetch the query constructed and run as a native query..
+				SQLInsertClause sqlInsertClause = new SQLInsertClause(null, sqlTemplates, sqlClientUserSite);
+				sqlInsertClause.select(transferClientUserSiteList);
+				String queryToExecute = sqlInsertClause.getSQL().get(0).getSQL();
+				
+				Query replicateQuery = entityManager.createNativeQuery(queryToExecute);
+				replicateQuery.setParameter(1, transferFromUserId);
+				replicateQuery.setParameter(2, transferToUserId);
+				replicateQuery.setParameter(3, transferFromUserId);
+				int sitesReplicated = replicateQuery.executeUpdate();
+				message = "Replicated "+sitesReplicated+ " sites from "+ transferFromUserId +" to " + transferToUserId;
 
-			long sitesTransferred = updateClientUserSite.execute();
+			}else{
+				List<Integer> fromUserSiteIds =  toUserSites.from(sqlClientUserSite).where(sqlClientUserSite.userId.eq(transferToUserId)).list(sqlClientUserSite.siteId);
+				JPAUpdateClause updateClientUserSite =  new JPAUpdateClause(entityManager,JPAClientUserSite.clientUserSite);
+				updateClientUserSite.set(clientUserSite.clientUser.userId, transferToUserId);
+				updateClientUserSite.where(clientUserSite.clientUser.userId.eq(transferFromUserId).and(clientUserSite.site.siteId.notIn(fromUserSiteIds)));
+				long sitesTransferred = updateClientUserSite.execute();
+				message = "Transfered "+sitesTransferred+ " sites from "+ transferFromUserId +" to " + transferToUserId;
+			}
 			entityManager.flush();
-			model.addAttribute("saved", "Transfered "+sitesTransferred+ " sites from "+ transferFromUserId +" to " + transferToUserId);
+			model.addAttribute("saved", message);
 			
 		}else{
 			FieldError error = new FieldError("formObject","transferError", "Please select both from and to user to initiate transfer");

@@ -9,7 +9,8 @@
 	<bean id="bcryptEncoder" name="bcryptEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
 	<bean id="secureTAuthenticationSuccessHandler" class="com.securet.ssm.components.authentication.SecureTAuthenticationSuccessHandler"></bean>
 
-	<security:http pattern="/rest/**"  authentication-manager-ref="authenticationManager" entry-point-ref="restServicesEntryPoint" create-session="stateless">
+	<security:http pattern="/rest/appNotifications" security="none"/>
+	<security:http pattern="/rest/**" use-expressions="true" authentication-manager-ref="authenticationManager" entry-point-ref="restServicesEntryPoint" create-session="stateless">
 		<security:custom-filter ref="restServicesFilter" before="PRE_AUTH_FILTER" />
 		<!-- access denied page -->
 		<security:access-denied-handler error-page="/error/json/403" />

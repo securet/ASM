@@ -81,9 +81,14 @@
 								window.location=window.location+"#transferClientUserSite";
 							});
 						</script>	
-					</#if>	
+					</#if>
+
 					<@formSimpleSingleSelect field={"fieldName":"transferFromUserId","label":"From User"} selectedValue=transferFromUserId?default("")  options=useroptions?default("{}")?eval  />
 					<@formSimpleSingleSelect field={"fieldName":"transferToUserId","label":"To User"} selectedValue=transferToUserId?default("") options=useroptions?default("{}")?eval />
+					<#if transferError??>
+						<#assign selectedValue = RequestParameters.replicate?default("")>
+					</#if>
+					<@simpleCheckboxSSM field={"fieldName":"replicate","label":"Replicate","fieldValue":"true"} selectedValue=selectedValue?default("")  />
 		      		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 					<div style="text-align:right">
 						<input  class="btn btn-primary right" name="submit" type="submit"  value="Transfer" />
