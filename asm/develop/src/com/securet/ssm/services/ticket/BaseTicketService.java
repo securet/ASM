@@ -286,7 +286,6 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	private JPASQLQuery simpleTicketQueryByFilter(org.springframework.security.core.userdetails.User customUser, TicketFilter ticketFilter) {
-
 		boolean isReporter;
 		
 		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
@@ -402,7 +401,7 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	private NumberExpression<Integer> ticketTATExpr() {
-		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentDate(Timestamp.class));
+		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentTimestamp(Timestamp.class));
 		NumberExpression<Integer> tatExpr = SQLExpressions.datediff(DatePart.second,sqlTicket.createdTimestamp,closeTimeExpr);
 		return tatExpr;
 	}
