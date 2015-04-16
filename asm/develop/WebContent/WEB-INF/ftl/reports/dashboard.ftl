@@ -72,7 +72,7 @@
 										</div>	
 										<div class='col-md-4'>
 											<#if clientUsers?exists && (clientUsers?size>0) >
-												<#assign useroptions>{<#list clientUsers as uiObject>"${uiObject.userId}":"${uiObject.fullName}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+												<#assign useroptions>{<#list clientUsers as uiObject>"${uiObject.userId}":"${uiObject.userId?lower_case} (${uiObject.fullName})"<#if uiObject_has_next>,</#if></#list>}</#assign>
 											</#if>
 											<@formMultiSelectSSM path="dashboardFilter.clientUserIds" field={"fieldName":"clientUsers","label":"Select Client User"} options=useroptions?default("{}")?eval  includeLabelInline=false/>
 										</div>
