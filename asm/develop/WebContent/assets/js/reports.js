@@ -2,11 +2,6 @@ var TICKET_STATUS = ["OPEN","WORK_IN_PROGRESS","RESOLVED","CLOSED"];
 var TICKET_STATUS_DESC = ["Open","Work in Progress","Resolved","Closed"];
 var allTicketsDataTable = null;
 $(document).ready(function(){
-	if($("#dashboard").size()>0){
-		initMultiSelect("circleIds");
-		initMultiSelect("moduleIds");
-		initMultiSelect("clientUserIds");
-	}
 	if($("#ticketCountByStatusAndServiceType").size()>0){
 		drawServiceTypeChart();
 	}
@@ -95,7 +90,7 @@ $(document).ready(function(){
     	if(startDate==null || endDate==null){
     		return false;
     	}
-    	var downloadUrl = TICKET_DOWNLOAD_URL+"?dashboardStartDate="+startDate+"&dashboardEndDate="+endDate;
+    	var downloadUrl = TICKET_DOWNLOAD_URL+"&dashboardStartDate="+startDate+"&dashboardEndDate="+endDate;
     	window.location = downloadUrl;
     })
     $(".dashboardDownload").click(function(){

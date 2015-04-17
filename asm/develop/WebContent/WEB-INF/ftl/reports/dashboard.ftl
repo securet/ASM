@@ -1,3 +1,4 @@
+<#setting number_format="0.##">
 <#assign statusColor ={"OPEN":"#d9534f","WORK_IN_PROGRESS":"#5bc0de","RESOLVED":"#f0ad4e","CLOSED":"#5cb85c"}>
 <#include "../formMacros.ftl">
 <#assign baseUrl = "/tickets/listAllTickets?${_csrf.parameterName}=${_csrf.token}&entityName=Ticket&operator=or">
@@ -81,7 +82,14 @@
 								</div>
 							</form>	
 						</div>		
-					</div>						
+					</div>
+				<script type="text/javascript">
+					if($("#dashboard").size()>0){
+						initMultiSelect("circleIds");
+						initMultiSelect("moduleIds");
+						initMultiSelect("clientUserIds");
+					}
+				</script>											
 				</div>
 				<div class="row margintop10">
 					<div id="displayTicketStatusCount" class="col-md-4 minichart">
