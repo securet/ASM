@@ -450,3 +450,8 @@ table.dataTable.dtr-inline.collapsed tbody tr.child td.child:before{
 .hiddenForm{
 	display:none;
 }
+.multiselect-container{
+	max-width:300px;
+	width:100%;
+	overflow-x:auto !important;
+}
