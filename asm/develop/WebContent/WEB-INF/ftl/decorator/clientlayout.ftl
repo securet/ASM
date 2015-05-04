@@ -41,7 +41,9 @@
 			<div class="row row-offcanvas row-offcanvas-left">
 			    <div class="col-xs-6 col-sm-3 col-md-2 sidebar-offcanvas" id="sidebar" role="navigation">
 					<div class="list-group">
-						<a href="<@spring.url relativeUrl="/user/viewVendorAssetMapping"/>" class="list-group-item "> <i class="glyphicon glyphicon-wrench"></i> Manage Vendors</a>
+						<@security.authorize access="hasAnyRole('CLIENT_USER','CLIENT_CONTROLLER')">
+							<a href="<@spring.url relativeUrl="/user/viewVendorAssetMapping"/>" class="list-group-item "> <i class="glyphicon glyphicon-wrench"></i> Manage Vendors</a>
+						</@security.authorize>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=OPEN"/>" class="list-group-item ">Open <span class="badge badge-danger">${openTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=WORK_IN_PROGRESS"/>" class="list-group-item ">Work in Progress <span class="badge badge-info">${work_in_progressTicketsCount!}</span></a>
 						<a href="<@spring.url relativeUrl="/tickets/listTickets?filterStatus=RESOLVED"/>" class="list-group-item ">Resolved <span class="badge badge-warning">${resolvedTicketsCount!}</span></a>

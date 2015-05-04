@@ -13,6 +13,9 @@
 		<div class="col-sm-4 login-row center-block">
 			<img class="box-start" src="assets/images/wrapper_top.png" width="100%"/>			
 			<div id="login-box">				
+				<div class="row">
+				  <div class="col-md-4 col-md-offset-10" style="margin-top: -30px;"><a href="<@spring.url relativeUrl='/content/help' />">Help</a></div>
+				</div>
 				<h1 class="login">SecureT Service Management</h1>		
 				<#if RequestParameters.error?exists>
 					<div class="alert alert-danger" role="alert">
