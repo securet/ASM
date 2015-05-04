@@ -17,6 +17,7 @@ import javax.validation.constraints.Size;
 @NamedQueries({
 	@NamedQuery(name = "getSite.count", query = "SELECT COUNT(siteId) from Site"),
 	@NamedQuery(name = "getSiteById", query = "SELECT o from Site o where o.siteId=:id"),
+	@NamedQuery(name = "getSiteByName", query = "SELECT o from Site o where o.name=:name"),
 	@NamedQuery(name = "getSiteForView", query = "SELECT o from Site o"),
 	@NamedQuery(name = "getCityWithSitesForView", query = "SELECT distinct o.city from Site o JOIN o.city city"),
 	@NamedQuery(name = "getSitesForCity", query = "SELECT NEW com.securet.ssm.persistence.views.SimpleSite(o.siteId, o.name, o.area, o.city, o.state, o.latitude, o.longitude, o.organization.name) from Site o JOIN o.city city WHERE city.geoId=:cityGeoId"),

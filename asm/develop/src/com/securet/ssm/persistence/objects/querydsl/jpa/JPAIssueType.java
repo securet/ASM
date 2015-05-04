@@ -29,6 +29,8 @@ public class JPAIssueType extends EntityPathBase<IssueType> {
     //inherited
     public final DateTimePath<java.sql.Timestamp> createdTimestamp = _super.createdTimestamp;
 
+    public final StringPath issueGroup = createString("issueGroup");
+
     public final NumberPath<Integer> issueTypeId = createNumber("issueTypeId", Integer.class);
 
     //inherited

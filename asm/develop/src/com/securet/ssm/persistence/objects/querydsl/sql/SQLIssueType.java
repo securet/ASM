@@ -26,6 +26,8 @@ public class SQLIssueType extends com.mysema.query.sql.RelationalPathBase<SQLIss
 
     public final DateTimePath<java.sql.Timestamp> createdTimestamp = createDateTime("createdTimestamp", java.sql.Timestamp.class);
 
+    public final StringPath issueGroup = createString("issueGroup");
+
     public final NumberPath<Integer> issueTypeId = createNumber("issueTypeId", Integer.class);
 
     public final DateTimePath<java.sql.Timestamp> lastUpdatedTimestamp = createDateTime("lastUpdatedTimestamp", java.sql.Timestamp.class);
@@ -62,6 +64,7 @@ public class SQLIssueType extends com.mysema.query.sql.RelationalPathBase<SQLIss
 
     public void addMetadata() {
         addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(2).ofType(Types.TIMESTAMP));
+        addMetadata(issueGroup, ColumnMetadata.named("issueGroup").withIndex(6).ofType(Types.VARCHAR).withSize(255));
         addMetadata(issueTypeId, ColumnMetadata.named("issueTypeId").withIndex(1).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(3).ofType(Types.TIMESTAMP));
         addMetadata(name, ColumnMetadata.named("name").withIndex(4).ofType(Types.VARCHAR).withSize(255).notNull());

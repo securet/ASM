@@ -74,13 +74,13 @@ public class SQLTicket extends com.mysema.query.sql.RelationalPathBase<SQLTicket
 
     public final com.mysema.query.sql.ForeignKey<SQLEnumeration> ns6cw5tg2yn5vkikrblexy72wFK = createForeignKey(severity, "enumerationId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLEnumeration> efih1u04786q1c8x27o9wvb3eFK = createForeignKey(statusId, "enumerationId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLServiceType> gviwhrbxs5ouesx8mekr0of9aFK = createForeignKey(serviceTypeId, "serviceTypeId");
-
     public final com.mysema.query.sql.ForeignKey<SQLEnumeration> tciketTtypeFk = createForeignKey(ticketType, "enumerationId");
 
     public final com.mysema.query.sql.ForeignKey<SQLUser> ticketModifiedByFk = createForeignKey(modifiedBy, "userId");
+
+    public final com.mysema.query.sql.ForeignKey<SQLEnumeration> efih1u04786q1c8x27o9wvb3eFK = createForeignKey(statusId, "enumerationId");
+
+    public final com.mysema.query.sql.ForeignKey<SQLServiceType> gviwhrbxs5ouesx8mekr0of9aFK = createForeignKey(serviceTypeId, "serviceTypeId");
 
     public final com.mysema.query.sql.ForeignKey<SQLSite> bh7e3r597n6lnlyn6wb2ao0boFK = createForeignKey(siteId, "siteId");
 

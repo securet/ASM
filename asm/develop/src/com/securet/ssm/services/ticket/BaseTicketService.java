@@ -740,31 +740,11 @@ public class BaseTicketService extends SecureTService{
 				FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "Service Type does not exist");
 				result.addError(fieldError);
 			}else if(!result.hasErrors() & !isLog(formObject)){//if it not a log do not allow 
-				//Identify asset using site and service
-				Query vendorAssetQuery = entityManager.createNamedQuery("getVendorServiceAssetByServiceType");
-				vendorAssetQuery.setParameter("serviceTypeId", formObject.getServiceType().getServiceTypeId());
-				vendorAssetQuery.setParameter("siteId", formObject.getSite().getSiteId());
-				List<VendorServiceAsset> vendorServiceAssets = vendorAssetQuery.getResultList();
-				if(vendorServiceAssets!=null && vendorServiceAssets.size()>0){
-					VendorServiceAsset vendorServiceAsset =vendorServiceAssets.get(0); 
-					entityManager.detach(vendorServiceAsset);
-
-					//set the asset
-					Asset asset = vendorServiceAsset.getAsset();
-					formObject.setAsset(asset);
-					
-					//set the vendor
-					User vendorUser = vendorServiceAsset.getVendorUser();
-					formObject.setResolver(vendorUser);
-				}else{
-					FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "No Vendor Assigned");
-					result.addError(fieldError);
-				}
+				assignAssetAndVendor(objectName, formObject, result);
 
 			}
 			formObject.setServiceType(serviceType);
 		}
-		
 		if(!result.hasErrors() && !isLog(formObject)){
 			if(formObject.getIssueType()==null || formObject.getIssueType().getIssueTypeId()==0){
 				FieldError fieldError = new FieldError(objectName, "issueType.issueTypeId", "Please Select a Issue Type");
@@ -774,6 +754,29 @@ public class BaseTicketService extends SecureTService{
 				FieldError fieldError = new FieldError(objectName, "severity.enumerationId", "Please Select Severity");
 				result.addError(fieldError);
 			}
+		}
+	}
+
+	public void assignAssetAndVendor(String objectName, Ticket formObject, BindingResult result) {
+		//Identify asset using site and service
+		Query vendorAssetQuery = entityManager.createNamedQuery("getVendorServiceAssetByServiceType");
+		vendorAssetQuery.setParameter("serviceTypeId", formObject.getServiceType().getServiceTypeId());
+		vendorAssetQuery.setParameter("siteId", formObject.getSite().getSiteId());
+		List<VendorServiceAsset> vendorServiceAssets = vendorAssetQuery.getResultList();
+		if(vendorServiceAssets!=null && vendorServiceAssets.size()>0){
+			VendorServiceAsset vendorServiceAsset =vendorServiceAssets.get(0); 
+			entityManager.detach(vendorServiceAsset);
+
+			//set the asset
+			Asset asset = vendorServiceAsset.getAsset();
+			formObject.setAsset(asset);
+			
+			//set the vendor
+			User vendorUser = vendorServiceAsset.getVendorUser();
+			formObject.setResolver(vendorUser);
+		}else{
+			FieldError fieldError = new FieldError(objectName, "serviceType.serviceTypeId", "No Vendor Assigned");
+			result.addError(fieldError);
 		}
 	}
 }

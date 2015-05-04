@@ -18,7 +18,8 @@ import javax.validation.constraints.Size;
 	@NamedQuery(name = "getIssueType.count", query = "SELECT COUNT(issueTypeId) from IssueType"),
 	@NamedQuery(name = "getIssueTypeById", query = "SELECT o from IssueType o where o.issueTypeId=:id"),
 	@NamedQuery(name = "getIssueTypeForService", query = "SELECT o from IssueType o where o.serviceType.serviceTypeId=:serviceTypeId"),
-	@NamedQuery(name = "getIssueTypeForView", query = "SELECT o from IssueType o")
+	@NamedQuery(name = "getIssueTypeForView", query = "SELECT o from IssueType o"),
+	@NamedQuery(name = "getIssueTypeForName", query = "SELECT o from IssueType o where o.name like :issueName")
 })
 public class IssueType extends SecureTObject{
 
@@ -34,6 +35,10 @@ public class IssueType extends SecureTObject{
 	@JoinColumn(name="serviceTypeId",referencedColumnName="serviceTypeId")
 	private ServiceType serviceType;
 
+	//ADDED for POC of SLA/Penalty
+	private String issueGroup;
+	
+	
 	public int getIssueTypeId() {
 		return issueTypeId;
 	}
@@ -56,6 +61,14 @@ public class IssueType extends SecureTObject{
 
 	public void setServiceType(ServiceType serviceType) {
 		this.serviceType = serviceType;
+	}
+
+	public String getIssueGroup() {
+		return issueGroup;
+	}
+
+	public void setIssueGroup(String issueGroup) {
+		this.issueGroup = issueGroup;
 	}
 	
 	
