@@ -229,6 +229,7 @@ public class TicketService extends BaseTicketService {
 				model.addAttribute("saved", "Saved the trigger ticketId:"+ticket.getTicketId());
 			}
 		}catch(Exception e){
+			_logger.error("Could not trigger HP input",e);
 			model.addAttribute("error", "Incorrect Input!");
 		}
 		
