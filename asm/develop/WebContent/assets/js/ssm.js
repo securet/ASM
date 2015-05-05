@@ -141,7 +141,6 @@ $(document).ready(function() {
 	}
 	
 	if(typeof Bloodhound !='undefined'){
-		$("#AssetForm #site\\.name").attr("placeholder","Start typing area or site tag to select site");
 		var siteSearch = new Bloodhound({
 			datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
 			queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -149,18 +148,30 @@ $(document).ready(function() {
 			remote: contextPath+'/admin/searchSites?searchString=%QUERY&resultsSize='+TYPE_AHEAD_LIMIT
 		});
 		siteSearch.initialize();
-		$('#AssetForm #site\\.name').typeahead(null, {
-			name: 'siteName',
-			displayKey: 'name',
-			items: TYPE_AHEAD_LIMIT,
-			source: siteSearch.ttAdapter()
-		}); 
-		$("#AssetForm #site\\.name").on("typeahead:opened",function(tpObj,selectedObj,fieldName){
-			$("#site\\.siteId").val(0);
-		});
-		$("#AssetForm #site\\.name").on("typeahead:selected",function(tpObj,selectedObj,fieldName){
-			$("#site\\.siteId").val(selectedObj.siteId);
-		});
+		if($("#AssetForm").size()>0){
+			$("#AssetForm #site\\.name").attr("placeholder","Start typing area or site tag to select site");
+			$('#AssetForm #site\\.name').typeahead(null, {
+				name: 'siteName',
+				displayKey: 'name',
+				items: TYPE_AHEAD_LIMIT,
+				source: siteSearch.ttAdapter()
+			}); 
+			$("#AssetForm #site\\.name").on("typeahead:opened",function(tpObj,selectedObj,fieldName){
+				$("#site\\.siteId").val(0);
+			});
+			$("#AssetForm #site\\.name").on("typeahead:selected",function(tpObj,selectedObj,fieldName){
+				$("#site\\.siteId").val(selectedObj.siteId);
+			});
+		}
+		if($("#terminalID").size()>0){
+			$("#terminalID").attr("placeholder","Start typing area or site tag to select site");
+			$("#terminalID").typeahead(null, {
+				name: 'siteName',
+				displayKey: 'name',
+				items: TYPE_AHEAD_LIMIT,
+				source: siteSearch.ttAdapter()
+			}); 
+		}
 	}
 	
 	if($("#transferFromUserId").size()>0){

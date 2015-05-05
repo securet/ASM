@@ -2,7 +2,7 @@
 	<head></head>
 	<body>
 		<div>
-			<div>A new Call Log  No : ${ticket.ticketId} has been logged for SBI ATM site ${ticket.site.name!} at ${ticket.site.area!}, ${ticket.site.city.name!}, ${ticket.site.module.name!} in ${ticket.site.circle.name!} circle  <br/></div>
+			<div>A new Call Log  No : ${ticket.ticketId} has been logged for SBI ATM site ${ticket.site.name!} at ${ticket.site.area!}, ${ticket.site.city.name!}, <#if ticket.site.module?exists && ticket.site.circle?exists>${ticket.site.module.name!} in ${ticket.site.circle.name!} circle</#if>  <br/></div>
 			<div>Channel Manager : ${ticket.reporter.fullName!}</div> 
 			<div>Channel Manager : ${ticket.reporter.emailId!}</div> 
 			<div>Channel Manager : ${ticket.reporter.mobile!}<br/></div> 

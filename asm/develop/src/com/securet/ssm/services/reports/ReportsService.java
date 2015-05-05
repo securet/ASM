@@ -227,14 +227,4 @@ public class ReportsService extends BaseReportsService {
 		model.addAttribute("ticketSummary", ticketSummary);
 	}
 	
-	@RequestMapping(value="/reports/sla/status")
-	public String slaStatus(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter, Model model){
-		List<SecureTObject> circles = fetchObjects("getMappedCircles");
-		model.addAttribute("circles", circles);
-		//cashout, availability, CER, TAT, House Keeping
-		
-		
-		return DefaultService.REPORTS+"slaStatus";
-	}
-	
 }

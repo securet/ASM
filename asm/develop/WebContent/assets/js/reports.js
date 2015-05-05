@@ -5,7 +5,7 @@ $(document).ready(function(){
 	if($("#ticketCountByStatusAndServiceType").size()>0){
 		drawServiceTypeChart();
 	}
-	if($('#vendorUserTicketCountTable')!=null){
+	if($('#vendorUserTicketCountTable').size()>0){
 		$('#vendorUserTicketCountTable').dataTable({
 			"processing" : true,
 			"scrollX": false,
@@ -26,7 +26,7 @@ $(document).ready(function(){
 		});
 		//dashboardSimpleTable("vendorUserTicketCountTable","vendorUserTicketCount",1);
 	}
-	if($('#clientUserTicketCountTable')!=null){
+	if($('#clientUserTicketCountTable').size()>0){
 		$('#clientUserTicketCountTable').dataTable({
 			"processing" : true,
 			"scrollX": false,
@@ -47,6 +47,19 @@ $(document).ready(function(){
 		});
 //		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
 	}
+	if($('#slaPenaltyStats')!=null){
+		$('#slaPenaltyStats').dataTable({
+			"processing" : true,
+			"scrollX": false,
+			"responsive":true,
+			"language" : {
+				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
+			},
+			"order": [[ 1, "desc" ]]
+		});
+//		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
+	}
+
 	if($(".ticketStatusFilter").size()>0 && allTicketsDataTable!=null){
 		$(".ticketStatusFilter").click(function(){
 			var newUrl = $(this).data("href");

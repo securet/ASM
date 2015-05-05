@@ -2,7 +2,10 @@ package com.securet.ssm.services.ticket;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,11 +15,13 @@ import javax.persistence.Query;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSendException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.mysema.query.jpa.impl.JPAQuery;
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.sql.DatePart;
 import com.mysema.query.sql.SQLExpressions;
@@ -39,6 +44,7 @@ import com.securet.ssm.persistence.objects.Enumeration;
 import com.securet.ssm.persistence.objects.IssueType;
 import com.securet.ssm.persistence.objects.MailTemplate;
 import com.securet.ssm.persistence.objects.ServiceType;
+import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.Ticket;
 import com.securet.ssm.persistence.objects.TicketArchive;
 import com.securet.ssm.persistence.objects.TicketAttachment;
@@ -61,7 +67,9 @@ import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.persistence.views.SimpleUser;
 import com.securet.ssm.services.ActionHelpers;
 import com.securet.ssm.services.SecureTService;
+import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.vo.DataTableCriteria;
+import com.securet.ssm.services.vo.HPToolInput;
 import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.services.vo.TicketFilter;
 import com.securet.ssm.utils.SecureTUtils;
@@ -74,6 +82,8 @@ public class BaseTicketService extends SecureTService{
 	public static final int MAX_SHORT_DESC = 80;
 	public static final List<String> TICKET_STATUS = new ArrayList<String>();
 	public static final Map<String,Expression> fieldExprMapping=new HashMap<String, Expression>();
+
+	public static final String MDDYYYY_HHMMSS_A = "M/d/yyyy hh:mm:ss aaa";
 
 	static{
 		TICKET_STATUS.add("OPEN");
@@ -97,7 +107,40 @@ public class BaseTicketService extends SecureTService{
 	
 	}
 
+	@Autowired
+	private AdminService adminService;
+
+	@Autowired
+	private MailService mailService;
+
+	@Autowired
+	private SMSService smsService;
+
 	
+	public AdminService getAdminService() {
+		return adminService;
+	}
+
+	public void setAdminService(AdminService adminService) {
+		this.adminService = adminService;
+	}
+
+	public MailService getMailService() {
+		return mailService;
+	}
+
+	public void setMailService(MailService mailService) {
+		this.mailService = mailService;
+	}
+
+	public SMSService getSmsService() {
+		return smsService;
+	}
+
+	public void setSmsService(SMSService smsService) {
+		this.smsService = smsService;
+	}
+
 	SQLTicket sqlTicket = SQLTicket.ticket;
 	SQLServiceType sqlServiceType = SQLServiceType.serviceType;
 	SQLSite sqlSite = SQLSite.site;
@@ -245,8 +288,6 @@ public class BaseTicketService extends SecureTService{
 	private JPASQLQuery simpleTicketQuery(org.springframework.security.core.userdetails.User customUser, DataTableCriteria columns, String filterStatus) {
 		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
 
-		boolean isReporter;
-		
 		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
 		jpaSQLQuery.from(sqlTicket)
 		//service type and site join
@@ -286,7 +327,6 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	private JPASQLQuery simpleTicketQueryByFilter(org.springframework.security.core.userdetails.User customUser, TicketFilter ticketFilter) {
-		boolean isReporter;
 		
 		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
 		jpaSQLQuery.from(sqlTicket)
@@ -779,4 +819,123 @@ public class BaseTicketService extends SecureTService{
 			result.addError(fieldError);
 		}
 	}
+	
+	protected Object parseHPToolMessage(org.springframework.security.core.userdetails.User customUser, HPToolInput hpToolInput, BindingResult result) {
+		//all tickets 
+		Ticket ticket = new Ticket();
+		
+		//ticketType
+		setTicketType(ticket, BaseTicketService.COMPLAINT);
+		
+		//service type
+		ServiceType serviceType = new ServiceType();
+		serviceType.setServiceTypeId(8);
+		ticket.setServiceType(serviceType);
+		
+		Query siteQuery = entityManager.createNamedQuery("getSiteByName");
+		siteQuery.setParameter("name",hpToolInput.getTerminalID());
+		Site site =  (Site) siteQuery.getSingleResult();
+		entityManager.detach(site);
+
+		Query issueTypeQuery = entityManager.createNamedQuery("getIssueTypeForName");
+		issueTypeQuery.setParameter("issueName", "%"+hpToolInput.getFault()+"%");
+		issueTypeQuery.setMaxResults(1);
+		IssueType issueType =  (IssueType)issueTypeQuery.getSingleResult();
+		entityManager.detach(issueType);
+		
+		//find if we have ticket for that site with same issue type...  
+		JPAQuery searchTicket = new JPAQuery(entityManager);
+		JPATicket jpaTicket = JPATicket.ticket;
+		searchTicket.from(jpaTicket)
+		.where(jpaTicket.site.name.eq(hpToolInput.getTerminalID()).and(jpaTicket.issueType.name.eq(hpToolInput.getFault()))
+				.and(jpaTicket.status.enumerationId.ne("RESOLVED").and(jpaTicket.status.enumerationId.ne("CLOSED"))));
+		
+		Ticket ticketFound = searchTicket.singleResult(jpaTicket);
+		if(ticketFound!=null){
+			ticket = ticketFound!=null?ticketFound:ticket;
+			ticket.setAutoUpdateTimeFields(false);
+			closeHPToolTicket(hpToolInput, ticket);
+			entityManager.persist(ticket);
+			entityManager.flush();
+			Map<String,Object> bodyParameters = new HashMap<String, Object>();
+			bodyParameters.put("ticket", ticket);
+			sendNotifications(mailService, smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION, bodyParameters);
+		}else{
+			ticket.setAutoUpdateTimeFields(false);
+			
+			//site assignment
+			ticket.setSite(site);
+			
+			//issue Type
+			ticket.setIssueType(issueType);
+			com.securet.ssm.persistence.objects.User reporter = new com.securet.ssm.persistence.objects.User();
+			
+			//reporter userId..
+			reporter.setUserId(customUser.getUsername());
+			
+			ticket.setReporter(reporter);
+			ticket.setCreatedBy(reporter);
+			ticket.setModifiedBy(reporter);
+			
+			//assign vendor and asset
+			assignAssetAndVendor("hpTool", ticket, result);
+			
+			
+			Enumeration severity = new Enumeration();
+			severity.setEnumerationId("MAJOR");
+			ticket.setSeverity(severity );
+			
+			ticket.setSource("HP_TOOL");
+			
+			Enumeration status = new Enumeration();
+			status.setEnumerationId("OPEN");
+			ticket.setStatus(status);
+			
+			SimpleDateFormat sdf = new SimpleDateFormat(MDDYYYY_HHMMSS_A);
+			if(hpToolInput.getStartedAt()!=null && !hpToolInput.getStartedAt().trim().isEmpty()){
+				Date startedAt;
+				try {
+					startedAt = sdf.parse(hpToolInput.getStartedAt());
+					ticket.setCreatedTimestamp(new Timestamp(startedAt.getTime()));
+					ticket.setLastUpdatedTimestamp(new Timestamp(startedAt.getTime()));
+				} catch (ParseException e) {
+					_logger.debug("Error parsing date: ",e);
+				}
+			}
+
+			closeHPToolTicket(hpToolInput, ticket);
+		
+			//get a new sequence, ALL tickets should be prefixed with C
+			long ticketSequenceId = SequenceGeneratorHelper.getNextSequence("Ticket",entityManager);
+			String ticketId = TICKET_PREFIX+ticketSequenceId;
+			if(_logger.isDebugEnabled())_logger.debug("Ticket Id generated as "+ticketId);
+			ticket.setTicketId(ticketId);
+			ticket.setTicketMasterId(ticketId);
+			ticket.setDescription(hpToolInput.getFault());
+			entityManager.persist(ticket);
+			entityManager.flush();
+			Map<String,Object> bodyParameters = new HashMap<String, Object>();
+			bodyParameters.put("ticket", ticket);
+			sendNotifications(mailService, smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION, bodyParameters);
+		}
+		return ticket;
+	}
+
+	protected void closeHPToolTicket(HPToolInput hpToolInput, Ticket ticketFound) {
+		SimpleDateFormat sdf = new SimpleDateFormat(MDDYYYY_HHMMSS_A);
+		if(hpToolInput.getEndedAt()!=null && !hpToolInput.getEndedAt().trim().isEmpty()){
+			
+			Enumeration status = new Enumeration();
+			status.setEnumerationId("RESOLVED");
+			ticketFound.setStatus(status);
+			Date endedAt;
+			try {
+				endedAt = sdf.parse(hpToolInput.getEndedAt());
+				ticketFound.setLastUpdatedTimestamp(new Timestamp(endedAt.getTime()));
+			} catch (ParseException e) {
+				_logger.debug("Error parsing date: ",e);
+			}
+		}
+	}
+
 }

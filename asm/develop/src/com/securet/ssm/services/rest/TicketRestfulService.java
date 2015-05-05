@@ -1,4 +1,4 @@
-package com.securet.ssm.services.rest;
+	package com.securet.ssm.services.rest;
 
 import java.sql.Timestamp;
 import java.text.ParseException;
@@ -53,6 +53,7 @@ import com.securet.ssm.services.vo.TicketFilter;
 @Repository
 @Service
 public class TicketRestfulService extends BaseTicketService{
+
 
 	private static final List<String> columnNames = new ArrayList<String>();
 
@@ -266,120 +267,7 @@ public class TicketRestfulService extends BaseTicketService{
 	@Transactional
 	@RequestMapping(value="/rest/ticket/hpToolMessage",method=RequestMethod.POST)
 	public Object hpToolMessage(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@ModelAttribute("hpInput") HPToolInput hpToolInput, BindingResult result){
-		//all tickets 
-		Ticket ticket = new Ticket();
-		
-		//ticketType
-		setTicketType(ticket, BaseTicketService.COMPLAINT);
-		
-		//service type
-		ServiceType serviceType = new ServiceType();
-		serviceType.setServiceTypeId(8);
-		ticket.setServiceType(serviceType);
-		
-		Query siteQuery = entityManager.createNamedQuery("getSiteByName");
-		siteQuery.setParameter("name",hpToolInput.getTerminalID());
-		Site site =  (Site) siteQuery.getSingleResult();
-		entityManager.detach(site);
-
-		Query issueTypeQuery = entityManager.createNamedQuery("getIssueTypeForName");
-		issueTypeQuery.setParameter("issueName", "%"+hpToolInput.getFault()+"%");
-		issueTypeQuery.setMaxResults(1);
-		IssueType issueType =  (IssueType)issueTypeQuery.getSingleResult();
-		entityManager.detach(issueType);
-		
-		//find if we have ticket for that site with same issue type...  
-		JPAQuery searchTicket = new JPAQuery(entityManager);
-		JPATicket jpaTicket = JPATicket.ticket;
-		searchTicket.from(jpaTicket)
-		.where(jpaTicket.site.name.eq(hpToolInput.getTerminalID()).and(jpaTicket.issueType.name.eq(hpToolInput.getFault()))
-				.and(jpaTicket.status.enumerationId.ne("RESOLVED").and(jpaTicket.status.enumerationId.ne("CLOSED"))));
-		
-		Ticket ticketFound = searchTicket.singleResult(jpaTicket);
-		if(ticketFound!=null){
-			ticket = ticketFound!=null?ticketFound:ticket;
-			ticket.setAutoUpdateTimeFields(false);
-			closeHPToolTicket(hpToolInput, ticket);
-			entityManager.persist(ticket);
-			entityManager.flush();
-			Map<String,Object> bodyParameters = new HashMap<String, Object>();
-			bodyParameters.put("ticket", ticket);
-			sendNotifications(mailService, smsService, EMAIL_UPDATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION, bodyParameters);
-		}else{
-			ticket.setAutoUpdateTimeFields(false);
-			
-			//site assignment
-			ticket.setSite(site);
-			
-			//issue Type
-			ticket.setIssueType(issueType);
-			com.securet.ssm.persistence.objects.User reporter = new com.securet.ssm.persistence.objects.User();
-			
-			//reporter userId..
-			reporter.setUserId(customUser.getUsername());
-			
-			ticket.setReporter(reporter);
-			ticket.setCreatedBy(reporter);
-			ticket.setModifiedBy(reporter);
-			
-			//assign vendor and asset
-			assignAssetAndVendor("hpTool", ticket, result);
-			
-			
-			Enumeration severity = new Enumeration();
-			severity.setEnumerationId("MAJOR");
-			ticket.setSeverity(severity );
-			
-			ticket.setSource("HP_TOOL");
-			
-			Enumeration status = new Enumeration();
-			status.setEnumerationId("OPEN");
-			ticket.setStatus(status);
-			
-			SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy HH:mm:ss a");
-			if(hpToolInput.getStartedAt()!=null && !hpToolInput.getStartedAt().trim().isEmpty()){
-				Date startedAt;
-				try {
-					startedAt = sdf.parse(hpToolInput.getStartedAt());
-					ticket.setCreatedTimestamp(new Timestamp(startedAt.getTime()));
-					ticket.setLastUpdatedTimestamp(new Timestamp(startedAt.getTime()));
-				} catch (ParseException e) {
-					_logger.debug("Error parsing date: ",e);
-				}
-			}
-
-			closeHPToolTicket(hpToolInput, ticket);
-		
-			//get a new sequence, ALL tickets should be prefixed with C
-			long ticketSequenceId = SequenceGeneratorHelper.getNextSequence("Ticket",entityManager);
-			String ticketId = TICKET_PREFIX+ticketSequenceId;
-			if(_logger.isDebugEnabled())_logger.debug("Ticket Id generated as "+ticketId);
-			ticket.setTicketId(ticketId);
-			ticket.setTicketMasterId(ticketId);
-			ticket.setDescription(hpToolInput.getFault());
-			entityManager.persist(ticket);
-			entityManager.flush();
-			Map<String,Object> bodyParameters = new HashMap<String, Object>();
-			bodyParameters.put("ticket", ticket);
-			sendNotifications(mailService, smsService, EMAIL_CREATE_TICKET_NOTIFICATION, SMS_UPDATE_TICKET_NOTIFICATION, bodyParameters);
-		}
-		return ticket;
+		return parseHPToolMessage(customUser, hpToolInput, result);
 	}
 
-	private void closeHPToolTicket(HPToolInput hpToolInput, Ticket ticketFound) {
-		SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy HH:mm:ss a");
-		if(hpToolInput.getEndedAt()!=null && !hpToolInput.getEndedAt().trim().isEmpty()){
-			
-			Enumeration status = new Enumeration();
-			status.setEnumerationId("RESOLVED");
-			ticketFound.setStatus(status);
-			Date endedAt;
-			try {
-				endedAt = sdf.parse(hpToolInput.getEndedAt());
-				ticketFound.setLastUpdatedTimestamp(new Timestamp(endedAt.getTime()));
-			} catch (ParseException e) {
-				_logger.debug("Error parsing date: ",e);
-			}
-		}
-	}
 }

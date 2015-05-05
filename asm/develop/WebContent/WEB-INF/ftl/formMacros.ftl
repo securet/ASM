@@ -146,7 +146,9 @@
 
 <#macro autoSuggestField path field  attributes="">
 	<@formInputSSM path=path?replace(field.fieldName+"Id","name") field=field attributes=attributes fieldType="text" />
-	<@formInputSSM path=path field=field attributes=attributes fieldType="hidden" />
+	<#if (path?index_of(field.fieldName+"Id")>-1)>
+		<@formInputSSM path=path field=field attributes=attributes fieldType="hidden" />
+	</#if>	
 </#macro>
 
 

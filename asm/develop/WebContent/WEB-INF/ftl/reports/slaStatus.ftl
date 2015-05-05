@@ -1,4 +1,7 @@
 <#setting number_format="0.##">
+<#assign slaStatusConditions={"cashout":2,"availability":7,"all":0,"caretaker":0}>
+<#assign slaPenaltyValues={"cashout":5000,"availability":7,"all":0,"caretaker":0}>
+
 <#include "../formMacros.ftl">
 <#macro ticketStatusHolder status text>
 	<div class="col-md-6 col-sm-6 placeholder">
@@ -42,9 +45,16 @@
 											</#if>
 											<@formMultiSelectSSM path="dashboardFilter.circleIds" field={"fieldName":"circles","label":"Select Circles"} options=circleoptions?default("{}")?eval  includeLabelInline=false/>
 										</div>	
+										<script type="text/javascript">
+											initMultiSelect("circleIds");
+										</script>	
 										<div class='col-md-4'>
 											<#assign months>{"1":"January","2":"February","3":"March","4":"April","5":"May","6":"June","7":"July","8":"August","9":"September","10":"October","11":"November","12":"December"}</#assign>
-											<@formMultiSelectSSM path="dashboardFilter.month" field={"fieldName":"months","label":"Select Month"} options=months?default("{}")?eval  includeLabelInline=false/>
+											<@formSingleSelectSSM path="dashboardFilter.month" field={"fieldName":"months","label":"Select Month"} options=months?default("{}")?eval  includeLabelInline=false/>
+										</div>	
+										<div class='col-md-4'>
+											<#assign issueGroups>{"cashout":"Cash out","all":"TAT(FLM)","caretaker":"House Keeping"}</#assign>
+											<@formSingleSelectSSM path="dashboardFilter.issueGroup" field={"fieldName":"SLA Type","label":"Select Type"} options=issueGroups?default("{}")?eval  includeLabelInline=false/>
 										</div>	
 									</div>
 									<div class='col-md-3 margintop10'><div class="form-group"><button class="btn btn-primary" id="dashboardReport">Show Report</button></div></div><br/>
@@ -54,10 +64,47 @@
 					</div>
 				</div>
 				<div class="row margintop10">
-				</div>
-				<div class="row  margintop10">
-				</div>
-				<div class="row  margintop10">
+					<div class="col-md-12">
+						<div class="col-md-12  roundbordersmall">
+							<#if slaPenaltyStats?exists>
+								<table id="slaPenaltyStats" width="100%" style="word-wrap:break-word" class="display table dt-responsive no-wrap"  cellspacing="0">
+							        <thead>
+							            <tr>
+							                <th>Vendor</th>
+							                <th>Sites</th>
+							                <th>No of Issues</th>
+							                <th>SLA STATUS</th>
+							                <th>Total Penalty</th>
+							            </tr>
+							        </thead>
+							        <tfoot>
+							            <tr>
+							                <th>Vendor</th>
+							                <th>Sites</th>
+							                <th>No of Issues</th>
+							                <th>SLA STATUS</th>
+							                <th>Total  Penalty</th>
+							            </tr>
+							        </tfoot>
+							        <tbody>
+							        	<#list slaPenaltyStats as slaPenaltyStat>
+							            <tr>
+							                <td>${slaPenaltyStat.vendorOrganization}</td>
+							                <td>${slaPenaltyStat.noOfSites}</td>
+							                <td>${slaPenaltyStat.noOfIssues}</td>
+											<td>
+												<#assign slaMet = false>
+												<#assign slaPenaltyStatus = (slaPenaltyStat.noOfIssues/slaPenaltyStat.noOfSites)*100>
+												${slaPenaltyStatus?round}% <#if slaPenaltyStatus<=slaStatusConditions[dashboardFilter.issueGroup]><#assign slaMet = true>  <i style="color:green;" class="glyphicon glyphicon-thumbs-up"></i><#else><i style="color:red;" class="glyphicon glyphicon-thumbs-down"></i></#if>
+											</td>			
+							                <td>Rs. <#if slaMet>0<#else><#if dashboardFilter.issueGroup='cashout'>${slaPenaltyStat.totalPenalty*5000}<#elseif dashboardFilter.issueGroup='all'>${slaPenaltyStat.noOfIssues*1000}<#elseif dashboardFilter.issueGroup='caretaker'>${slaPenaltyStat.noOfIssues*2000}<#else>0</#if></#if></td>
+										</tr>
+										</#list>
+									</tbody>
+								</table>									            
+							</#if>
+						</div>	
+					</div>	
 				</div>
 			</div>
 		</div>		

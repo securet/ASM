@@ -16,6 +16,8 @@ public class DashboardFilter extends DataTableCriteria{
 	@DateTimeFormat(pattern="dd-MM-yyyy")
 	private Date dashboardEndDate;
 
+	private int month;
+
 	private int serviceTypeId;
 	
 	private String serviceType;
@@ -27,6 +29,8 @@ public class DashboardFilter extends DataTableCriteria{
 	private List<String> circleIds;
 	
 	private List<String> clientUserIds;
+
+	private String issueGroup;
 	
 	public Date getDashboardStartDate() {
 		return dashboardStartDate;
@@ -90,6 +94,22 @@ public class DashboardFilter extends DataTableCriteria{
 
 	public void setClientUserIds(List<String> clientUserIds) {
 		this.clientUserIds = clientUserIds;
+	}
+
+	public int getMonth() {
+		return month;
+	}
+
+	public void setMonth(int month) {
+		this.month = month;
+	}
+
+	public String getIssueGroup() {
+		return issueGroup;
+	}
+
+	public void setIssueGroup(String issueGroup) {
+		this.issueGroup = issueGroup;
 	}
 
 }

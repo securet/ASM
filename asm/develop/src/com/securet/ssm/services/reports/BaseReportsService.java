@@ -8,12 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.sql.DatePart;
+import com.mysema.query.sql.SQLExpressions;
 import com.mysema.query.sql.SQLSubQuery;
 import com.mysema.query.types.ArrayConstructorExpression;
 import com.mysema.query.types.Path;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.expr.CaseBuilder;
+import com.mysema.query.types.expr.Coalesce;
+import com.mysema.query.types.expr.DateTimeExpression;
+import com.mysema.query.types.expr.DateTimeOperation;
+import com.mysema.query.types.expr.NumberExpression;
 import com.mysema.query.types.expr.SimpleExpression;
 import com.mysema.query.types.path.SimplePath;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAClientUserSite;
@@ -45,6 +52,16 @@ import com.securet.ssm.utils.SecureTUtils;
 
 public class BaseReportsService extends SecureTService {
 
+	public static final String LOG = "LOG";
+	public static final String COMPLAINT = "COMPLAINT";
+
+	public static final String OPEN = "OPEN";
+	public static final String WORK_IN_PROGRESS = "WORK_IN_PROGRESS";
+	public static final String RESOLVED = "RESOLVED";
+	public static final String CLOSED = "CLOSED";
+	
+	public static final String ALL_OK = "ALL OK";
+
 	Path<Long> countOfTickets = new SimplePath<Long>(Long.class, "countOfTickets");
 
 	SQLTicket sqlTicket = SQLTicket.ticket;
@@ -74,6 +91,7 @@ public class BaseReportsService extends SecureTService {
 	JPAEnumeration jpaStatus=new JPAEnumeration("status");
 
 	private static final Logger _logger = LoggerFactory.getLogger(BaseReportsService.class);
+
 	
 	public TicketStatusSummary getTicketCountByStatus(DashboardFilter dashboardFilter){
 		//expression for subquery resultset
@@ -223,6 +241,25 @@ public class BaseReportsService extends SecureTService {
 				(SimpleExpression)sqlSite.city,(SimpleExpression)sqlModule.name.as("module"),(SimpleExpression)sqlSite.circle,
 				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude);
 		return resultSetExpr;
+	}
+
+	protected void leftJoinTicketArchiveForTAT(SQLSubQuery jpaSQLQuery) {
+		jpaSQLQuery.leftJoin(sqlTicketArchiveResolved).on(sqlTicket.ticketId.eq(sqlTicketArchiveResolved.ticketId).and(sqlTicketArchiveResolved.statusId.eq(RESOLVED)))
+		.leftJoin(sqlTicketArchiveResolvedRelated).on(sqlTicketArchiveResolved.ticketId.eq(sqlTicketArchiveResolvedRelated.ticketId).and(sqlTicketArchiveResolved.ticketArchiveId.eq(sqlTicketArchiveResolvedRelated.relatedArchiveId)));
+	}
+
+	protected NumberExpression<Integer> ticketStopClockExpr() {
+		Coalesce<Timestamp> clockEndTsExpr = (Coalesce<Timestamp>)sqlTicketArchiveResolvedRelated.lastUpdatedTimestamp.coalesce(sqlTicket.lastUpdatedTimestamp);
+
+		NumberExpression<Integer> stopClockExpr = SQLExpressions.datediff(DatePart.second, sqlTicketArchiveResolved.lastUpdatedTimestamp, clockEndTsExpr.asDateTime());
+		stopClockExpr = stopClockExpr.coalesce(0).asNumber().sum().intValue();
+		return stopClockExpr;
+	}
+
+	protected NumberExpression<Integer> ticketTATExpr() {
+		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentTimestamp(Timestamp.class));
+		NumberExpression<Integer> tatExpr = SQLExpressions.datediff(DatePart.second,sqlTicket.createdTimestamp,closeTimeExpr);
+		return tatExpr;
 	}
 
 }
