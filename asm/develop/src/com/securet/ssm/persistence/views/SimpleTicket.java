@@ -17,6 +17,8 @@ public class SimpleTicket {
 	@JsonInclude(Include.NON_NULL)
 	private String ticketType;
 	@JsonInclude(Include.NON_NULL)
+	private String source;
+	@JsonInclude(Include.NON_NULL)
 	private SimpleSite site;
 	@JsonInclude(Include.NON_NULL)
 	private ServiceType serviceType;
@@ -195,6 +197,16 @@ public class SimpleTicket {
 
 	public void setLastUpdatedTimestamp(Date lastUpdatedTimestamp) {
 		this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+	}
+
+
+	public String getSource() {
+		return source;
+	}
+
+
+	public void setSource(String source) {
+		this.source = source;
 	}
 	
 	//t.ticketId,t.statusId,t.siteId,s.name site,t.serviceTypeId, st.name serviceType, t.createdTimestamp

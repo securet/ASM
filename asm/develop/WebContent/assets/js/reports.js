@@ -55,6 +55,8 @@ $(document).ready(function(){
 			"language" : {
 				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
 			},
+			 "pageLength": 50,
+			 "columns": [    { "width": "35%" },    null,    null,    null,    null  ],
 			"order": [[ 1, "desc" ]]
 		});
 //		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);

@@ -67,7 +67,7 @@
 					<div class="col-md-12">
 						<div class="col-md-12  roundbordersmall">
 							<#if slaPenaltyStats?exists>
-								<table id="slaPenaltyStats" width="100%" style="word-wrap:break-word" class="display table dt-responsive no-wrap"  cellspacing="0">
+								<table id="slaPenaltyStats" width="100%" style="word-wrap:break-word" class="display table table-striped table-hover responsive"  cellspacing="0">
 							        <thead>
 							            <tr>
 							                <th>Vendor</th>
@@ -95,9 +95,9 @@
 											<td>
 												<#assign slaMet = false>
 												<#assign slaPenaltyStatus = (slaPenaltyStat.noOfIssues/slaPenaltyStat.noOfSites)*100>
-												${slaPenaltyStatus?round}% <#if slaPenaltyStatus<=slaStatusConditions[dashboardFilter.issueGroup]><#assign slaMet = true>  <i style="color:green;" class="glyphicon glyphicon-thumbs-up"></i><#else><i style="color:red;" class="glyphicon glyphicon-thumbs-down"></i></#if>
+												${(100-slaPenaltyStatus)}% <#if slaPenaltyStatus<=slaStatusConditions[dashboardFilter.issueGroup]><#assign slaMet = true>  <i style="color:green;" class="glyphicon glyphicon-thumbs-up"></i><#else><i style="color:red;" class="glyphicon glyphicon-thumbs-down"></i></#if>
 											</td>			
-							                <td>Rs. <#if slaMet>0<#else><#if dashboardFilter.issueGroup='cashout'>${slaPenaltyStat.totalPenalty*5000}<#elseif dashboardFilter.issueGroup='all'>${slaPenaltyStat.noOfIssues*1000}<#elseif dashboardFilter.issueGroup='caretaker'>${slaPenaltyStat.noOfIssues*2000}<#else>0</#if></#if></td>
+							                <td>Rs. <#if slaMet>0<#else><#if dashboardFilter.issueGroup='cashout'><#if (slaPenaltyStat.totalPenalty>0)>${slaPenaltyStat.totalPenalty*5000}<#else>0</#if><#elseif dashboardFilter.issueGroup='all'>${slaPenaltyStat.noOfIssues*1000}<#elseif dashboardFilter.issueGroup='caretaker'>${slaPenaltyStat.noOfIssues*2000}<#else>0</#if></#if></td>
 										</tr>
 										</#list>
 									</tbody>
