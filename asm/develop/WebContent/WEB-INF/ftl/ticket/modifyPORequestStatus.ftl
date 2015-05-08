@@ -16,7 +16,7 @@
 						<div class="form-group labelblock">
 							<label for="siteId" class="col-sm-3 control-label">Ticket</label>
 						    <div id="siteId"  class="col-sm-9">
-								<p class="form-control-static normaltext">${partOrderRequest.ticket.ticketId!}</p>
+								<p class="form-control-static normaltext">${partOrderRequest.ticketId!}</p>
 						    </div>
 						</div>
 						<div class="form-group labelblock">
@@ -54,16 +54,16 @@
 						<div class="form-group labelblock">
 							<label for="siteId" class="col-sm-3 control-label">Status</label>
 						    <div id="siteId"  class="col-sm-9">
-								<p class="form-control-static normaltext">${partOrderRequest.status.enumDescription!}</p>
+								<p class="form-control-static normaltext">${partOrderRequest.statusId!}</p>
 						    </div>
 						</div>
-						<div class="btn-group pobutton">
-							<a href="<@spring.url relativeUrl="/tickets/modifyTicket?id="+partOrderRequest.ticket.ticketId/>" class="btn btn-primary DTTT_button_text" tabindex="0">
+						<div style="text-align:center;float:left;">
+							<a style="text-align:center" href="<@spring.url relativeUrl="/tickets/modifyTicket?id="+partOrderRequest.ticketId/>" class="btn btn-primary DTTT_button_text" tabindex="0">
 								<span>Back</span>
 							</a>
 						</div>
 						<@security.authorize access="hasAnyRole('ADMIN','CLIENT_USER','CLIENT_CONTROLLER')">
-							<#if partOrderRequest.status.enumerationId=="PO_INITIATED">
+							<#if partOrderRequest.statusId=="INITIATED">
 							<div style="text-align:center">
 								<input  class="btn btn-primary right" name="status.enumDescription" type="submit"  value="Authorize" />
 								<input  class="btn btn-primary right" name="status.enumDescription" type="submit"  value="Reject" />
@@ -71,14 +71,14 @@
 							</#if>	
 						</@security.authorize>						
 						<@security.authorize access="hasAnyRole('RESOLVER')">
-							<#if partOrderRequest.status.enumerationId=="PO_AUTHORIZED">
-							<div style="text-align:right">
+							<#if partOrderRequest.statusId=="Authorized">
+							<div style="text-align:center">
 								<input  class="btn btn-primary right" name="status.enumDescription" type="submit"  value="Complete" />
 							</div>	       
 							</#if>	
 						</@security.authorize>						
 						<input type="hidden" name="partOrderRequestId" value="${partOrderRequest.partOrderRequestId!}" />
-						<input type="hidden" name="ticket.ticketId" value="${partOrderRequest.ticket.ticketId!}" />
+						<input type="hidden" name="ticket.ticketId" value="${partOrderRequest.ticketId!}" />
 						<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 					</form>
 				</div>
