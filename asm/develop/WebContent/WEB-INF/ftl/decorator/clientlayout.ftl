@@ -52,6 +52,7 @@
 						<@security.authorize access="hasAnyRole('ADMIN','CLIENT_CONTROLLER')">
 							<a href="<@spring.url relativeUrl="/reports/dashboard"/>" class="list-group-item "> <i class="glyphicon glyphicon-dashboard"></i> Dashboard</a>
 							<a href="<@spring.url relativeUrl="/reports/sla/status"/>" class="list-group-item "> <i class="glyphicon glyphicon-hourglass"></i> SLA Status</a>
+							<a href="<@spring.url relativeUrl="/reports/porequests"/>" class="list-group-item "> <i class="glyphicon glyphicon-wrench"></i> PO Request Report</a>
 						</@security.authorize>
 						<@security.authorize access="hasAnyRole('ADMIN')">
 							<a href="<@spring.url relativeUrl="/tickets/hpToolTrigger"/>" class="list-group-item "> <i class="glyphicon glyphicon-flash"></i>HP Tool Trigger</a>

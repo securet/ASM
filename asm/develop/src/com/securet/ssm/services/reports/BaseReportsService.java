@@ -38,6 +38,7 @@ import com.securet.ssm.persistence.objects.querydsl.sql.SQLEnumeration;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLIssueType;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLOrganization;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLPartOrderRequest;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLServiceType;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
@@ -77,6 +78,8 @@ public class BaseReportsService extends SecureTService {
 	SQLEnumeration sqlStatus=new SQLEnumeration("status");
 	SQLEnumeration sqlSeverity=new SQLEnumeration("severity");
 	SQLModule sqlModule = SQLModule.module;
+	SQLPartOrderRequest sqlPartOrderRequest = SQLPartOrderRequest.partOrderRequest;
+	SQLUser sqlUser = SQLUser.user;
 
 	JPATicket jpaTicket = JPATicket.ticket;
 	JPAServiceType jpaServiceType = JPAServiceType.serviceType;

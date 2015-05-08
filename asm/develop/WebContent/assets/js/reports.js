@@ -61,6 +61,20 @@ $(document).ready(function(){
 		});
 //		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
 	}
+	if($('#poRequestsReport')!=null){
+		$('#poRequestsReport').dataTable({
+			"processing" : true,
+			"scrollX": false,
+			"responsive":true,
+			"language" : {
+				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
+			},
+			 "pageLength": 50,
+			 "columns": [    { "width": "40%" },   { "width": "20%" },    { "width": "20%" },    { "width": "20%" }],
+			"order": [[ 1, "desc" ]]
+		});
+//		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);
+	}
 
 	if($(".ticketStatusFilter").size()>0 && allTicketsDataTable!=null){
 		$(".ticketStatusFilter").click(function(){

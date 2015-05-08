@@ -135,5 +135,6 @@ public class SLAPenaltyReportService extends BaseReportsService{
 		return vendorSLAMeasureDetailsQuery;
 	}
 	
+	
 
 }
