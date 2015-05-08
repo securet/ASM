@@ -29,6 +29,7 @@ import com.mysema.query.types.Projections;
 import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.SimpleExpression;
 import com.securet.ssm.persistence.objects.SecureTObject;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLAsset;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
 import com.securet.ssm.persistence.views.aggregates.TicketStatusSummary;
 import com.securet.ssm.services.ActionHelpers;
@@ -44,10 +45,6 @@ import com.securet.ssm.utils.SecureTUtils;
 public class ReportsService extends BaseReportsService {
 
 	
-
-
-
-
 	private static final Map<String, Expression> fieldExprMapping = new HashMap<String, Expression>();
 	
 	
@@ -241,15 +238,16 @@ public class ReportsService extends BaseReportsService {
 		.innerJoin(sqlStatus).on(sqlPartOrderRequest.statusId.eq(sqlStatus.enumerationId))
 		.innerJoin(sqlTicket).on(sqlPartOrderRequest.ticketId.eq(sqlTicket.ticketId))
 		.innerJoin(sqlSite).on(sqlTicket.siteId.eq(sqlSite.siteId))
+		.innerJoin(sqlAsset).on(sqlTicket.assetId.eq(sqlAsset.assetId))
 		.innerJoin(sqlVendorUser).on(sqlTicket.resolverUserId.eq(sqlVendorUser.userId))
 		.innerJoin(sqlVendorOrganization).on(sqlVendorUser.organizationId.eq(sqlVendorOrganization.organizationId));
 		
 		poRequestReportQuery.where(dashboardFilterPORequestPredicate(dashboardFilter));
 		
-		poRequestReportQuery.groupBy(sqlVendorOrganization.name,sqlPartOrderRequest.statusId)
-		.orderBy(sqlVendorOrganization.name.desc(),sqlPartOrderRequest.statusId.desc());
+		poRequestReportQuery.groupBy(sqlVendorOrganization.name,sqlAsset.assetId,sqlPartOrderRequest.statusId)
+		.orderBy(sqlVendorOrganization.name.desc(),sqlAsset.assetTag.desc(),sqlPartOrderRequest.statusId.desc());
 		
-		ArrayConstructorExpression poRequestReportFields = Projections.array(Object[].class, (SimpleExpression)sqlVendorOrganization.name,
+		ArrayConstructorExpression poRequestReportFields = Projections.array(Object[].class, (SimpleExpression)sqlAsset.assetTag,(SimpleExpression)sqlVendorOrganization.name,
 				(SimpleExpression)sqlStatus.enumDescription.as("status"),
 				(SimpleExpression)sqlPartOrderRequest.partOrderRequestId.countDistinct().as("noOfRequests"), 
 				(SimpleExpression)sqlPartOrderRequest.cost.sum().as("totalCost"));

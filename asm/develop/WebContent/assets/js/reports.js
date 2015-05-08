@@ -70,7 +70,7 @@ $(document).ready(function(){
 				"processing" : "<img src='assets/images/loading-b.gif' alt='loading'/>"
 			},
 			 "pageLength": 50,
-			 "columns": [    { "width": "40%" },   { "width": "20%" },    { "width": "20%" },    { "width": "20%" }],
+			 "columns": [    { "width": "17.5%" },{ "width": "30%" },   { "width": "17.5%" },    { "width": "17.5%" },    { "width": "17.5%" }],
 			"order": [[ 1, "desc" ]]
 		});
 //		dashboardSimpleTable("clientUserTicketCountTable","clientUserTicketCount",1);

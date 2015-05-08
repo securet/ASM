@@ -33,6 +33,7 @@ import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicket;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicketArchive;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAUser;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAVendorServiceAsset;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLAsset;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLEnumeration;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLIssueType;
@@ -80,6 +81,7 @@ public class BaseReportsService extends SecureTService {
 	SQLModule sqlModule = SQLModule.module;
 	SQLPartOrderRequest sqlPartOrderRequest = SQLPartOrderRequest.partOrderRequest;
 	SQLUser sqlUser = SQLUser.user;
+	SQLAsset sqlAsset = SQLAsset.asset;
 
 	JPATicket jpaTicket = JPATicket.ticket;
 	JPAServiceType jpaServiceType = JPAServiceType.serviceType;

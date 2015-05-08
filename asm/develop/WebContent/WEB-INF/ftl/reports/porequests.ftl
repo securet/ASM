@@ -71,6 +71,7 @@
 								<table id="poRequestsReport" width="100%" style="word-wrap:break-word" class="display table table-striped table-hover responsive"  cellspacing="0">
 							        <thead>
 							            <tr>
+							                <th>Asset</th>
 							                <th>Vendor</th>
 							                <th>PO Status</th>
 							                <th>No of PO Requests</th>
@@ -79,6 +80,7 @@
 							        </thead>
 							        <tfoot>
 							            <tr>
+							                <th>Asset</th>
 							                <th>Vendor</th>
 							                <th>PO Status</th>
 							                <th>No of PO Requests</th>
@@ -91,7 +93,8 @@
 								                <td>${poRequestReportDetails[0]}</td>
 								                <td>${poRequestReportDetails[1]}</td>
 								                <td>${poRequestReportDetails[2]}</td>
-								                <td>Rs. ${poRequestReportDetails[3]}</td>
+								                <td>${poRequestReportDetails[3]}</td>
+								                <td>Rs. ${poRequestReportDetails[4]}</td>
 											</tr>
 										</#list>
 									</tbody>
