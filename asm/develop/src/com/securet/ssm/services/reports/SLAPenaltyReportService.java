@@ -2,17 +2,12 @@ package com.securet.ssm.services.reports;
 
 import java.util.List;
 
-import javax.transaction.Transactional;
-
-import org.springframework.security.web.bind.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.sql.SQLSubQuery;
@@ -26,11 +21,12 @@ import com.mysema.query.types.expr.SimpleExpression;
 import com.mysema.query.types.path.NumberPath;
 import com.mysema.query.types.path.StringPath;
 import com.securet.ssm.persistence.objects.SecureTObject;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLAsset;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLUserRole;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.vo.DashboardFilter;
-import com.securet.ssm.services.vo.HPToolInput;
 import com.securet.ssm.services.vo.SLAPenaltyStats;
+import com.securet.ssm.utils.SecureTUtils;
 
 @Controller
 @Repository
@@ -102,7 +98,12 @@ public class SLAPenaltyReportService extends BaseReportsService{
 		.innerJoin(sqlVendorUser).on(sqlVendorServiceAsset.userId.eq(sqlVendorUser.userId))
 		.innerJoin(sqlVendorOrganization).on(sqlVendorUser.organizationId.eq(sqlVendorOrganization.organizationId))
 		.leftJoin(vendorSLAMeasureGroupVendorQuery.list(vendorSLAMeasureGroupExpr),vendorDetailPath ).on(sqlVendorOrganization.name.eq(vendorOrg));
-		
+
+		if(SecureTUtils.isNotEmpty(dashboardFilter.getCircleIds())){
+			allVendorsSLAPenaltyDetailsQuery.leftJoin(SQLAsset.asset).on(SQLAsset.asset.assetId.eq(sqlVendorServiceAsset.assetId))
+			.leftJoin(sqlSite).on(sqlSite.siteId.eq(SQLAsset.asset.siteId));
+			allVendorsSLAPenaltyDetailsQuery.where(sqlSite.circle.in(dashboardFilter.getCircleIds()));			
+		}
 		
 		if(dashboardFilter.getIssueGroup().equals("cashout")){
 			allVendorsSLAPenaltyDetailsQuery.where(sqlVendorServiceAsset.serviceTypeId.eq(8));

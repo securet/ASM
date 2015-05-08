@@ -94,14 +94,9 @@ public class TicketService extends BaseTicketService {
 
 	@RequestMapping("/tickets/listTickets")
 	public String listTickets(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@RequestParam(value="filterStatus",required=false) String filterStatus,Model model){
-		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
-		model.addAttribute("isReporter", isReporter);
-		model.addAttribute("userName", customUser.getUsername());
-		if(filterStatus!=null && !filterStatus.isEmpty()){
-			model.addAttribute("filterStatus", filterStatus);
-		}
-		return DefaultService.TICKET+"listTickets";
+		return listTicketsForUser(customUser, filterStatus, model);
 	}
+
 
 	@Transactional
 	@RequestMapping(value="/tickets/listUserTickets",produces="application/json")
@@ -138,21 +133,9 @@ public class TicketService extends BaseTicketService {
 	@RequestMapping("/tickets/modifyTicket")
 	public String editTicket(@RequestParam("id") String ticketId,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser, Model model){
 		//find if the ticket is part of the user or his organization group and then allow them to edit
-		Ticket currentTicket = getUserTicket(ticketId, customUser,getMailService(),getSmsService());
-		if(currentTicket==null){
-			return listTickets(customUser,null,model);
-		}
-		return loadEditTicketModel(model, currentTicket);
+		return editTicketDetails(ticketId, customUser, model);
 	}
 
-
-	private String loadEditTicketModel(Model model, Ticket currentTicket) {
-		//also load the archive...
-		List<SecureTObject> ticketArchives = fetchQueriedObjects("getLatestTicketArchivesForTicketId", "ticketId", currentTicket.getTicketId());
-		model.addAttribute("ticketArchives", ticketArchives);// pagination???
-		model.addAttribute("formObject",currentTicket);
-		return DefaultService.TICKET+"modifyTicket";
-	}
 
 	@Transactional
 	@RequestMapping(value="/tickets/updateTicket",method=RequestMethod.POST)

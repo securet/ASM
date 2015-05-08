@@ -48,6 +48,7 @@
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=IssueType"/>" class="list-group-item ">Issue Type  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=AssetType"/>" class="list-group-item ">AssetType  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=Asset"/>" class="list-group-item ">Asset  <i class="glyphicon glyphicon-chevron-right"></i></a>
+						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=ServiceSparePart"/>" class="list-group-item ">Service Spare Part  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewObjects?entityName=User"/>" class="list-group-item ">User  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewClientUserSites"/>" class="list-group-item ">Assign Client Sites  <i class="glyphicon glyphicon-chevron-right"></i></a>
 						<a href="<@spring.url relativeUrl="/admin/viewVendorAssetMapping"/>" class="list-group-item ">Map Vendor Assets  <i class="glyphicon glyphicon-chevron-right"></i></a>

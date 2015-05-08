@@ -94,6 +94,8 @@ public class SQLTicket extends com.mysema.query.sql.RelationalPathBase<SQLTicket
 
     public final com.mysema.query.sql.ForeignKey<SQLTicketAttachment> _j0gp5cmysvlvblblsxbm7cge6FK = createInvForeignKey(ticketId, "ticketId");
 
+    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _porTicketFk = createInvForeignKey(ticketId, "ticketId");
+
     public final com.mysema.query.sql.ForeignKey<SQLTicketExt> __4ka3q84ykcjs2rshx3xdmt3c6FK = createInvForeignKey(ticketId, "ticketId");
 
     public SQLTicket(String variable) {

@@ -1,4 +1,4 @@
-<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","boolean","text"}>
+<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","boolean","text","bigDecimal":"text"}>
 <html>
 	<head>
 		<title>View ${entityName}</title>

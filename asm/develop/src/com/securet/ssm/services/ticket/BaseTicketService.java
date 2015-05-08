@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.MailSendException;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
@@ -43,6 +44,8 @@ import com.securet.ssm.persistence.objects.Asset;
 import com.securet.ssm.persistence.objects.Enumeration;
 import com.securet.ssm.persistence.objects.IssueType;
 import com.securet.ssm.persistence.objects.MailTemplate;
+import com.securet.ssm.persistence.objects.PartOrderRequest;
+import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Site;
 import com.securet.ssm.persistence.objects.Ticket;
@@ -50,6 +53,8 @@ import com.securet.ssm.persistence.objects.TicketArchive;
 import com.securet.ssm.persistence.objects.TicketAttachment;
 import com.securet.ssm.persistence.objects.User;
 import com.securet.ssm.persistence.objects.VendorServiceAsset;
+import com.securet.ssm.persistence.objects.querydsl.jpa.JPAPartOrderRequest;
+import com.securet.ssm.persistence.objects.querydsl.jpa.JPAServiceSparePart;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicket;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLEnumeration;
@@ -62,10 +67,13 @@ import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicketArchive;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLUser;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLVendorServiceAsset;
+import com.securet.ssm.persistence.views.SimplePartOrderRequest;
+import com.securet.ssm.persistence.views.SimpleServiceSparePart;
 import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.persistence.views.SimpleUser;
 import com.securet.ssm.services.ActionHelpers;
+import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.vo.DataTableCriteria;
@@ -81,6 +89,8 @@ public class BaseTicketService extends SecureTService{
 	public static final String WORK_IN_PROGRESS_DESC = "Work in progress";
 	public static final int MAX_SHORT_DESC = 80;
 	public static final List<String> TICKET_STATUS = new ArrayList<String>();
+	private static final Map<String,String> PO_STATUS_MAPPING = new HashMap<String, String>();
+	
 	public static final Map<String,Expression> fieldExprMapping=new HashMap<String, Expression>();
 
 	public static final String MDDYYYY_HHMMSS_A = "M/d/yyyy hh:mm:ss aaa";
@@ -90,6 +100,11 @@ public class BaseTicketService extends SecureTService{
 		TICKET_STATUS.add("WORK_IN_PROGRESS");
 		TICKET_STATUS.add("RESOLVED");
 		TICKET_STATUS.add("CLOSED");
+
+		PO_STATUS_MAPPING.put("Initiated", "PO_INITIATED");
+		PO_STATUS_MAPPING.put("Authorize", "PO_AUTHORIZED");
+		PO_STATUS_MAPPING.put("Reject", "PO_REJECTED");
+		PO_STATUS_MAPPING.put("Complete", "PO_COMPLETED");
 
 		fieldExprMapping.put("ticketId",SQLTicket.ticket.ticketId);
 		fieldExprMapping.put("shortDesc",SQLTicket.ticket.shortDesc);
@@ -154,7 +169,8 @@ public class BaseTicketService extends SecureTService{
 	SQLTicketArchive sqlTicketArchiveResolvedRelated = new SQLTicketArchive("tarRelated");;
 	SQLEnumeration sqlStatus=new SQLEnumeration("status");
 
-	private static final JPATicket jpaTicket = JPATicket.ticket;
+	protected static final JPAPartOrderRequest jpaPartOrderRequest = JPAPartOrderRequest.partOrderRequest;
+	protected static final JPATicket jpaTicket = JPATicket.ticket;
 
 	// should make a query planner, to many queries - TODO - data table query planner for custom queries 
 	public static final String CLIENT_USER_TICKET_NATIVE_QUERY = "SELECT t.* from ticket t INNER JOIN client_user_site cus ON t.siteId=cus.siteId WHERE cus.userId=(?1)";
@@ -236,6 +252,60 @@ public class BaseTicketService extends SecureTService{
 		ticket.setActualTat((Integer) result.get(actualTATExpr));
 		ticket.setStopClock((Integer) result.get(stopClockExpr));
 		return ticket;
+	}
+
+	protected String editTicketDetails(String ticketId, org.springframework.security.core.userdetails.User customUser, Model model) {
+		Ticket currentTicket = getUserTicket(ticketId, customUser,getMailService(),getSmsService());
+		if(currentTicket==null){
+			return listTicketsForUser(customUser,null,model);
+		}
+		return loadEditTicketModel(model, currentTicket);
+	}
+
+
+	protected String loadEditTicketModel(Model model, Ticket currentTicket) {
+		//also load the archive...
+		List<SecureTObject> ticketArchives = fetchQueriedObjects("getLatestTicketArchivesForTicketId", "ticketId", currentTicket.getTicketId());
+		model.addAttribute("ticketArchives", ticketArchives);// pagination???
+
+		//also load any partOrderRequest
+		List<SimplePartOrderRequest> simplePartOrderRequests = fetchPORRequestsForTicket(currentTicket);
+
+		model.addAttribute("partOrderRequests",simplePartOrderRequests);
+		
+		model.addAttribute("formObject",currentTicket);
+		return DefaultService.TICKET+"modifyTicket";
+	}
+
+	protected List<SimplePartOrderRequest> fetchPORRequestsForTicket(Ticket currentTicket) {
+		JPAQuery partOrderRequestQuery = new JPAQuery(entityManager);
+		partOrderRequestQuery.from(jpaPartOrderRequest).where(jpaPartOrderRequest.ticket.eq(currentTicket)).orderBy(jpaPartOrderRequest.lastUpdatedTimestamp.desc());
+		QBean<SimplePartOrderRequest> simplePartOrderRequestFields = poRequestFields();
+		List<SimplePartOrderRequest> simplePartOrderRequests =  partOrderRequestQuery.list(simplePartOrderRequestFields);
+		return simplePartOrderRequests;
+	}
+
+	protected QBean<SimplePartOrderRequest> poRequestFields() {
+		JPAServiceSparePart jpaPOServiceSparePart = jpaPartOrderRequest.serviceSparePart;
+		QBean<SimpleServiceSparePart> simpleServiceSparePartBean = Projections.bean(SimpleServiceSparePart.class, jpaPOServiceSparePart.sparePartId
+				,jpaPOServiceSparePart.partName,jpaPOServiceSparePart.partDescription);
+
+		QBean<SimpleUser> initiatedByBean = Projections.bean(SimpleUser.class, jpaPartOrderRequest.initiatedBy.userId.as("userId"));
+		QBean<SimpleUser> respondedByBean = Projections.bean(SimpleUser.class, jpaPartOrderRequest.respondedBy.userId.as("userId"));
+		
+		return Projections.bean(SimplePartOrderRequest.class, simpleServiceSparePartBean.as("serviceSparePart"),initiatedByBean.as("initiatedBy"),
+				respondedByBean.as("respondedBy"),jpaPartOrderRequest.partOrderRequestId,jpaPartOrderRequest.status.enumDescription.as("statusId"), 
+				jpaPartOrderRequest.cost,jpaPartOrderRequest.ticket.ticketId.as("ticketId"), jpaPartOrderRequest.createdTimestamp,jpaPartOrderRequest.lastUpdatedTimestamp);
+	}
+
+	protected String listTicketsForUser(org.springframework.security.core.userdetails.User customUser, String filterStatus, Model model) {
+		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
+		model.addAttribute("isReporter", isReporter);
+		model.addAttribute("userName", customUser.getUsername());
+		if(filterStatus!=null && !filterStatus.isEmpty()){
+			model.addAttribute("filterStatus", filterStatus);
+		}
+		return DefaultService.TICKET+"listTickets";
 	}
 
 	public ListObjects listUserTicketsDSL(TicketFilter ticketFilter, org.springframework.security.core.userdetails.User customUser) {
@@ -936,6 +1006,35 @@ public class BaseTicketService extends SecureTService{
 				_logger.debug("Error parsing date: ",e);
 			}
 		}
+	}
+
+	protected PartOrderRequest fetchPartOrderRequestFromId(PartOrderRequest partOrderRequest) {
+		JPAQuery partOrderRequestQuery = new JPAQuery(entityManager);
+		partOrderRequestQuery.from(jpaPartOrderRequest).where(jpaPartOrderRequest.eq(partOrderRequest));
+		partOrderRequest = partOrderRequestQuery.singleResult(jpaPartOrderRequest);
+		return partOrderRequest;
+	}
+
+	protected SimplePartOrderRequest fetchSimplePartOrderRequestFromId(PartOrderRequest partOrderRequest) {
+		JPAQuery partOrderRequestQuery = new JPAQuery(entityManager);
+		partOrderRequestQuery.from(jpaPartOrderRequest).where(jpaPartOrderRequest.eq(partOrderRequest));
+		SimplePartOrderRequest simplePartOrderRequest = partOrderRequestQuery.singleResult(poRequestFields());
+		return simplePartOrderRequest;
+	}
+
+	protected PartOrderRequest updatePORequestStatus(org.springframework.security.core.userdetails.User customUser, PartOrderRequest partOrderRequest) {
+		String statusDesc =  partOrderRequest.getStatus().getEnumDescription();
+		partOrderRequest = fetchPartOrderRequestFromId(partOrderRequest);
+		if(statusDesc.equals("Authorize") || statusDesc.equals("Reject")){
+			User user = new User();
+			user.setUserId(customUser.getUsername());
+			partOrderRequest.setRespondedBy(user);
+		}
+		Enumeration poRequestStatus = new Enumeration();
+		poRequestStatus.setEnumerationId(PO_STATUS_MAPPING.get(statusDesc));
+		partOrderRequest.setStatus(poRequestStatus);
+		entityManager.persist(partOrderRequest);
+		return partOrderRequest;
 	}
 
 }

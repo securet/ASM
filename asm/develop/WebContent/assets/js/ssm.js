@@ -102,6 +102,9 @@ $(document).ready(function() {
 		initMultiSelect("userId");
 		initVendorAssetMapping();
 	}
+	if($("#vendorOrganization\\.organizationId").size()>0){
+		initMultiSelect("vendorOrganization\\.organizationId");
+	}
 	if ($("#state\\.geoId").size() > 0) {
 		if ($("#SiteForm #city\\.geoId").size() == 0) {
 			// initialize the city option

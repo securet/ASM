@@ -35,6 +35,9 @@
 			</div>
 			<div  id="editTicket" class="panel-body leftcolumns" >
 				<div class="col-md-8">
+					<#if savedPORRequest?exists>
+						<div class="alert alert-info asmnotification" role="alert">${savedPORRequest}  : ${formObject.ticketId!}</div>
+					</#if>
 					<form class="form-horizontal" role="form" method="POST" action="<@spring.url relativeUrl="/tickets/updateTicket"/>?${_csrf.parameterName}=${_csrf.token}" enctype="multipart/form-data" >
 						<div class="form-group labelblock">
 							<label for="ticketId" class="col-sm-3 control-label">Ticket Id</label>
@@ -139,6 +142,23 @@
 				</div>
 				<div class="col-md-4">
 					<div id="map-canvas"></div>		
+					<@security.authorize access="hasAnyRole('RESOLVER')">
+						<div class="btn-group pobutton">
+							<a href="<@spring.url relativeUrl="/tickets/newPORequest?id="+formObject.ticketId/>" class="btn btn-primary DTTT_button_text" tabindex="0">
+								<span>New Part Order Request</span>
+							</a>
+						</div>
+					</@security.authorize>	
+					<#if partOrderRequests?exists && (partOrderRequests?size>0)>
+						<div class="ticketAttachments">
+							<h4>PO Requests</h4>
+							<ol>	
+							<#list partOrderRequests as partOrderRequest>
+								<li><a target="_blank" href="<@spring.url relativeUrl="/tickets/modifyPORequestStatus?partOrderRequestId="+partOrderRequest.partOrderRequestId />" title="${partOrderRequest.serviceSparePart.partName!}">${partOrderRequest.serviceSparePart.partName!} - ${partOrderRequest.statusId!} - ${partOrderRequest.cost!} </a>  @ ${partOrderRequest.createdTimestamp?string}</li>
+							</#list>
+							</ol> 	
+						</div>										
+					</#if>					
 					<div class="ticketAttachments">
 						<h4>Attachments (${formObject.attachments?size})</h4>
 						<ol>	

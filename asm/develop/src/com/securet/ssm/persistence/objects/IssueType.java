@@ -12,7 +12,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-@Entity()
+@Entity
 @Table(name="issue_type")
 @NamedQueries({
 	@NamedQuery(name = "getIssueType.count", query = "SELECT COUNT(issueTypeId) from IssueType"),

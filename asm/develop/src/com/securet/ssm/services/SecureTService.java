@@ -36,6 +36,7 @@ import com.securet.ssm.services.admin.ClientUserSiteMappingService;
 import com.securet.ssm.services.admin.IssueTypeService;
 import com.securet.ssm.services.admin.ModuleService;
 import com.securet.ssm.services.admin.OrganizationService;
+import com.securet.ssm.services.admin.ServiceSparePartService;
 import com.securet.ssm.services.admin.ServiceTypeService;
 import com.securet.ssm.services.admin.SiteService;
 import com.securet.ssm.services.admin.UserService;
@@ -91,6 +92,10 @@ public abstract class SecureTService {
 		uiFieldConfig.put("moduleExcludeInDisplay",ModuleService.getFieldsToExcludeInDisplay());
 		uiFieldConfig.put("moduleCustomFieldTypes",ModuleService.getCustomFieldTypes());
 		uiFieldConfig.put("moduleDataViews",ModuleService.getDataViewNames());
+
+		uiFieldConfig.put("serviceSparePartExcludeInDisplay",ServiceSparePartService.getFieldsToExcludeInDisplay());
+		uiFieldConfig.put("serviceSparePartCustomFieldTypes",ServiceSparePartService.getCustomFieldTypes());
+		uiFieldConfig.put("serviceSparePartDataViews",ServiceSparePartService.getDataViewNames());
 }
 
 	
