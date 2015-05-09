@@ -34,10 +34,10 @@ import com.securet.ssm.utils.SecureTUtils;
 public class SLAPenaltyReportService extends BaseReportsService{
 
 	
-	private static final int HOUR_IN_SECS = 60*60;
+	private static final int HOUR_IN_SECS = 60;//60*60;
 	private static final SQLUserRole sqlUserRole = SQLUserRole.userRole;
-	private static final int MIN_PENALTY_CLOCK = 12;
-	private static final int CROSSED_PENALTY_CLOCK = 4;
+	private static final int MIN_PENALTY_CLOCK = 0;//12;
+	private static final int CROSSED_PENALTY_CLOCK = 1;//4;
 
 	
 	@RequestMapping(value="/reports/sla/status")
@@ -68,7 +68,7 @@ public class SLAPenaltyReportService extends BaseReportsService{
 		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
 		
 		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat");
-		NumberExpression<Double> penaltyBlockExpr = tatExpr.subtract(stopClockExpr).doubleValue().subtract(HOUR_IN_SECS*MIN_PENALTY_CLOCK).divide(HOUR_IN_SECS*CROSSED_PENALTY_CLOCK).as("penaltyBlock");
+		NumberExpression<Double> penaltyBlockExpr = tatExpr.subtract(stopClockExpr).doubleValue().subtract(HOUR_IN_SECS*MIN_PENALTY_CLOCK).divide(HOUR_IN_SECS*CROSSED_PENALTY_CLOCK).ceil().as("penaltyBlock");
 		
 		
 		ArrayConstructorExpression resultSetExpr = Projections.array(Object[].class, (SimpleExpression)sqlVendorOrganization.name.as("vendorOrg"),
@@ -127,7 +127,7 @@ public class SLAPenaltyReportService extends BaseReportsService{
 				.and(sqlTicket.statusId.eq("RESOLVED").or(sqlTicket.statusId.eq("CLOSED"))));
 		BooleanExpression issueTypeExpr = sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId);
 		if(dashboardFilter.getIssueGroup().equals("cashout")){
-			issueTypeExpr.and(sqlIssueType.issueGroup.eq(dashboardFilter.getIssueGroup()));
+			issueTypeExpr = issueTypeExpr.and(sqlIssueType.issueGroup.eq(dashboardFilter.getIssueGroup()));
 		}
 		vendorSLAMeasureDetailsQuery.leftJoin(sqlIssueType).on(issueTypeExpr);
 		leftJoinTicketArchiveForTAT(vendorSLAMeasureDetailsQuery);				

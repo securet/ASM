@@ -1,5 +1,5 @@
 <#setting number_format="0.##">
-<#assign slaStatusConditions={"cashout":2,"availability":7,"all":0,"caretaker":0}>
+<#assign slaStatusConditions={"cashout":0.1,"availability":7,"all":0,"caretaker":0}>
 <#assign slaPenaltyValues={"cashout":5000,"availability":7,"all":0,"caretaker":0}>
 
 <#include "../formMacros.ftl">
