@@ -3,6 +3,7 @@ package com.securet.ssm.status;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.PersistenceUnit;
+import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,17 +105,26 @@ public class Ping{
 	}
 
 	@RequestMapping(value = "/upload", method = RequestMethod.POST)
-	public @ResponseBody String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file) {
+	public @ResponseBody String handleFileUpload(@RequestParam("name") String name, @RequestParam("file") MultipartFile file,Model model,HttpServletRequest request) {
 		if (!file.isEmpty()) {
 			try {
 				byte[] bytes = file.getBytes();
-				File destFile = new File(name + "-uploaded");
-				_logger.debug("destFilePath" + destFile.getAbsolutePath());
+				String storageFilePath = "uploads/temp/";
+				String filePath=null;
+				URL url = Thread.currentThread().getContextClassLoader().getResource("../../"+storageFilePath);
+				if(url!=null){
+					filePath = url.getPath()+file.getOriginalFilename();
+				}
+				_logger.debug("destFilePath" + filePath);
+				File destFile = new File(filePath);
 				BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(destFile));
 				stream.write(bytes);
 				stream.close();
-				return "You successfully uploaded " + name + " into " + name + "-uploaded !";
+				String finalFileName = "/"+storageFilePath+file.getOriginalFilename();
+				model.addAttribute("filePath",finalFileName);
+				return "You successfully uploaded " + name + " into " + name + "-uploaded ! Here is the link <a href='"+request.getContextPath()+finalFileName+"'> "+file.getOriginalFilename()+"</a>";
 			} catch (Exception e) {
+				e.printStackTrace();
 				return "You failed to upload " + name + " => " + e.getMessage();
 			}
 		} else {
