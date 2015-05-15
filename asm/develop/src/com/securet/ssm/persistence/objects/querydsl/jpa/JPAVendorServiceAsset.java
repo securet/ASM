@@ -20,7 +20,7 @@ public class JPAVendorServiceAsset extends EntityPathBase<VendorServiceAsset> {
 
     private static final long serialVersionUID = -1840136757L;
 
-    private static final PathInits INITS = PathInits.DIRECT2;
+    private static final PathInits INITS = new PathInits("*", "asset.site.*");
 
     public static final JPAVendorServiceAsset vendorServiceAsset = new JPAVendorServiceAsset("vendorServiceAsset");
 

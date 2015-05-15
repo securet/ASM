@@ -166,6 +166,10 @@ $(document).ready(function() {
 	if($("#transferFromUserId").size()>0){
 		initMultiSelect("transferFromUserId");
 		initMultiSelect("transferToUserId");
+		if($("#selectedCircles").size()>0){
+			initMultiSelect("selectedCircles");
+		}
+		
 	}
 	
 });

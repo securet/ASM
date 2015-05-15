@@ -26,9 +26,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.mysema.query.jpa.impl.JPAUpdateClause;
 import com.mysema.query.jpa.sql.JPASQLQuery;
-import com.mysema.query.types.EntityPath;
+import com.mysema.query.sql.SQLSubQuery;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.QBean;
+import com.mysema.query.types.expr.BooleanExpression;
 import com.securet.ssm.persistence.objects.Asset;
 import com.securet.ssm.persistence.objects.SecureTObject;
 import com.securet.ssm.persistence.objects.ServiceType;
@@ -40,7 +41,6 @@ import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLVendorServiceAsset;
 import com.securet.ssm.persistence.views.SimpleAsset;
-import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.SecureTService;
 import com.securet.ssm.services.vo.VendorServiceAsset;
@@ -117,6 +117,8 @@ public class VendorAssetMappingService extends SecureTService{
 	@RequestMapping(value={"/admin/viewVendorAssetMapping","/user/viewVendorAssetMapping"})
 	public String viewVendorAssetMapping(Model model){
 		model.addAttribute("formObject",new VendorServiceAsset());
+		List<SecureTObject> circles = fetchObjects("getMappedCircles");
+		model.addAttribute("circles", circles);
 		makeUIData(entityManager,model,"VendorServiceAsset");
 		return DefaultService.ADMIN+"viewVendorAssetMapping";
 	}
@@ -398,38 +400,61 @@ public class VendorAssetMappingService extends SecureTService{
 
 	@Transactional
 	@RequestMapping("/admin/transferVendorAssetMapping")
-	public String transferVendorAssetMapping(@RequestParam(value="transferFromUserId",required=false) String transferFromUserId,@RequestParam(value="transferToUserId",required=false) String transferToUserId,@RequestParam(value="serviceTypeId",required=false) String serviceTypeIdStr,Model model){
-		if(!SecureTUtils.isEmpty(transferFromUserId) && !SecureTUtils.isEmpty(transferToUserId) && !SecureTUtils.isEmpty(serviceTypeIdStr)){
-			JPASQLQuery toUserAssets = new JPASQLQuery(entityManager, sqlTemplates);
+	public String transferVendorAssetMapping(@RequestParam(value="transferFromUserId",required=false) String transferFromUserId,@RequestParam(value="transferToUserId",required=false) String transferToUserId,@RequestParam(value="serviceTypeId",required=false) String serviceTypeIdStr,@RequestParam(value="selectedCircles",required=false) List<String> selectedCircles,Model model){
+		if(!SecureTUtils.isEmpty(transferFromUserId) && !SecureTUtils.isEmpty(transferToUserId) && !SecureTUtils.isEmpty(serviceTypeIdStr) && SecureTUtils.isNotEmpty(selectedCircles)){
 
+			//to Users Assets - so that we do not consider them in update to avoid duplicate entry issues 
 			int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
-			List<Integer> fromUserAssetIds =  toUserAssets.from(sqlVendorServiceAsset)
-					.where(sqlVendorServiceAsset.userId.eq(transferToUserId).and(sqlVendorServiceAsset.serviceTypeId.eq(serviceTypeId )))
-					.list(sqlVendorServiceAsset.assetId);
 
+			BooleanExpression updateCondition = vendorServiceAsset.vendorUser.userId.eq(transferFromUserId)
+					.and(vendorServiceAsset.serviceType.serviceTypeId.eq(serviceTypeId));
+					
+			List<Integer> fromUserAssetIds = getVendorUserAssetsByServiceTypeAndCircle(transferFromUserId, serviceTypeId,selectedCircles);
+			updateCondition =  updateCondition.and(vendorServiceAsset.asset.assetId.in(fromUserAssetIds));
+			
 			JPAUpdateClause updateVendorAssets =  new JPAUpdateClause(entityManager,vendorServiceAsset);
 			updateVendorAssets.set(vendorServiceAsset.vendorUser.userId, transferToUserId)
-			.where(vendorServiceAsset.vendorUser.userId.eq(transferFromUserId).and(vendorServiceAsset.asset.assetId.notIn(fromUserAssetIds)).
-					and(vendorServiceAsset.serviceType.serviceTypeId.eq(serviceTypeId))
-			);
+			.where(updateCondition);
 
 			long assetsTransferred = updateVendorAssets.execute();
 			entityManager.flush();
 			model.addAttribute("saved", "Transfered "+assetsTransferred+ " assets from "+ transferFromUserId +" to " + transferToUserId);
 			
 		}else{
-			FieldError error = new FieldError("formObject","transferError", "Please select From, To User and Service Type to initiate transfer");
+			FieldError error = new FieldError("formObject","transferError", "Please select From, To User, Service Type and Circle(s) to initiate transfer");
 			model.addAttribute("transferError", error);
 		}
 		viewVendorAssetMapping(model);
 		return DefaultService.ADMIN+"viewVendorAssetMapping";
 	}
 
+	private List<Integer> getVendorUserAssetsByServiceType(String transferToUserId, int serviceTypeId) {
+		JPASQLQuery toUserAssets = new JPASQLQuery(entityManager, sqlTemplates);
+		toUserAssets.from(sqlVendorServiceAsset);
+		BooleanExpression toUserWhereClause = sqlVendorServiceAsset.userId.eq(transferToUserId).and(sqlVendorServiceAsset.serviceTypeId.eq(serviceTypeId ));
+		toUserAssets.where(toUserWhereClause);
+		List<Integer> toUserAssetIds =	toUserAssets.list(sqlVendorServiceAsset.assetId);
+		return toUserAssetIds;
+	}
+
+	private List<Integer> getVendorUserAssetsByServiceTypeAndCircle(String transferFromUserId, int serviceTypeId,List<String> circles) {
+		JPASQLQuery fromUserAssets = new JPASQLQuery(entityManager, sqlTemplates);
+		fromUserAssets.from(sqlVendorServiceAsset)
+		.innerJoin(sqlAsset).on(sqlVendorServiceAsset.assetId.eq(sqlAsset.assetId))
+		.innerJoin(sqlSite).on(sqlAsset.siteId.eq(sqlSite.siteId));
+		
+		BooleanExpression fromUserWhereClause = sqlVendorServiceAsset.userId.eq(transferFromUserId).and(sqlVendorServiceAsset.serviceTypeId.eq(serviceTypeId ))
+				.and(sqlSite.circle.in(circles));
+		fromUserAssets.where(fromUserWhereClause);
+		
+		List<Integer> fromUserAssetIds =	fromUserAssets.list(sqlVendorServiceAsset.assetId);
+		return fromUserAssetIds;
+	}
+
 	@Transactional
 	@RequestMapping("/user/transferVendorAssetMapping")
 	public String transferVendorAssetMapping(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@RequestParam(value="transferFromUserId",required=false) String transferFromUserId,@RequestParam(value="transferToUserId",required=false) String transferToUserId,@RequestParam(value="serviceTypeId",required=false) String serviceTypeIdStr,Model model){
 		if(!SecureTUtils.isEmpty(transferFromUserId) && !SecureTUtils.isEmpty(transferToUserId) && !SecureTUtils.isEmpty(serviceTypeIdStr)){
-			JPASQLQuery toUserAssets = new JPASQLQuery(entityManager, sqlTemplates);
 
 			int serviceTypeId = Integer.parseInt(serviceTypeIdStr);
 /*			List<Integer> fromUserAssetIds =  toUserAssets.from(sqlVendorServiceAsset)

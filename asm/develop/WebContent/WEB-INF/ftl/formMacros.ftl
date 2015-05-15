@@ -231,3 +231,17 @@
 </div>		
 </#macro>
 
+<#macro formSimpleMultiSelect field options selectedValues attributes="">
+<div class="form-group">
+	<div class="col-sm-9">
+		<div><label class="control-label" for="${field.fieldName}">${field.label}</label></div>
+	    <select multiple="multiple" id="${field.fieldName}" name="${field.fieldName}" ${attributes} class="form-control"  data-default="" >
+	        <#list options?keys as value>
+		        <#assign isSelected = spring.contains(selectedValues?default([""]), value)>
+		        
+		        <option value="${value?html}"<#if isSelected> selected="selected"</#if>>${options[value]?html}</option>
+	        </#list>
+		</select>
+	</div>
+</div>		
+</#macro>

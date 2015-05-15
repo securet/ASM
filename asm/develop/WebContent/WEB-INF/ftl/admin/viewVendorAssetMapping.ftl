@@ -104,8 +104,12 @@
 						<#assign useroptions>{"":"Select Vendor",<#list usersList as uiObject>"${uiObject.userId}":"${uiObject.userId} (${uiObject.fullName})"<#if uiObject_has_next>,</#if></#list>}</#assign>
 					</#if>
 					<@formSimpleSingleSelect field={"fieldName":"transferFromUserId","label":"From Vendor"} selectedValue=transferFromUserId?default("")  options=useroptions?default("{}")?eval  />
-
 					<@formSimpleSingleSelect  field={"fieldName":"serviceTypeId","label":"Select Service Type"} selectedValue=serviceTypeId?default("") options=serviceoptions?default("{}")?eval />
+
+					<#if circles?exists && (circles?size>0) >
+						<#assign circleoptions>{<#list circles as uiObject>"${uiObject.geoId}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+					</#if>
+					<@formSimpleMultiSelect  field={"fieldName":"selectedCircles","label":"Select Circles"}  selectedValues=selectedCircles?default(['']) options=circleoptions?default("{}")?eval />
 
 					<@formSimpleSingleSelect field={"fieldName":"transferToUserId","label":"To Vendor"} selectedValue=transferToUserId?default("") options=useroptions?default("{}")?eval />
 		      		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />

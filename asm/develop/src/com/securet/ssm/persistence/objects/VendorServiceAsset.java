@@ -9,6 +9,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import com.mysema.query.annotations.QueryInit;
+
 @Entity
 @Table(name="vendor_service_asset")
 @NamedQueries({
@@ -32,6 +34,7 @@ public class VendorServiceAsset extends SecureTObject{
 	@Id
 	@ManyToOne
 	@JoinColumn(name="assetId",referencedColumnName="assetId")
+	@QueryInit("site.*")
 	private Asset asset;
 
 	public User getVendorUser() {
