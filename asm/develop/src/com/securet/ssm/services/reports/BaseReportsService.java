@@ -45,6 +45,8 @@ import com.securet.ssm.utils.SecureTUtils;
 
 public class BaseReportsService extends SecureTService {
 
+	private static final Logger _logger = LoggerFactory.getLogger(BaseReportsService.class);
+	
 	Path<Long> countOfTickets = new SimplePath<Long>(Long.class, "countOfTickets");
 
 	SQLTicket sqlTicket = SQLTicket.ticket;
@@ -73,7 +75,6 @@ public class BaseReportsService extends SecureTService {
 	JPATicketArchive jpaTicketArchiveResolvedRelated = new JPATicketArchive("tarRelated");;
 	JPAEnumeration jpaStatus=new JPAEnumeration("status");
 
-	private static final Logger _logger = LoggerFactory.getLogger(BaseReportsService.class);
 	
 	public TicketStatusSummary getTicketCountByStatus(DashboardFilter dashboardFilter){
 		//expression for subquery resultset

@@ -35,6 +35,7 @@ import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
 import com.securet.ssm.persistence.views.aggregates.TicketStatusSummary;
 import com.securet.ssm.services.ActionHelpers;
 import com.securet.ssm.services.DefaultService;
+import com.securet.ssm.services.ticket.BaseTicketService;
 import com.securet.ssm.services.vo.DashboardFilter;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
@@ -98,15 +99,30 @@ public class ReportsService extends BaseReportsService {
 	@RequestMapping(value={"/reports/vendorUserTicketCount"})
 	public @ResponseBody ListObjects vendorUserTicketCount(@ModelAttribute DashboardFilter dashboardFilter, BindingResult result,Model model){
 		Map<String, JPASQLQuery> jpaQueriesToRun = prepareTicketsCountByField(dashboardFilter,sqlTicket.resolverUserId);
+		
+		//also add the ticket type and status filter.. 
+		JPASQLQuery dataQuery = jpaQueriesToRun.get(DataTableCriteria.DATA_QUERY);
+		
+		addVendorUserTicketCountFilters(dataQuery);
+
+		JPASQLQuery countQuery = jpaQueriesToRun.get(DataTableCriteria.COUNT_QUERY);
+		addVendorUserTicketCountFilters(countQuery);
+
 		ArrayConstructorExpression resultSetExpr = vendorTicketCountExpr();
 		return ActionHelpers.listSimpleObjectFromQueryDSL(dashboardFilter, jpaQueriesToRun, resultSetExpr, sqlTicket.resolverUserId.countDistinct());
+	}
+
+	private void addVendorUserTicketCountFilters(JPASQLQuery dataQuery) {
+		List<String> validStatus = new ArrayList<String>();
+		validStatus.add(BaseTicketService.OPEN);
+		validStatus.add(BaseTicketService.WORK_IN_PROGRESS);
+		dataQuery.where(sqlTicket.ticketType.ne(BaseTicketService.LOG).and(sqlTicket.statusId.in(validStatus)));
 	}
 
 	private Map<String, JPASQLQuery> prepareTicketsCountByField(DashboardFilter dashboardFilter, Expression<?> groupField) {
 		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>(); 
 		JPASQLQuery dataQuery = makeTicketFilterQuery(dashboardFilter); //ticketDashboardQuery(dashboardFilter);
 		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, dataQuery);
-		System.out.println("");
 		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, dataQuery.clone());
 		if(dashboardFilter!=null && dashboardFilter.getOrder()!=null && dashboardFilter.getOrder().size()>0){
 			dashboardFilter.makeOrderByExpression(dashboardFilter, dataQuery,fieldExprMapping);
@@ -176,6 +192,9 @@ public class ReportsService extends BaseReportsService {
 		if(dashboardFilter.getDashboardStartDate()!=null && dashboardFilter.getDashboardEndDate()!=null){
 			Map<String, JPASQLQuery> jpaQueriesToRun  = prepareTicketsCountByField(dashboardFilter, sqlTicket.resolverUserId);
 			JPASQLQuery query =  jpaQueriesToRun.get(DataTableCriteria.DATA_QUERY);
+			//also add the ticket type and status filter.. 
+			addVendorUserTicketCountFilters(query);
+
 			List<Object[]> ticketSummary = query.list(vendorTicketCountExpr());
 
 			List<String> vendorFieldNames = new ArrayList<String>();
