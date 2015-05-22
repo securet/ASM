@@ -189,9 +189,11 @@ public class BaseTicketService extends SecureTService{
 		ticketQuery.where(whereExpression);
 		Map<Expression<?>, ?> result = ticketQuery.uniqueResult(jpaTicketBeanExpr);
 		Ticket ticket = (Ticket) result.get(jpaTicket);
-		ticket.setTat((Integer) result.get(tatExpr));
-		ticket.setActualTat((Integer) result.get(actualTATExpr));
-		ticket.setStopClock((Integer) result.get(stopClockExpr));
+		if(ticket!=null){
+			ticket.setTat((Integer) result.get(tatExpr));
+			ticket.setActualTat((Integer) result.get(actualTATExpr));
+			ticket.setStopClock((Integer) result.get(stopClockExpr));
+		}
 		return ticket;
 	}
 

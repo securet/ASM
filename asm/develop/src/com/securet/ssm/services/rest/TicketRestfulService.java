@@ -30,11 +30,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
+import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.views.SimpleSite;
+import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.persistence.views.SimpleTicketArchive;
-import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.ticket.BaseTicketService;
-import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.services.vo.TicketFilter;
 
@@ -127,6 +128,26 @@ public class TicketRestfulService extends BaseTicketService{
 		ListObjects  userTickets = null;
 		if(user!=null){
 			userTickets = listUserTicketsByTicketFilter(ticketFilter, user, false);
+
+			if(userTickets!=null){
+				ListObjects listObjects = (ListObjects)userTickets;
+				List tickets = (List)listObjects.getData();
+				//TODO - no tickets, workaround to ensure app does not crash
+				if(tickets.size()==0){
+					SimpleTicket emptyTicket = new SimpleTicket();
+					emptyTicket.setTicketId("No Tickets for the filter!");
+					emptyTicket.setStatusId("");
+					SimpleSite simpleSite = new SimpleSite();
+					simpleSite.setSiteId(0);
+					simpleSite.setName("");
+					emptyTicket.setSite(simpleSite);
+					emptyTicket.setStatusId("");
+					ServiceType serviceType = new ServiceType();
+					serviceType.setName("");
+					emptyTicket.setServiceType(serviceType);
+					tickets.add(emptyTicket);
+				}
+			}
 			ObjectMapper mapper = new ObjectMapper();
 			//Object t = mapper.convertValue(userTickets.getData(), Ticket.class);
 //			userTickets.setColumnsNames(columnNames);
