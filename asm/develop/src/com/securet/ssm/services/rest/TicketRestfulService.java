@@ -133,7 +133,7 @@ public class TicketRestfulService extends BaseTicketService{
 				ListObjects listObjects = (ListObjects)userTickets;
 				List tickets = (List)listObjects.getData();
 				//TODO - no tickets, workaround to ensure app does not crash
-				if(tickets.size()==0){
+				if(tickets.size()==0 && ticketFilter.getStart()==0){
 					SimpleTicket emptyTicket = new SimpleTicket();
 					emptyTicket.setTicketId("No Tickets for the filter!");
 					emptyTicket.setStatusId("");
