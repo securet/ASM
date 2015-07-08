@@ -16,6 +16,8 @@ buildscript {
 		projectSourceDirs = 'develop/src/main'
 		generatedSourcesDir = "develop/src/generated"
 		buildOutputDir='develop/build/classes'
+		deployBackup = 'deploy/backup'
+		deployExcludeList = ["assets/ssmuploads","uploads"];
 
 		deploymentDir="deploy/asm"	
 		//projectWebappDir = 
@@ -100,6 +102,34 @@ task generateQueryDSLJPA( group: 'build', description: 'Generate QueryDSL') {
 }  
 */
 
+def deleteDirWithExclusions(dirPath, exclusions){
+    def dirsToDel = []
+    fileTree (dir: dirPath).visit { def fileVisitDetails ->
+        def file = fileVisitDetails.file;
+        def relativePath = fileVisitDetails.relativePath.toString();
+        if (file.isDirectory()) {
+        	def exclude = false;
+        	exclusions.any{
+        		exclusion ->  exclude = relativePath.startsWith(exclusion);
+        		//also ensure parent path is not deleted too...
+        		def parentPath = exclusion;
+        		if(!exclude && exclusion.lastIndexOf("/")!=-1){
+        			 parentPath = exclusion.substring(0,exclusion.lastIndexOf("/"));
+        			 exclude = relativePath.equals(parentPath)
+        		}
+	            if(exclude){
+	            	return true;// if there is match .. try the next file path
+	            }
+        	}
+        	if(!exclude){
+        		dirsToDel << file;
+        	}
+        }
+    }    
+    dirsToDel.each { 
+    	dir -> delete dir; 
+    }
+}
 
 task generateQueryDSLSQL( group: 'build', description: 'Generates the QueryDSL SQL query types') {
     // Load MySQL Driver
@@ -155,11 +185,31 @@ war {
 }
 */
 
-task explodedWar(type: Copy) {
-	delete deploymentDir 
+task backupDeployExclusionDir(description: 'backup contents in the dir') {
+	deployExcludeList.each{
+		excludeDir ->
+		def copyFromDir = "deploy/asm/"+excludeDir
+		copy{
+			from copyFromDir
+			logger.quiet("Backup exclude dir: "+copyFromDir);
+			into deployBackup+"/"+excludeDir
+		}
+	}
+	logger.quiet("Back up taken for "+ deployExcludeList + " in deploy/asm to "+ deployBackup)
+}
+
+task deleteDeployDir(description: 'Delete contents in the dir') {
+	backupDeployExclusionDir
+	deleteDirWithExclusions(deploymentDir,deployExcludeList)
+}
+
+task explodedWar(type: Copy, description: 'Explode the war generated and copy to deploy dir') {
     into deploymentDir     
     with war 
 }
+
+deleteDeployDir.dependsOn backupDeployExclusionDir
+explodedWar.shouldRunAfter deleteDeployDir 
 explodedWar.shouldRunAfter war
 war.dependsOn explodedWar
 
