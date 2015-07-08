@@ -131,7 +131,7 @@ $(document).ready(function() {
 	if ($("input[name='logoFile']").size() > 0) {
 		var imagePath = $("input[name='logoFile']").attr("value");
 		if (imagePath != "") {
-			$("#logo .file-preview").show();
+			$("#logoWrap .file-preview").show();
 			if (typeof imagePath != 'undefined' && imagePath != "") {
 				$(".file-preview-thumbnails").append(logoPreviewTemplate.render({
 					path : imagePath
