@@ -202,11 +202,11 @@ public class BaseReportsService extends SecureTService {
 		
 		query.innerJoin(sqlSite).on(sqlTicket.siteId.eq(sqlSite.siteId))
 		.innerJoin(sqlServiceType).on(sqlTicket.serviceTypeId.eq(sqlServiceType.serviceTypeId))
-		.innerJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId))
 		.innerJoin(sqlStatus).on(sqlTicket.statusId.eq(sqlStatus.enumerationId))
-		.innerJoin(sqlSeverity).on(sqlTicket.severity.eq(sqlSeverity.enumerationId))
 		.innerJoin(sqlClientUserSite).on(sqlTicket.siteId.eq(sqlClientUserSite.siteId))
-		.innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId));
+		.innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId))
+		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId))
+		.leftJoin(sqlSeverity).on(sqlTicket.severity.eq(sqlSeverity.enumerationId));
 		
 		ArrayConstructorExpression resultSetExpr = ticketReportSummaryFields();
 
