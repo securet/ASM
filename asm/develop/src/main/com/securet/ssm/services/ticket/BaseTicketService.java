@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.sql.DatePart;
 import com.mysema.query.sql.SQLExpressions;
+import com.mysema.query.support.Expressions;
 import com.mysema.query.types.Expression;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.QBean;
@@ -177,10 +178,10 @@ public class BaseTicketService extends SecureTService{
 			//consider admin as the client as of now
 			ticketQuery.where(clientUserTicketFilter(customUser));
 		}
-		leftJoinTicketArchiveForTAT(ticketQuery);
+		leftJoinTicketArchiveForTAT(ticketQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
 
-		NumberExpression<Integer> tatExpr = ticketTATExpr();
-		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		NumberExpression<Integer> tatExpr = ticketTATExpr(sqlTicket);
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr(sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated, sqlTicket, sqlClientUserSite);
 		
 		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat");
 		stopClockExpr = stopClockExpr.as("stopClock");
@@ -261,7 +262,7 @@ public class BaseTicketService extends SecureTService{
 		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
 		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
 		//also add the archive tables to find tat... 
-		leftJoinTicketArchiveForTAT(jpaSQLQuery);
+		leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
 		
 		BooleanExpression whereExpression = null;
 		if(filterStatus!=null && !filterStatus.isEmpty()){
@@ -302,7 +303,7 @@ public class BaseTicketService extends SecureTService{
 		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
 		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
 		//also add the archive tables to find tat... 
-		leftJoinTicketArchiveForTAT(jpaSQLQuery);
+		leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
 		
 		BooleanExpression whereExpression = null;
 		if(ticketFilter.getStatusFilter()!=null && !ticketFilter.getStatusFilter().isEmpty()){
@@ -354,7 +355,7 @@ public class BaseTicketService extends SecureTService{
 		return sqlTicket.ticketType.ne(LOG).and(sqlVendorServiceAsset.userId.endsWith(customUser.getUsername()));
 	}
 
-	private void leftJoinTicketArchiveForTAT(JPASQLQuery jpaSQLQuery) {
+	public static void leftJoinTicketArchiveForTAT(JPASQLQuery jpaSQLQuery,SQLTicket sqlTicket,SQLTicketArchive sqlTicketArchiveResolved,SQLTicketArchive sqlTicketArchiveResolvedRelated) {
 		jpaSQLQuery.leftJoin(sqlTicketArchiveResolved).on(sqlTicket.ticketId.eq(sqlTicketArchiveResolved.ticketId).and(sqlTicketArchiveResolved.statusId.eq(RESOLVED)))
 		.leftJoin(sqlTicketArchiveResolvedRelated).on(sqlTicketArchiveResolved.ticketId.eq(sqlTicketArchiveResolvedRelated.ticketId).and(sqlTicketArchiveResolved.ticketArchiveId.eq(sqlTicketArchiveResolvedRelated.relatedArchiveId)));
 	}
@@ -364,8 +365,8 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	private QBean<Ticket> jpaTicketBeanExpr() {
-		NumberExpression<Integer> tatExpr = ticketTATExpr();
-		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		NumberExpression<Integer> tatExpr = ticketTATExpr(sqlTicket);
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr(sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated, sqlTicket, sqlClientUserSite);
 		
 		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat").as("actualTat");
 		stopClockExpr = stopClockExpr.as("stopClock").as("stopClock");
@@ -376,8 +377,8 @@ public class BaseTicketService extends SecureTService{
 
 	private QBean<SimpleTicket> simpleTicketBeanExpression() {
 
-		NumberExpression<Integer> tatExpr = ticketTATExpr();
-		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr();
+		NumberExpression<Integer> tatExpr = ticketTATExpr(sqlTicket);
+		NumberExpression<Integer> stopClockExpr = ticketStopClockExpr(sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated, sqlTicket, sqlClientUserSite);
 		
 		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat").as("actualTat");
 		stopClockExpr = stopClockExpr.as("stopClock").as("stopClock");
@@ -394,15 +395,15 @@ public class BaseTicketService extends SecureTService{
 		return resultListExpression;
 	}
 
-	private NumberExpression<Integer> ticketStopClockExpr() {
+	public static NumberExpression<Integer> ticketStopClockExpr(SQLTicketArchive sqlTicketArchiveResolved,SQLTicketArchive sqlTicketArchiveResolvedRelated,SQLTicket sqlTicket,SQLClientUserSite sqlClientUserSite) {
 		Coalesce<Timestamp> clockEndTsExpr = (Coalesce<Timestamp>)sqlTicketArchiveResolvedRelated.lastUpdatedTimestamp.coalesce(sqlTicket.lastUpdatedTimestamp);
 
 		NumberExpression<Integer> stopClockExpr = SQLExpressions.datediff(DatePart.second, sqlTicketArchiveResolved.lastUpdatedTimestamp, clockEndTsExpr.asDateTime());
-		stopClockExpr = stopClockExpr.coalesce(0).asNumber().sum().divide(sqlClientUserSite.userId.countDistinct()).intValue();
+		stopClockExpr = new CaseBuilder().when(sqlTicketArchiveResolvedRelated.lastUpdatedTimestamp.isNotNull()).then(stopClockExpr.coalesce(0).asNumber().sum().divide(sqlClientUserSite.userId.countDistinct()).intValue()).otherwise(Expressions.constant(0));
 		return stopClockExpr;
 	}
 
-	private NumberExpression<Integer> ticketTATExpr() {
+	public static NumberExpression<Integer> ticketTATExpr(SQLTicket sqlTicket) {
 		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentTimestamp(Timestamp.class));
 		NumberExpression<Integer> tatExpr = SQLExpressions.datediff(DatePart.second,sqlTicket.createdTimestamp,closeTimeExpr);
 		return tatExpr;

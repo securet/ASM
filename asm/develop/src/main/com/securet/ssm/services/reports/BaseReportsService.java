@@ -14,6 +14,7 @@ import com.mysema.query.types.Path;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.expr.NumberExpression;
 import com.mysema.query.types.expr.SimpleExpression;
 import com.mysema.query.types.path.SimplePath;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAClientUserSite;
@@ -207,6 +208,9 @@ public class BaseReportsService extends SecureTService {
 		.innerJoin(sqlModule).on(sqlSite.moduleId.eq(sqlModule.moduleId))
 		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId))
 		.leftJoin(sqlSeverity).on(sqlTicket.severity.eq(sqlSeverity.enumerationId));
+
+		//also add the archive tables to find tat... 
+		BaseTicketService.leftJoinTicketArchiveForTAT(query, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
 		
 		ArrayConstructorExpression resultSetExpr = ticketReportSummaryFields();
 
@@ -217,12 +221,18 @@ public class BaseReportsService extends SecureTService {
 
 	@SuppressWarnings(value={"rawtypes","unchecked"})
 	protected ArrayConstructorExpression ticketReportSummaryFields() {
+		NumberExpression<Integer> tatExpr = BaseTicketService.ticketTATExpr(sqlTicket);
+		NumberExpression<Integer> stopClockExpr = BaseTicketService.ticketStopClockExpr(sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated, sqlTicket, sqlClientUserSite);
+		
+		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat");
+		stopClockExpr = stopClockExpr.as("stopClock");
+
 		ArrayConstructorExpression resultSetExpr = Projections.array(Object[].class, (SimpleExpression)sqlTicket.ticketId,(SimpleExpression)sqlSite.name.as("siteName"),
 				(SimpleExpression)sqlTicket.reporterUserId,(SimpleExpression)sqlServiceType.name.as("serviceType"),(SimpleExpression)sqlIssueType.name.as("issueType"),
 				(SimpleExpression)sqlTicket.resolverUserId,(SimpleExpression)sqlStatus.enumDescription.as("status"),(SimpleExpression)sqlTicket.description,
 				(SimpleExpression)sqlTicket.createdTimestamp,(SimpleExpression)sqlTicket.lastUpdatedTimestamp,(SimpleExpression)sqlSeverity.enumDescription.as("severity"),
 				(SimpleExpression)sqlSite.city,(SimpleExpression)sqlModule.name.as("module"),(SimpleExpression)sqlSite.circle,
-				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude);
+				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude,(SimpleExpression)actualTATExpr);
 		return resultSetExpr;
 	}
 

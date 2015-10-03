@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.types.ArrayConstructorExpression;
@@ -40,6 +42,8 @@ import com.securet.ssm.services.vo.DashboardFilter;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.utils.SecureTUtils;
+
+import freemarker.ext.beans.BeansWrapper;
 
 @Controller
 @Repository
@@ -68,11 +72,23 @@ public class ReportsService extends BaseReportsService {
 		DOWNLOAD_REPORT_FIELDS.add("Circle");
 		DOWNLOAD_REPORT_FIELDS.add("Latitude");
 		DOWNLOAD_REPORT_FIELDS.add("Longitude");
+		DOWNLOAD_REPORT_FIELDS.add("TAT");
 
 		fieldExprMapping.put("reporterUserId", SQLTicket.ticket.resolverUserId);
 		fieldExprMapping.put("reporterUserId", SQLTicket.ticket.reporterUserId);
 	}
-	
+
+	@Autowired
+	private FreeMarkerConfigurer freemarkerConfig;
+
+	public FreeMarkerConfigurer getFreemarkerConfig() {
+		return freemarkerConfig;
+	}
+
+	public void setFreemarkerConfig(FreeMarkerConfigurer freemarkerConfig) {
+		this.freemarkerConfig = freemarkerConfig;
+	}
+
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value={"/reports","/reports/","/reports/dashboard"},method = { RequestMethod.GET, RequestMethod.POST })
 	public String dashboard(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter,BindingResult result,Model model){
@@ -159,7 +175,8 @@ public class ReportsService extends BaseReportsService {
 	@RequestMapping(value="/reports/getTicketsByTimePeriod")
 	public String getTicketsByTimePeriod(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter, Model model, HttpServletResponse response){
 		if(dashboardFilter.getDashboardStartDate()!=null && dashboardFilter.getDashboardEndDate()!=null){
-
+			SecureTUtils.addFTLStaticModelToModelAttribute(freemarkerConfig, model);
+			
 			List<Object[]> ticketSummary = ticketReportSummary(dashboardFilter);
 
 			SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/YYYY");
@@ -190,6 +207,7 @@ public class ReportsService extends BaseReportsService {
 	@RequestMapping(value="/reports/downloadVendorUserTicketCount")
 	public String downloadVendorUserTicketCount(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter, Model model, HttpServletResponse response){
 		if(dashboardFilter.getDashboardStartDate()!=null && dashboardFilter.getDashboardEndDate()!=null){
+			SecureTUtils.addFTLStaticModelToModelAttribute(freemarkerConfig, model);
 			Map<String, JPASQLQuery> jpaQueriesToRun  = prepareTicketsCountByField(dashboardFilter, sqlTicket.resolverUserId);
 			JPASQLQuery query =  jpaQueriesToRun.get(DataTableCriteria.DATA_QUERY);
 			//also add the ticket type and status filter.. 
@@ -209,6 +227,7 @@ public class ReportsService extends BaseReportsService {
 	@RequestMapping(value="/reports/downloadClientUserTicketCount")
 	public String downloadClientUserTicketCount(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter, Model model, HttpServletResponse response){
 		if(dashboardFilter.getDashboardStartDate()!=null && dashboardFilter.getDashboardEndDate()!=null){
+			SecureTUtils.addFTLStaticModelToModelAttribute(freemarkerConfig, model);
 			Map<String, JPASQLQuery> jpaQueriesToRun  = prepareTicketsCountByField(dashboardFilter, sqlTicket.reporterUserId);
 			JPASQLQuery query =  jpaQueriesToRun.get(DataTableCriteria.DATA_QUERY);
 			
