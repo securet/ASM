@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.sql.SQLSubQuery;
+import com.mysema.query.support.Expressions;
 import com.mysema.query.types.ArrayConstructorExpression;
 import com.mysema.query.types.Path;
 import com.mysema.query.types.Predicate;
@@ -225,6 +226,7 @@ public class BaseReportsService extends SecureTService {
 		NumberExpression<Integer> stopClockExpr = BaseTicketService.ticketStopClockExpr(sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated, sqlTicket, sqlClientUserSite);
 		
 		NumberExpression<Integer> actualTATExpr = tatExpr.subtract(stopClockExpr).as("actualTat");
+		NumberExpression<Integer> actualTATInHrsExpr = tatExpr.subtract(stopClockExpr).divide(Expressions.constant(60*60));
 		stopClockExpr = stopClockExpr.as("stopClock");
 
 		ArrayConstructorExpression resultSetExpr = Projections.array(Object[].class, (SimpleExpression)sqlTicket.ticketId,(SimpleExpression)sqlSite.name.as("siteName"),
@@ -232,7 +234,7 @@ public class BaseReportsService extends SecureTService {
 				(SimpleExpression)sqlTicket.resolverUserId,(SimpleExpression)sqlStatus.enumDescription.as("status"),(SimpleExpression)sqlTicket.description,
 				(SimpleExpression)sqlTicket.createdTimestamp,(SimpleExpression)sqlTicket.lastUpdatedTimestamp,(SimpleExpression)sqlSeverity.enumDescription.as("severity"),
 				(SimpleExpression)sqlSite.city,(SimpleExpression)sqlModule.name.as("module"),(SimpleExpression)sqlSite.circle,
-				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude,(SimpleExpression)actualTATExpr);
+				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude,(SimpleExpression)actualTATInHrsExpr,(SimpleExpression)actualTATExpr);
 		return resultSetExpr;
 	}
 

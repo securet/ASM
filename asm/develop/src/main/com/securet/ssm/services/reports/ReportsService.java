@@ -72,6 +72,7 @@ public class ReportsService extends BaseReportsService {
 		DOWNLOAD_REPORT_FIELDS.add("Circle");
 		DOWNLOAD_REPORT_FIELDS.add("Latitude");
 		DOWNLOAD_REPORT_FIELDS.add("Longitude");
+		DOWNLOAD_REPORT_FIELDS.add("TAT in Hrs");
 		DOWNLOAD_REPORT_FIELDS.add("TAT");
 
 		fieldExprMapping.put("reporterUserId", SQLTicket.ticket.resolverUserId);
