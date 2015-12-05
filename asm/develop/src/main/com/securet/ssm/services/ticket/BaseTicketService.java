@@ -84,7 +84,7 @@ public class BaseTicketService extends SecureTService{
 
 		fieldExprMapping.put("ticketId",SQLTicket.ticket.ticketId);
 		fieldExprMapping.put("shortDesc",SQLTicket.ticket.shortDesc);
-		fieldExprMapping.put("statusId",SQLEnumeration.enumeration.enumerationId.as("statusId"));
+		fieldExprMapping.put("statusId",SQLTicket.ticket.statusId);
 		fieldExprMapping.put("ticketType",SQLTicket.ticket.ticketType);
 		fieldExprMapping.put("site.name",SQLSite.site.name);
 		fieldExprMapping.put("site.circle",SQLSite.site.circle);
@@ -208,10 +208,13 @@ public class BaseTicketService extends SecureTService{
 		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
 		listTicketsQuery.groupBy(sqlTicket.ticketId);
 
-		addTicketFilterExpression(ticketFilter, listTicketsQuery);
+		addTicketFilterOrderByExpression(ticketFilter, listTicketsQuery);
 
 		int startBeforeFilter = ticketFilter.getStart();
-		filterBySpecificTicketsWithFilter(listTicketsQuery,ticketFilter,customUser,null);
+		//when we need to sort on actualTat - we do not need to run the optimal query
+		if(!DataTableCriteria.hasOrderByField(ticketFilter, "actualTat")){
+			filterBySpecificTicketsWithFilter(listTicketsQuery,ticketFilter,customUser,null);
+		}
 		
 		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
 		
@@ -224,7 +227,7 @@ public class BaseTicketService extends SecureTService{
 		return tickets;
 	}
 
-	private void addTicketFilterExpression(DataTableCriteria ticketFilter, JPASQLQuery listTicketsQuery) {
+	private void addTicketFilterOrderByExpression(DataTableCriteria ticketFilter, JPASQLQuery listTicketsQuery) {
 		if(ticketFilter.getOrder()!=null && ticketFilter.getOrder().size()>0){
 			ticketFilter.makeOrderByExpression(ticketFilter, listTicketsQuery,fieldExprMapping);
     	}else{
@@ -237,7 +240,7 @@ public class BaseTicketService extends SecureTService{
 		//so first fetch the ticketId to sent in response and then make the final expression with TAT
 		JPASQLQuery ticketIdsToFilter =  simpleTicketQuery(customUser, ticketFilter,filterStatus,false);
 		ActionHelpers.setQueryLimitOptions(ticketFilter, ticketIdsToFilter);
-		addTicketFilterExpression(ticketFilter, ticketIdsToFilter);
+		addTicketFilterOrderByExpression(ticketFilter, ticketIdsToFilter);
 		List<String> ticketIds = ticketIdsToFilter.list(SQLTicket.ticket.ticketId);
 		if(SecureTUtils.isNotEmpty(ticketIds)){
 			//add the filter to list query.. to filter
@@ -252,7 +255,7 @@ public class BaseTicketService extends SecureTService{
 		//so first fetch the ticketId to sent in response and then make the final expression with TAT
 		JPASQLQuery ticketIdsToFilter =  simpleTicketQueryByFilter(customUser, ticketFilter,false);
 		ActionHelpers.setQueryLimitOptions(ticketFilter, ticketIdsToFilter);
-		addTicketFilterExpression(ticketFilter, ticketIdsToFilter);
+		addTicketFilterOrderByExpression(ticketFilter, ticketIdsToFilter);
 		List<String> ticketIds = ticketIdsToFilter.list(SQLTicket.ticket.ticketId);
 		if(SecureTUtils.isNotEmpty(ticketIds)){
 			//add the filter to list query.. to filter
@@ -270,9 +273,12 @@ public class BaseTicketService extends SecureTService{
 		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
 		listTicketsQuery.groupBy(sqlTicket.ticketId);
 
-		addTicketFilterExpression(columns, listTicketsQuery);
+		addTicketFilterOrderByExpression(columns, listTicketsQuery);
 		int startBeforeFilter = columns.getStart();
-		filterBySpecificTickets(listTicketsQuery,columns,customUser,filterStatus);
+		//when we need to sort on actualTat - we do not need to run the optimal query
+		if(!DataTableCriteria.hasOrderByField(columns, "actualTat")){
+			filterBySpecificTickets(listTicketsQuery,columns,customUser,filterStatus);
+		}
 
 		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
 		

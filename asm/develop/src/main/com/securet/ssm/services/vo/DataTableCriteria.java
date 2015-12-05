@@ -219,6 +219,29 @@ public class DataTableCriteria implements Serializable{
 		return columns;
 	}
 
+	public static boolean hasOrderByField(DataTableCriteria columns,String columnName){
+		for(Map<OrderCriterias, String> orderByField :columns.getOrder()){
+			String indexStr = orderByField.get(OrderCriterias.column);
+			try{
+				int index = Integer.valueOf(indexStr);
+				Map<ColumnCriterias,String> columnCriteria = columns.getColumns().get(index);
+				if(columnCriteria!=null){
+					String fieldName=columnCriteria.get(ColumnCriterias.data);
+					try{
+						Integer.parseInt(fieldName);
+						//if fieldName is a number.. try looking up on name...
+						fieldName=columnCriteria.get(ColumnCriterias.name);
+					}catch(Exception e){
+						//if it is not a number continue.. 
+					}
+					return columnName.equals(fieldName);
+				}
+			}catch(NumberFormatException e){
+				_logger.error("could not format index: "+indexStr,e);
+			}
+		}
+		return false;
+	}
 	public void makeOrderByExpression(DataTableCriteria columns, JPASQLQuery listTicketsQuery, Map<String, Expression> fieldExprMapping) {
 		for(Map<OrderCriterias, String> orderByField :columns.getOrder()){
 			String indexStr = orderByField.get(OrderCriterias.column);
@@ -286,7 +309,7 @@ public class DataTableCriteria implements Serializable{
 		
 		List<Map<OrderCriterias, String>>  orderDefs = new ArrayList<Map<OrderCriterias,String>>();
 		
-		Map<OrderCriterias, String> orderBy = makeOrderBy("1", "desc");
+		Map<OrderCriterias, String> orderBy = makeOrderBy("2", "desc");
 
 		orderDefs.add(orderBy);
 		
@@ -296,6 +319,7 @@ public class DataTableCriteria implements Serializable{
 		dataTableCriteria.setOrder(orderDefs);
 		
 		System.out.println(makeSimpleQueriesFromCriteria("Organization", dataTableCriteria,DB_OR));
+		System.out.println(hasOrderByField(dataTableCriteria, "name"));
 		
 	}
 }
