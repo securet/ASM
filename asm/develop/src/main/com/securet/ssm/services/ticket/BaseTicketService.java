@@ -201,54 +201,98 @@ public class BaseTicketService extends SecureTService{
 	public ListObjects listUserTicketsDSL(TicketFilter ticketFilter, org.springframework.security.core.userdetails.User customUser) {
 
 		JPASQLQuery listTicketsQuery = simpleTicketQueryByFilter(customUser, ticketFilter);
-		JPASQLQuery countTicketsQuery  = listTicketsQuery.clone();
+		JPASQLQuery countTicketsQuery  = simpleTicketQueryByFilter(customUser, ticketFilter,false);
+		
 		
 		QBean<SimpleTicket> resultListExpression = simpleTicketBeanExpression();
 		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
 		listTicketsQuery.groupBy(sqlTicket.ticketId);
 
+		addTicketFilterExpression(ticketFilter, listTicketsQuery);
+
+		int startBeforeFilter = ticketFilter.getStart();
+		filterBySpecificTicketsWithFilter(listTicketsQuery,ticketFilter,customUser,null);
+		
+		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
+		
+		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countTicketsQuery);
+
+		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
+		ListObjects tickets =  ActionHelpers.listSimpleObjectFromQueryDSL(ticketFilter, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+		//set the start back after the response.. so the UI can send correct index
+		ticketFilter.setStart(startBeforeFilter);
+		return tickets;
+	}
+
+	private void addTicketFilterExpression(DataTableCriteria ticketFilter, JPASQLQuery listTicketsQuery) {
 		if(ticketFilter.getOrder()!=null && ticketFilter.getOrder().size()>0){
 			ticketFilter.makeOrderByExpression(ticketFilter, listTicketsQuery,fieldExprMapping);
     	}else{
     		listTicketsQuery.orderBy(sqlTicket.lastUpdatedTimestamp.desc());
     	}
+	}
 
-		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
-		
-		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countTicketsQuery);
-
-		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
-		return ActionHelpers.listSimpleObjectFromQueryDSL(ticketFilter, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+	private void filterBySpecificTickets(JPASQLQuery listTicketsQuery,DataTableCriteria ticketFilter, org.springframework.security.core.userdetails.User customUser, String filterStatus) {
+		//seeing that the TAT can be calculated only on the tickets to sent in response... 
+		//so first fetch the ticketId to sent in response and then make the final expression with TAT
+		JPASQLQuery ticketIdsToFilter =  simpleTicketQuery(customUser, ticketFilter,filterStatus,false);
+		ActionHelpers.setQueryLimitOptions(ticketFilter, ticketIdsToFilter);
+		addTicketFilterExpression(ticketFilter, ticketIdsToFilter);
+		List<String> ticketIds = ticketIdsToFilter.list(SQLTicket.ticket.ticketId);
+		if(SecureTUtils.isNotEmpty(ticketIds)){
+			//add the filter to list query.. to filter
+			listTicketsQuery.where(SQLTicket.ticket.ticketId.in(ticketIds));
+			//now reset the column start as we will fetch only relevant tickets 
+			ticketFilter.setStart(0);
+		}
 	}
 	
+	private void filterBySpecificTicketsWithFilter(JPASQLQuery listTicketsQuery,TicketFilter ticketFilter, org.springframework.security.core.userdetails.User customUser, String filterStatus) {
+		//seeing that the TAT can be calculated only on the tickets to sent in response... 
+		//so first fetch the ticketId to sent in response and then make the final expression with TAT
+		JPASQLQuery ticketIdsToFilter =  simpleTicketQueryByFilter(customUser, ticketFilter,false);
+		ActionHelpers.setQueryLimitOptions(ticketFilter, ticketIdsToFilter);
+		addTicketFilterExpression(ticketFilter, ticketIdsToFilter);
+		List<String> ticketIds = ticketIdsToFilter.list(SQLTicket.ticket.ticketId);
+		if(SecureTUtils.isNotEmpty(ticketIds)){
+			//add the filter to list query.. to filter
+			listTicketsQuery.where(SQLTicket.ticket.ticketId.in(ticketIds));
+			//now reset the column start as we will fetch only relevant tickets 
+			ticketFilter.setStart(0);
+		}
+	}
 	public ListObjects listUserTicketsDSL(DataTableCriteria columns, String filterStatus, org.springframework.security.core.userdetails.User customUser) {
 
 		JPASQLQuery listTicketsQuery = simpleTicketQuery(customUser, columns,filterStatus);
-		JPASQLQuery countTicketsQuery  = listTicketsQuery.clone();
+		JPASQLQuery countTicketsQuery  = simpleTicketQuery(customUser, columns,filterStatus,false);
 		
 		QBean<SimpleTicket> resultListExpression = simpleTicketBeanExpression();
 		Map<String,JPASQLQuery> jpaQueriesToRun = new HashMap<String, JPASQLQuery>();
 		listTicketsQuery.groupBy(sqlTicket.ticketId);
 
-		if(columns.getOrder()!=null && columns.getOrder().size()>0){
-    		columns.makeOrderByExpression(columns, listTicketsQuery,fieldExprMapping);
-    	}else{
-    		listTicketsQuery.orderBy(sqlTicket.lastUpdatedTimestamp.desc());
-    	}
+		addTicketFilterExpression(columns, listTicketsQuery);
+		int startBeforeFilter = columns.getStart();
+		filterBySpecificTickets(listTicketsQuery,columns,customUser,filterStatus);
 
 		jpaQueriesToRun.put(DataTableCriteria.DATA_QUERY, listTicketsQuery);
 		
 		jpaQueriesToRun.put(DataTableCriteria.COUNT_QUERY, countTicketsQuery);
 
 		if(_logger.isDebugEnabled())_logger.debug("quries to run "+jpaQueriesToRun);
-		return ActionHelpers.listSimpleObjectFromQueryDSL(columns, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+		ListObjects tickets =  ActionHelpers.listSimpleObjectFromQueryDSL(columns, jpaQueriesToRun,resultListExpression,SQLTicket.ticket.ticketId.countDistinct());
+		//set the start back after the response.. so the UI can send correct index
+		columns.setStart(startBeforeFilter);
+		return tickets;
 	}
 
 
 	private JPASQLQuery simpleTicketQuery(org.springframework.security.core.userdetails.User customUser, DataTableCriteria columns, String filterStatus) {
+		return simpleTicketQuery(customUser, columns, filterStatus, true);
+	}
+
+	private JPASQLQuery simpleTicketQuery(org.springframework.security.core.userdetails.User customUser, DataTableCriteria columns, String filterStatus,boolean includeTAT) {
 		String textToSearch = DataTableCriteria.getDefaultTextToSearch(columns);
 
-		boolean isReporter;
 		
 		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
 		jpaSQLQuery.from(sqlTicket)
@@ -261,9 +305,10 @@ public class BaseTicketService extends SecureTService{
 		
 		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
 		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
-		//also add the archive tables to find tat... 
-		leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
-		
+		if(includeTAT){
+			//also add the archive tables to find tat... 
+			leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
+		}
 		BooleanExpression whereExpression = null;
 		if(filterStatus!=null && !filterStatus.isEmpty()){
 			whereExpression = sqlTicket.statusId.eq(filterStatus);
@@ -289,7 +334,10 @@ public class BaseTicketService extends SecureTService{
 	}
 
 	private JPASQLQuery simpleTicketQueryByFilter(org.springframework.security.core.userdetails.User customUser, TicketFilter ticketFilter) {
-		boolean isReporter;
+		return simpleTicketQueryByFilter(customUser, ticketFilter,true);
+	}
+
+	private JPASQLQuery simpleTicketQueryByFilter(org.springframework.security.core.userdetails.User customUser, TicketFilter ticketFilter,boolean includeTAT) {
 		
 		JPASQLQuery  jpaSQLQuery = new JPASQLQuery(entityManager,sqlTemplates);
 		jpaSQLQuery.from(sqlTicket)
@@ -302,9 +350,10 @@ public class BaseTicketService extends SecureTService{
 		
 		leftJoinVendorUserAssetForTicket(jpaSQLQuery)
 		.leftJoin(sqlIssueType).on(sqlTicket.issueTypeId.eq(sqlIssueType.issueTypeId));
-		//also add the archive tables to find tat... 
-		leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
-		
+		if(includeTAT){
+			//also add the archive tables to find tat... 
+			leftJoinTicketArchiveForTAT(jpaSQLQuery, sqlTicket, sqlTicketArchiveResolved, sqlTicketArchiveResolvedRelated);
+		}
 		BooleanExpression whereExpression = null;
 		if(ticketFilter.getStatusFilter()!=null && !ticketFilter.getStatusFilter().isEmpty()){
 			whereExpression = sqlTicket.statusId.in(ticketFilter.getStatusFilter());

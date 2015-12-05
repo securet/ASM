@@ -95,12 +95,7 @@ public class ActionHelpers {
 
 	public static ListObjects listSimpleObjectFromQueryDSL(DataTableCriteria columns, Map<String,JPASQLQuery> queriesToRun, Expression<?> resultListExpression, NumberExpression<Long> countExpression) {
 		JPASQLQuery query = queriesToRun.get(DataTableCriteria.DATA_QUERY);
-		int viewSize = columns.getLength();
-		int startIndex = columns.getStart();
-		viewSize = (viewSize!=0)?viewSize:10;		
-		int maxResults = viewSize;		
-		query.offset(startIndex);
-		query.limit(viewSize);
+		setQueryLimitOptions(columns, query);
 		
 		@SuppressWarnings("rawtypes")
 		List data = query.list(resultListExpression);
@@ -114,12 +109,20 @@ public class ActionHelpers {
 		ListObjects listObjects = new ListObjects();
 		listObjects.setData(data);
 		listObjects.setRecordsTotal(totalRecords);
-		if(maxResults>totalRecords){
+/*		if(maxResults>totalRecords){
 			maxResults=totalRecords;
 		}
-		
+*/		
 		listObjects.setDraw(columns.getDraw());
 		listObjects.setRecordsFiltered(totalRecords);
 		return listObjects;
+	}
+
+	public static void setQueryLimitOptions(DataTableCriteria columns, JPASQLQuery query) {
+		int viewSize = columns.getLength();
+		int startIndex = columns.getStart();
+		viewSize = (viewSize!=0)?viewSize:10;		
+		query.offset(startIndex);
+		query.limit(viewSize);
 	}
 }
