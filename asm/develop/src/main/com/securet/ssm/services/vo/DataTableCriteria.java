@@ -220,24 +220,26 @@ public class DataTableCriteria implements Serializable{
 	}
 
 	public static boolean hasOrderByField(DataTableCriteria columns,String columnName){
-		for(Map<OrderCriterias, String> orderByField :columns.getOrder()){
-			String indexStr = orderByField.get(OrderCriterias.column);
-			try{
-				int index = Integer.valueOf(indexStr);
-				Map<ColumnCriterias,String> columnCriteria = columns.getColumns().get(index);
-				if(columnCriteria!=null){
-					String fieldName=columnCriteria.get(ColumnCriterias.data);
-					try{
-						Integer.parseInt(fieldName);
-						//if fieldName is a number.. try looking up on name...
-						fieldName=columnCriteria.get(ColumnCriterias.name);
-					}catch(Exception e){
-						//if it is not a number continue.. 
+		if(columns.getOrder()!=null){
+			for(Map<OrderCriterias, String> orderByField :columns.getOrder()){
+				String indexStr = orderByField.get(OrderCriterias.column);
+				try{
+					int index = Integer.valueOf(indexStr);
+					Map<ColumnCriterias,String> columnCriteria = columns.getColumns().get(index);
+					if(columnCriteria!=null){
+						String fieldName=columnCriteria.get(ColumnCriterias.data);
+						try{
+							Integer.parseInt(fieldName);
+							//if fieldName is a number.. try looking up on name...
+							fieldName=columnCriteria.get(ColumnCriterias.name);
+						}catch(Exception e){
+							//if it is not a number continue.. 
+						}
+						return columnName.equals(fieldName);
 					}
-					return columnName.equals(fieldName);
+				}catch(NumberFormatException e){
+					_logger.error("could not format index: "+indexStr,e);
 				}
-			}catch(NumberFormatException e){
-				_logger.error("could not format index: "+indexStr,e);
 			}
 		}
 		return false;
