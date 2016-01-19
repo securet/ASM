@@ -241,7 +241,7 @@ public class BaseTicketService extends SecureTService{
 		JPASQLQuery ticketIdsToFilter =  simpleTicketQuery(customUser, ticketFilter,filterStatus,false);
 		ActionHelpers.setQueryLimitOptions(ticketFilter, ticketIdsToFilter);
 		addTicketFilterOrderByExpression(ticketFilter, ticketIdsToFilter);
-		List<String> ticketIds = ticketIdsToFilter.list(SQLTicket.ticket.ticketId);
+		List<String> ticketIds = ticketIdsToFilter.groupBy(SQLTicket.ticket.ticketId).list(SQLTicket.ticket.ticketId);
 		if(SecureTUtils.isNotEmpty(ticketIds)){
 			//add the filter to list query.. to filter
 			listTicketsQuery.where(SQLTicket.ticket.ticketId.in(ticketIds));
