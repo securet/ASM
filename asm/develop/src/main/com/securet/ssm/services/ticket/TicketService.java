@@ -1,6 +1,8 @@
 package com.securet.ssm.services.ticket;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +38,7 @@ import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.services.DefaultService;
 import com.securet.ssm.services.admin.AdminService;
 import com.securet.ssm.services.vo.DataTableCriteria;
+import com.securet.ssm.services.vo.HPToolInput;
 import com.securet.ssm.services.vo.DataTableCriteria.ColumnCriterias;
 import com.securet.ssm.services.vo.ListObjects;
 
@@ -48,39 +51,6 @@ public class TicketService extends BaseTicketService {
 	private static final Logger _logger = LoggerFactory.getLogger(TicketService.class);
 	private static List<String> dataViewNames = null;  
 
-	@Autowired
-	private AdminService adminService;
-
-	@Autowired
-	private MailService mailService;
-
-	@Autowired
-	private SMSService smsService;
-
-	
-	public AdminService getAdminService() {
-		return adminService;
-	}
-
-	public void setAdminService(AdminService adminService) {
-		this.adminService = adminService;
-	}
-
-	public MailService getMailService() {
-		return mailService;
-	}
-
-	public void setMailService(MailService mailService) {
-		this.mailService = mailService;
-	}
-
-	public SMSService getSmsService() {
-		return smsService;
-	}
-
-	public void setSmsService(SMSService smsService) {
-		this.smsService = smsService;
-	}
 
 	public static List<String> getDataViewNames() {
 		if(dataViewNames==null){
@@ -124,13 +94,7 @@ public class TicketService extends BaseTicketService {
 
 	@RequestMapping("/tickets/listTickets")
 	public String listTickets(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@RequestParam(value="filterStatus",required=false) String filterStatus,Model model){
-		boolean isReporter = !customUser.getAuthorities().contains(SecureTAuthenticationSuccessHandler.resolverAuthority);
-		model.addAttribute("isReporter", isReporter);
-		model.addAttribute("userName", customUser.getUsername());
-		if(filterStatus!=null && !filterStatus.isEmpty()){
-			model.addAttribute("filterStatus", filterStatus);
-		}
-		return DefaultService.TICKET+"listTickets";
+		return listTicketsForUser(customUser, filterStatus, model);
 	}
 
 	@Transactional
@@ -151,7 +115,7 @@ public class TicketService extends BaseTicketService {
 	public String saveTicket(@RequestParam(required=false) List<MultipartFile> ticketAttachments,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@Valid @ModelAttribute("formObject") Ticket formObject, BindingResult result,Model model){
 		validateAndSetDefaultsForTicket("formObject",formObject,result);		
 		if(!result.hasErrors()){
-			createTicketAndNotify(formObject,ticketAttachments, customUser,mailService,smsService);
+			createTicketAndNotify(formObject,ticketAttachments, customUser,getMailService(),getSmsService());
 			model.addAttribute("saved", true);
 		}else{
 			loadDefaults(model, customUser.getUsername());
@@ -168,21 +132,9 @@ public class TicketService extends BaseTicketService {
 	@RequestMapping("/tickets/modifyTicket")
 	public String editTicket(@RequestParam("id") String ticketId,@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser, Model model){
 		//find if the ticket is part of the user or his organization group and then allow them to edit
-		Ticket currentTicket = getUserTicket(ticketId, customUser,mailService,smsService);
-		if(currentTicket==null){
-			return listTickets(customUser,null,model);
-		}
-		return loadEditTicketModel(model, currentTicket);
+		return editTicketDetails(ticketId, customUser, model);
 	}
 
-
-	private String loadEditTicketModel(Model model, Ticket currentTicket) {
-		//also load the archive...
-		List<SecureTObject> ticketArchives = fetchQueriedObjects("getLatestTicketArchivesForTicketId", "ticketId", currentTicket.getTicketId());
-		model.addAttribute("ticketArchives", ticketArchives);// pagination???
-		model.addAttribute("formObject",currentTicket);
-		return DefaultService.TICKET+"modifyTicket";
-	}
 
 	@Transactional
 	@RequestMapping(value="/tickets/updateTicket",method=RequestMethod.POST)
@@ -192,7 +144,7 @@ public class TicketService extends BaseTicketService {
 			result.addError(fieldError);
 		}
 		if(!result.hasErrors()){
-			updateTicketAndNotify(formObject,ticketAttachments, customUser,mailService,smsService );
+			updateTicketAndNotify(formObject,ticketAttachments, customUser,getMailService(),getSmsService());
 		}else{
 			String responseString = editTicket(formObject.getTicketId(), customUser, model);
 			return responseString;
@@ -235,5 +187,35 @@ public class TicketService extends BaseTicketService {
 	}
 
 
+	@RequestMapping(value="/tickets/hpToolTrigger")
+	public String hpToolTriggerForm(@ModelAttribute("hpInput") HPToolInput hpToolInput,Model model, BindingResult result){
+		model.addAttribute("hpToolInput", hpToolInput);
+		return DefaultService.TICKET+"hpToolTrigger";
+	}
+	
+	@Transactional
+	@RequestMapping(value="/tickets/hpToolTriggerSubmit",method=RequestMethod.POST)
+	public String hpToolTrigger(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@ModelAttribute("hpInput") HPToolInput hpToolInput,@RequestParam("trigger") String trigger,Model model, BindingResult result){
+		SimpleDateFormat sdf = new SimpleDateFormat(MDDYYYY_HHMMSS_A);
+		if(trigger.equals("end cashout")){
+			String endedAt = sdf.format(new Date());
+			hpToolInput.setEndedAt(endedAt);
+		}else{
+			String startedAt = sdf.format(new Date());
+			hpToolInput.setStartedAt(startedAt);
+		}
+		
+		try{
+			Ticket ticket = (Ticket)parseHPToolMessage(customUser, hpToolInput, result);
+			if(ticket.getTicketId()!=null){
+				model.addAttribute("saved", "Saved the trigger ticketId:"+ticket.getTicketId());
+			}
+		}catch(Exception e){
+			_logger.error("Could not trigger HP input",e);
+			model.addAttribute("error", "Incorrect Input!");
+		}
+		
+		return DefaultService.TICKET+"hpToolTrigger";
+	}
 	
 }

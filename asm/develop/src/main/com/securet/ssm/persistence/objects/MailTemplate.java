@@ -1,5 +1,6 @@
 package com.securet.ssm.persistence.objects;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.NamedQueries;
@@ -16,6 +17,7 @@ public class MailTemplate extends SecureTObject {
 	@Id
 	private String templateName;
 	
+	@Column(name="mailFrom")
 	private String from;
 	
 	private String subject;

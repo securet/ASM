@@ -6,6 +6,14 @@ apply plugin: 'spring-boot'
 
 project.webAppDirName='develop/webapp'
 
+repositories {
+  mavenCentral()
+  maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
+}
+
+springBoot {
+  mainClass = ""
+}
 buildscript {
 	buildDir "develop/build"
 	ext {
@@ -24,7 +32,7 @@ buildscript {
 		
 		sqlConnectionUrl = "jdbc:mysql://localhost:3306/asm_localserver_20150508"
 		sqlUserName='asm'
-		sqlPassword='shabhu'
+		sqlPassword='#*#asm123'
 	
 		querydslVersion = "3.6.3"
 	}
@@ -34,7 +42,7 @@ buildscript {
     dependencies {
 		classpath("com.mysema.querydsl:querydsl-codegen:${querydslVersion}")
 		classpath("com.mysema.querydsl:querydsl-sql-codegen:${querydslVersion}")
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.3.RELEASE")
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE")
 		classpath('javax.persistence:persistence-api:1.0.2')
 		classpath('mysql:mysql-connector-java:5.1.34')
     }
@@ -50,8 +58,8 @@ sourceSets {
         resources {
             srcDir projectResourcesDirs
         }
-	    output.classesDir buildOutputDir
-	    output.resourcesDir buildOutputDir
+	    output.resourcesDir = file(buildOutputDir)
+		java.outputDir = file(buildOutputDir)
     }
     generated {
         java {
@@ -59,7 +67,6 @@ sourceSets {
         }
     }
 }
-
 
 eclipse {
 	classpath{
@@ -72,7 +79,6 @@ eclipse {
 		}
 	}*/
 }
-
 
 bootRepackage {
 	mainClass = 'com.securet.ssm.persistence.objects.Geo'
@@ -204,6 +210,7 @@ task deleteDeployDir(description: 'Delete contents in the dir') {
 }
 
 task explodedWar(type: Copy, description: 'Explode the war generated and copy to deploy dir') {
+	logger.quiet("Running exploded war")
     into deploymentDir     
     with war 
 }
@@ -214,10 +221,13 @@ explodedWar.shouldRunAfter war
 war.dependsOn explodedWar
 
 
-repositories {
-  mavenCentral()
-  maven { url "https://repository.jboss.org/nexus/content/repositories/releases" }
+
+task hello {
+    doLast {
+        println 'Hello world!'
+    }
 }
+
 
 dependencies {
 	providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
@@ -228,6 +238,8 @@ dependencies {
 	compile('org.springframework:spring-webmvc:4.1.2.RELEASE')
 	compile('org.springframework:spring-context-support:4.1.2.RELEASE')
 	compile('org.springframework:spring-webmvc-portlet:4.1.2.RELEASE')
+	compile('org.springframework.security:spring-security-core:3.2.5.RELEASE')
+	compile('org.springframework.security:spring-security-acl:3.2.5.RELEASE')
 	compile('org.springframework.security:spring-security-config:3.2.5.RELEASE')
  	compile('org.springframework.security:spring-security-web:3.2.5.RELEASE')
 	compile ('org.springframework.security:spring-security-taglibs:3.2.5.RELEASE')
@@ -239,7 +251,7 @@ dependencies {
  	compile(group: 'org.hibernate.common', name: 'hibernate-commons-annotations', version: '4.0.5.Final')
  	compile(group: 'org.hibernate', name: 'hibernate-validator', version: '5.0.1.Final')
 
- 	compile('javax.validation:validation-api:1.0.0.GA')
+ 	compile('javax.validation:validation-api:1.1.0.Final')
 
  	compile('joda-time:joda-time:2.7')
 	
@@ -289,6 +301,7 @@ dependencies {
 	mysqlDriver 'mysql:mysql-connector-java:5.1.34'
     testCompile("junit:junit")
     compile 'mysql:mysql-connector-java:5.1.34'
+    
     
 /*	compile('ch.qos.logback:logback-classic:1.1.3') {
   		exclude group: 'org.slf4j', module: 'slf4j-api' //by both name and group

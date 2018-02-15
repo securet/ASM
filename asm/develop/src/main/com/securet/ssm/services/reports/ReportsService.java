@@ -1,17 +1,17 @@
 package com.securet.ssm.services.reports;
 
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Query;
 import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
@@ -20,19 +20,17 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
 import com.mysema.query.types.ArrayConstructorExpression;
 import com.mysema.query.types.Expression;
+import com.mysema.query.types.Predicate;
 import com.mysema.query.types.Projections;
+import com.mysema.query.types.expr.BooleanExpression;
 import com.mysema.query.types.expr.SimpleExpression;
-import com.securet.ssm.persistence.objects.Geo;
-import com.securet.ssm.persistence.objects.Module;
 import com.securet.ssm.persistence.objects.SecureTObject;
-import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
 import com.securet.ssm.persistence.views.aggregates.TicketStatusSummary;
 import com.securet.ssm.services.ActionHelpers;
@@ -42,8 +40,6 @@ import com.securet.ssm.services.vo.DashboardFilter;
 import com.securet.ssm.services.vo.DataTableCriteria;
 import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.utils.SecureTUtils;
-
-import freemarker.ext.beans.BeansWrapper;
 
 @Controller
 @Repository
@@ -266,5 +262,78 @@ public class ReportsService extends BaseReportsService {
 		model.addAttribute("ticketSummary", ticketSummary);
 	}
 	
+
+	@RequestMapping(value="/reports/porequests")
+	public String poRequests(@ModelAttribute("dashboardFilter") DashboardFilter dashboardFilter,BindingResult result,Model model){
+
+		List<SecureTObject> circles = fetchObjects("getMappedCircles");
+		model.addAttribute("circles", circles);
+
+		JPASQLQuery poRequestReportQuery = new JPASQLQuery(entityManager, sqlTemplates);
+		poRequestReportQuery.from(sqlPartOrderRequest)
+		.innerJoin(sqlStatus).on(sqlPartOrderRequest.statusId.eq(sqlStatus.enumerationId))
+		.innerJoin(sqlTicket).on(sqlPartOrderRequest.ticketId.eq(sqlTicket.ticketId))
+		.innerJoin(sqlSite).on(sqlTicket.siteId.eq(sqlSite.siteId))
+		.innerJoin(sqlAsset).on(sqlTicket.assetId.eq(sqlAsset.assetId))
+		.innerJoin(sqlVendorUser).on(sqlTicket.resolverUserId.eq(sqlVendorUser.userId))
+		.innerJoin(sqlVendorOrganization).on(sqlVendorUser.organizationId.eq(sqlVendorOrganization.organizationId));
+		
+		poRequestReportQuery.where(dashboardFilterPORequestPredicate(dashboardFilter));
+		
+		poRequestReportQuery.groupBy(sqlVendorOrganization.name,sqlAsset.assetId,sqlPartOrderRequest.statusId)
+		.orderBy(sqlVendorOrganization.name.desc(),sqlAsset.assetTag.desc(),sqlPartOrderRequest.statusId.desc());
+		
+		ArrayConstructorExpression poRequestReportFields = Projections.array(Object[].class, (SimpleExpression)sqlAsset.assetTag,(SimpleExpression)sqlVendorOrganization.name,
+				(SimpleExpression)sqlStatus.enumDescription.as("status"),
+				(SimpleExpression)sqlPartOrderRequest.partOrderRequestId.countDistinct().as("noOfRequests"), 
+				(SimpleExpression)sqlPartOrderRequest.cost.sum().as("totalCost"));
+		
+		List<Object[]>  poRequestReports = poRequestReportQuery.list(poRequestReportFields);
+		model.addAttribute("poRequestReports",poRequestReports);
+		
+		return DefaultService.REPORTS+"porequests";
+	}
 	
+	
+	
+	private Predicate dashboardFilterPORequestPredicate(DashboardFilter dashboardFilter) {
+		if(dashboardFilter.getDashboardStartDate()==null || dashboardFilter.getDashboardEndDate()==null){
+			//fetch last one month data if no data time period given.
+			long currentTime = System.currentTimeMillis();
+			long startTimeMillis = currentTime-((1000*60*60*24*30l));
+			dashboardFilter.setDashboardStartDate(new Date(startTimeMillis));
+			dashboardFilter.setDashboardEndDate(new Date(currentTime));
+		}
+		Calendar endDate = Calendar.getInstance();
+		endDate.setTimeInMillis(dashboardFilter.getDashboardEndDate().getTime());
+		endDate.set(Calendar.HOUR_OF_DAY, 23);
+		endDate.set(Calendar.MINUTE, 59);
+		endDate.set(Calendar.SECOND, 59);
+		
+		BooleanExpression dashboardExpression = sqlPartOrderRequest.lastUpdatedTimestamp.between(new Timestamp(dashboardFilter.getDashboardStartDate().getTime()), new Timestamp(endDate.getTimeInMillis()));
+		
+		if(dashboardFilter.getServiceType()!=null && !dashboardFilter.getServiceType().isEmpty()){
+			dashboardExpression=dashboardExpression.and(sqlServiceType.name.eq(dashboardFilter.getServiceType()));
+		}
+		
+		if(SecureTUtils.isNotEmpty(dashboardFilter.getStatusId())){
+			dashboardExpression=dashboardExpression.and(sqlTicket.statusId.eq(dashboardFilter.getStatusId()));
+		}
+
+		if(SecureTUtils.isNotEmpty(dashboardFilter.getCircleIds())){
+			dashboardExpression=dashboardExpression.and(sqlSite.circle.in(dashboardFilter.getCircleIds()));
+		}
+
+		if(SecureTUtils.isNotEmpty(dashboardFilter.getModuleIds())){
+			dashboardExpression=dashboardExpression.and(sqlSite.moduleId.in(dashboardFilter.getModuleIds()));
+		}
+
+		if(SecureTUtils.isNotEmpty(dashboardFilter.getClientUserIds())){
+			dashboardExpression=dashboardExpression.and(sqlClientUserSite.userId.in(dashboardFilter.getClientUserIds()));
+		}
+
+		Predicate dashboardPredicate = (Predicate) dashboardExpression;
+		return dashboardPredicate;
+	}
+
 }

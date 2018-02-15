@@ -24,7 +24,7 @@ public class SQLServiceSparePart extends com.mysema.query.sql.RelationalPathBase
 
     public static final SQLServiceSparePart serviceSparePart = new SQLServiceSparePart("service_spare_part");
 
-    public final NumberPath<Double> cost = createNumber("cost", Double.class);
+    public final NumberPath<java.math.BigDecimal> cost = createNumber("cost", java.math.BigDecimal.class);
 
     public final DateTimePath<java.sql.Timestamp> createdTimestamp = createDateTime("createdTimestamp", java.sql.Timestamp.class);
 
@@ -40,9 +40,9 @@ public class SQLServiceSparePart extends com.mysema.query.sql.RelationalPathBase
 
     public final com.mysema.query.sql.PrimaryKey<SQLServiceSparePart> primary = createPrimaryKey(sparePartId);
 
-    public final com.mysema.query.sql.ForeignKey<SQLOrganization> spareVendorOrgFk = createForeignKey(vendorOrganizationId, "organizationId");
+    public final com.mysema.query.sql.ForeignKey<SQLOrganization> _225mprlfbqtyet6xrs03sns64FK = createForeignKey(vendorOrganizationId, "organizationId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _porSspFk = createInvForeignKey(sparePartId, "sparePartId");
+    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _k07o4v8bgort6vcepqeoof083FK = createInvForeignKey(sparePartId, "sparePartId");
 
     public SQLServiceSparePart(String variable) {
         super(SQLServiceSparePart.class, forVariable(variable), "null", "service_spare_part");
@@ -65,13 +65,13 @@ public class SQLServiceSparePart extends com.mysema.query.sql.RelationalPathBase
     }
 
     public void addMetadata() {
-        addMetadata(cost, ColumnMetadata.named("cost").withIndex(5).ofType(Types.DECIMAL).withSize(10).withDigits(2).notNull());
-        addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(6).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(partDescription, ColumnMetadata.named("partDescription").withIndex(4).ofType(Types.VARCHAR).withSize(255).notNull());
-        addMetadata(partName, ColumnMetadata.named("partName").withIndex(3).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(cost, ColumnMetadata.named("cost").withIndex(4).ofType(Types.DECIMAL).withSize(19).withDigits(2).notNull());
+        addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(2).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(3).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(partDescription, ColumnMetadata.named("partDescription").withIndex(5).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(partName, ColumnMetadata.named("partName").withIndex(6).ofType(Types.VARCHAR).withSize(255).notNull());
         addMetadata(sparePartId, ColumnMetadata.named("sparePartId").withIndex(1).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(vendorOrganizationId, ColumnMetadata.named("vendorOrganizationId").withIndex(2).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(vendorOrganizationId, ColumnMetadata.named("vendorOrganizationId").withIndex(7).ofType(Types.INTEGER).withSize(10).notNull());
     }
 
 }

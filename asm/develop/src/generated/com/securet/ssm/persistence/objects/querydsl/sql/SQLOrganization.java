@@ -40,9 +40,9 @@ public class SQLOrganization extends com.mysema.query.sql.RelationalPathBase<SQL
 
     public final com.mysema.query.sql.PrimaryKey<SQLOrganization> primary = createPrimaryKey(organizationId);
 
-    public final com.mysema.query.sql.ForeignKey<SQLUser> _gcfvorwtyx7ixe0mxbnkg1b39FK = createInvForeignKey(organizationId, "organizationId");
+    public final com.mysema.query.sql.ForeignKey<SQLServiceSparePart> __225mprlfbqtyet6xrs03sns64FK = createInvForeignKey(organizationId, "vendorOrganizationId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLServiceSparePart> _spareVendorOrgFk = createInvForeignKey(organizationId, "vendorOrganizationId");
+    public final com.mysema.query.sql.ForeignKey<SQLUser> _gcfvorwtyx7ixe0mxbnkg1b39FK = createInvForeignKey(organizationId, "organizationId");
 
     public final com.mysema.query.sql.ForeignKey<SQLSite> _mpobrkd4stmvgjdch7buocqlpFK = createInvForeignKey(organizationId, "organizationId");
 

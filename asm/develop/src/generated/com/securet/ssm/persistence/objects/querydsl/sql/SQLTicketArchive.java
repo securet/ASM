@@ -50,7 +50,7 @@ public class SQLTicketArchive extends com.mysema.query.sql.RelationalPathBase<SQ
 
     public final com.mysema.query.sql.ForeignKey<SQLUser> _4jc28ku9yq01w7fno1yig7nyeFK = createForeignKey(resolverUserId, "userId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> ticketArchiveRelatedArchiveIdFk = createForeignKey(relatedArchiveId, "ticketArchiveId");
+    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> ticketTicketArchiveRelFk = createForeignKey(relatedArchiveId, "ticketArchiveId");
 
     public final com.mysema.query.sql.ForeignKey<SQLUser> bjy6xtu2369egiu9cav4aoj4oFK = createForeignKey(reporterUserId, "userId");
 
@@ -58,7 +58,7 @@ public class SQLTicketArchive extends com.mysema.query.sql.RelationalPathBase<SQ
 
     public final com.mysema.query.sql.ForeignKey<SQLEnumeration> ticketArchiveStatusIdFk = createForeignKey(statusId, "enumerationId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> _ticketArchiveRelatedArchiveIdFk = createInvForeignKey(ticketArchiveId, "relatedArchiveId");
+    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> _ticketTicketArchiveRelFk = createInvForeignKey(ticketArchiveId, "relatedArchiveId");
 
     public SQLTicketArchive(String variable) {
         super(SQLTicketArchive.class, forVariable(variable), "null", "ticket_archive");

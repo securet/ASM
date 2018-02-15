@@ -8,6 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mysema.query.jpa.sql.JPASQLQuery;
+import com.mysema.query.sql.DatePart;
+import com.mysema.query.sql.SQLExpressions;
 import com.mysema.query.sql.SQLSubQuery;
 import com.mysema.query.support.Expressions;
 import com.mysema.query.types.ArrayConstructorExpression;
@@ -15,6 +17,10 @@ import com.mysema.query.types.Path;
 import com.mysema.query.types.Predicate;
 import com.mysema.query.types.Projections;
 import com.mysema.query.types.expr.BooleanExpression;
+import com.mysema.query.types.expr.CaseBuilder;
+import com.mysema.query.types.expr.Coalesce;
+import com.mysema.query.types.expr.DateTimeExpression;
+import com.mysema.query.types.expr.DateTimeOperation;
 import com.mysema.query.types.expr.NumberExpression;
 import com.mysema.query.types.expr.SimpleExpression;
 import com.mysema.query.types.path.SimplePath;
@@ -28,11 +34,13 @@ import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicket;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPATicketArchive;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAUser;
 import com.securet.ssm.persistence.objects.querydsl.jpa.JPAVendorServiceAsset;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLAsset;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLClientUserSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLEnumeration;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLIssueType;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLModule;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLOrganization;
+import com.securet.ssm.persistence.objects.querydsl.sql.SQLPartOrderRequest;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLServiceType;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLSite;
 import com.securet.ssm.persistence.objects.querydsl.sql.SQLTicket;
@@ -47,8 +55,17 @@ import com.securet.ssm.utils.SecureTUtils;
 
 public class BaseReportsService extends SecureTService {
 
+	public static final String LOG = "LOG";
+	public static final String COMPLAINT = "COMPLAINT";
+
+	public static final String OPEN = "OPEN";
+	public static final String WORK_IN_PROGRESS = "WORK_IN_PROGRESS";
+	public static final String RESOLVED = "RESOLVED";
+	public static final String CLOSED = "CLOSED";
 	private static final Logger _logger = LoggerFactory.getLogger(BaseReportsService.class);
 	
+	public static final String ALL_OK = "ALL OK";
+
 	Path<Long> countOfTickets = new SimplePath<Long>(Long.class, "countOfTickets");
 
 	SQLTicket sqlTicket = SQLTicket.ticket;
@@ -64,6 +81,9 @@ public class BaseReportsService extends SecureTService {
 	SQLEnumeration sqlStatus=new SQLEnumeration("status");
 	SQLEnumeration sqlSeverity=new SQLEnumeration("severity");
 	SQLModule sqlModule = SQLModule.module;
+	SQLPartOrderRequest sqlPartOrderRequest = SQLPartOrderRequest.partOrderRequest;
+	SQLUser sqlUser = SQLUser.user;
+	SQLAsset sqlAsset = SQLAsset.asset;
 
 	JPATicket jpaTicket = JPATicket.ticket;
 	JPAServiceType jpaServiceType = JPAServiceType.serviceType;
@@ -236,6 +256,25 @@ public class BaseReportsService extends SecureTService {
 				(SimpleExpression)sqlSite.city,(SimpleExpression)sqlModule.name.as("module"),(SimpleExpression)sqlSite.circle,
 				(SimpleExpression)sqlTicket.latitude,(SimpleExpression)sqlTicket.longitude,(SimpleExpression)actualTATInHrsExpr,(SimpleExpression)actualTATExpr);
 		return resultSetExpr;
+	}
+
+	protected void leftJoinTicketArchiveForTAT(SQLSubQuery jpaSQLQuery) {
+		jpaSQLQuery.leftJoin(sqlTicketArchiveResolved).on(sqlTicket.ticketId.eq(sqlTicketArchiveResolved.ticketId).and(sqlTicketArchiveResolved.statusId.eq(RESOLVED)))
+		.leftJoin(sqlTicketArchiveResolvedRelated).on(sqlTicketArchiveResolved.ticketId.eq(sqlTicketArchiveResolvedRelated.ticketId).and(sqlTicketArchiveResolved.ticketArchiveId.eq(sqlTicketArchiveResolvedRelated.relatedArchiveId)));
+	}
+
+	protected NumberExpression<Integer> ticketStopClockExpr() {
+		Coalesce<Timestamp> clockEndTsExpr = (Coalesce<Timestamp>)sqlTicketArchiveResolvedRelated.lastUpdatedTimestamp.coalesce(sqlTicket.lastUpdatedTimestamp);
+
+		NumberExpression<Integer> stopClockExpr = SQLExpressions.datediff(DatePart.second, sqlTicketArchiveResolved.lastUpdatedTimestamp, clockEndTsExpr.asDateTime());
+		stopClockExpr = stopClockExpr.coalesce(0).asNumber().sum().intValue();
+		return stopClockExpr;
+	}
+
+	protected NumberExpression<Integer> ticketTATExpr() {
+		DateTimeExpression<Timestamp> closeTimeExpr = new CaseBuilder().when(sqlTicket.statusId.eq("CLOSED").or(sqlTicket.statusId.eq("RESOLVED"))).then(sqlTicket.lastUpdatedTimestamp).otherwise(DateTimeOperation.currentTimestamp(Timestamp.class));
+		NumberExpression<Integer> tatExpr = SQLExpressions.datediff(DatePart.second,sqlTicket.createdTimestamp,closeTimeExpr);
+		return tatExpr;
 	}
 
 }

@@ -92,14 +92,14 @@ public class SQLSite extends com.mysema.query.sql.RelationalPathBase<SQLSite> {
 
     public void addMetadata() {
         addMetadata(area, ColumnMetadata.named("area").withIndex(4).ofType(Types.VARCHAR).withSize(255));
-        addMetadata(circle, ColumnMetadata.named("circle").withIndex(14).ofType(Types.VARCHAR).withSize(255));
+        addMetadata(circle, ColumnMetadata.named("circle").withIndex(13).ofType(Types.VARCHAR).withSize(255));
         addMetadata(city, ColumnMetadata.named("city").withIndex(10).ofType(Types.VARCHAR).withSize(255));
         addMetadata(comments, ColumnMetadata.named("comments").withIndex(5).ofType(Types.VARCHAR).withSize(255));
         addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(2).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(3).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(latitude, ColumnMetadata.named("latitude").withIndex(6).ofType(Types.DOUBLE).withSize(22).notNull());
         addMetadata(longitude, ColumnMetadata.named("longitude").withIndex(7).ofType(Types.DOUBLE).withSize(22).notNull());
-        addMetadata(moduleId, ColumnMetadata.named("moduleId").withIndex(13).ofType(Types.INTEGER).withSize(10));
+        addMetadata(moduleId, ColumnMetadata.named("moduleId").withIndex(14).ofType(Types.INTEGER).withSize(10));
         addMetadata(name, ColumnMetadata.named("name").withIndex(8).ofType(Types.VARCHAR).withSize(255).notNull());
         addMetadata(organizationId, ColumnMetadata.named("organizationId").withIndex(11).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(siteId, ColumnMetadata.named("siteId").withIndex(1).ofType(Types.INTEGER).withSize(10).notNull());

@@ -32,9 +32,9 @@ public class SQLMailTemplate extends com.mysema.query.sql.RelationalPathBase<SQL
 
     public final DateTimePath<java.sql.Timestamp> createdTimestamp = createDateTime("createdTimestamp", java.sql.Timestamp.class);
 
-    public final StringPath from = createString("from");
-
     public final DateTimePath<java.sql.Timestamp> lastUpdatedTimestamp = createDateTime("lastUpdatedTimestamp", java.sql.Timestamp.class);
+
+    public final StringPath mailFrom = createString("mailFrom");
 
     public final StringPath subject = createString("subject");
 
@@ -69,8 +69,8 @@ public class SQLMailTemplate extends com.mysema.query.sql.RelationalPathBase<SQL
         addMetadata(cc, ColumnMetadata.named("cc").withIndex(3).ofType(Types.VARCHAR).withSize(255));
         addMetadata(contentType, ColumnMetadata.named("contentType").withIndex(9).ofType(Types.VARCHAR).withSize(255));
         addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(from, ColumnMetadata.named("from").withIndex(2).ofType(Types.VARCHAR).withSize(255));
         addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(mailFrom, ColumnMetadata.named("mailFrom").withIndex(2).ofType(Types.VARCHAR).withSize(255));
         addMetadata(subject, ColumnMetadata.named("subject").withIndex(5).ofType(Types.VARCHAR).withSize(255));
         addMetadata(templateFileName, ColumnMetadata.named("templateFileName").withIndex(6).ofType(Types.VARCHAR).withSize(255));
         addMetadata(templateName, ColumnMetadata.named("templateName").withIndex(1).ofType(Types.VARCHAR).withSize(255).notNull());

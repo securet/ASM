@@ -1,4 +1,4 @@
-<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","site":"suggestbox"}>
+<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","site":"suggestbox","bigDecimal":"text"}>
 <#assign dataTypeMapping={"int":"number","double":"number","organization":"number","assetType":"number","module":"number"}>
 <#include "formMacros.ftl">
 <#assign includeDateScripts = false>
@@ -34,6 +34,23 @@
 			<#assign options>{"<#if dataTypeMapping[field.fieldType]?default("")=='number'>0</#if>":"Select ${field.fieldName?cap_first}"<#if (uiObjects?size>0)>, </#if><#list uiObjects as uiObject>"${uiObject[0]}":"${uiObject[1]}"<#if uiObject_has_next>,</#if></#list>}</#assign>
 		</#attempt>
 		<@formSingleSelectSSM path="formObject.${fieldIdPrefix}" field=field options=options?eval attributes=dataAttributes/>
+	<#elseif .data_model["get"+field.fieldType?cap_first+"ForView"]?exists>
+		<#assign uiObjects = .data_model["get"+field.fieldType?cap_first+"ForView"]>
+		<#assign fieldStr = ("uiObject.${field.fieldType}Id")>
+		<#assign fieldIdPrefix = field.fieldType>
+		<#if field.fieldType='geo'>
+			<#assign fieldIdPrefix = "geo">
+			<#assign fieldStr = ("uiObject.geoId")>
+		</#if>
+		<#attempt>
+			<#-- Check  if the options are evaluating  to any object if not it is a custom list -->
+			<#assign options>{"<#if dataTypeMapping[field.fieldType]?default("")=='number'>0</#if>":"Select ${field.fieldName?cap_first}"<#if (uiObjects?size>0)>, </#if><#list uiObjects as uiObject>"${fieldStr?eval}":"${uiObject.name}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+			<#assign fieldIdPrefix = field.fieldName+"."+fieldIdPrefix+"Id">
+		<#recover>
+			<#-- this is array based key value -- i.e 0-1 index based -->
+			<#assign options>{"<#if dataTypeMapping[field.fieldType]?default("")=='number'>0</#if>":"Select ${field.fieldName?cap_first}"<#if (uiObjects?size>0)>, </#if><#list uiObjects as uiObject>"${uiObject[0]}":"${uiObject[1]}"<#if uiObject_has_next>,</#if></#list>}</#assign>
+		</#attempt>
+		<@formSingleSelectSSM path="formObject.${fieldIdPrefix}" field=field options=options?eval attributes=dataAttributes/>
 	<#elseif field.canDisplay>
 		<#-- include a hidden span -->
 		<#assign fieldStr = ("uiObject.${field.fieldName}Id")>
@@ -48,6 +65,9 @@
 			<@spring.bind path="formObject.${fieldIdPrefix}"/>
 			<span id="default-${fieldIdPrefix}" class="hide" data-default="${spring.stringStatusValue}"></span>
 		<#recover>
+			<#if field.fieldType="bigDecimal">
+				<@simpleInputFieldSSM field=field/>
+			</#if>
 		</#attempt>
 		
 	</#if>

@@ -157,6 +157,9 @@ public class Ticket{
 	private String source;
 
 	@Transient
+	private transient boolean autoUpdateTimeFields=true;
+	
+	@Transient
 	private transient int actualTat;
 	@Transient
 	private transient int tat;
@@ -348,8 +351,10 @@ public class Ticket{
 
 	@PrePersist
 	public void setCreateTimestamp(){
-		setCreatedTimestamp(new Timestamp(new Date().getTime()));
-		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+		if(autoUpdateTimeFields){
+			setCreatedTimestamp(new Timestamp(new Date().getTime()));
+			setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+		}
 	}
 	
 
@@ -359,7 +364,9 @@ public class Ticket{
 	
 	@PreUpdate
 	public void setLastUpdatedTimestamp(){
-		setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+		if(autoUpdateTimeFields){
+			setLastUpdatedTimestamp(new Timestamp(new Date().getTime()));
+		}
 	}
 
 	public void setLastUpdatedTimestamp(Timestamp lastUpdatedTimestamp) {
@@ -388,6 +395,14 @@ public class Ticket{
 
 	public void setStopClock(int stopClock) {
 		this.stopClock = stopClock;
+	}
+
+	public boolean isAutoUpdateTimeFields() {
+		return autoUpdateTimeFields;
+	}
+
+	public void setAutoUpdateTimeFields(boolean autoUpdateTimeFields) {
+		this.autoUpdateTimeFields = autoUpdateTimeFields;
 	}
 
 }

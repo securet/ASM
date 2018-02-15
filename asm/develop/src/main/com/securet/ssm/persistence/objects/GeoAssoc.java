@@ -3,9 +3,9 @@ package com.securet.ssm.persistence.objects;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -16,12 +16,12 @@ import javax.persistence.Table;
 public class GeoAssoc extends SecureTObject {
 
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="geoId",referencedColumnName="geoId")
 	private Geo geoFrom;
 	
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="geoIdTo",referencedColumnName="geoId")
 	private Geo geoTo;
 	

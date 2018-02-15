@@ -1,17 +1,15 @@
 package com.securet.ssm.persistence.objects;
 
-import java.util.Date;
-
 import javax.persistence.ColumnResult;
 import javax.persistence.ConstructorResult;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
 import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
@@ -49,12 +47,12 @@ classes={
 public class ClientUserSite extends SecureTObject{
 
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="userId",referencedColumnName="userId")
 	private User clientUser;
 	
 	@Id
-	@OneToOne
+	@ManyToOne
 	@JoinColumn(name="siteId",referencedColumnName="siteId")
 	private Site site;
 

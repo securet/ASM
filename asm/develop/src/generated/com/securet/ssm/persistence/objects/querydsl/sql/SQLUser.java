@@ -48,25 +48,21 @@ public class SQLUser extends com.mysema.query.sql.RelationalPathBase<SQLUser> {
 
     public final com.mysema.query.sql.ForeignKey<SQLTicket> _ticketModifiedByFk = createInvForeignKey(userId, "modifiedBy");
 
-    public final com.mysema.query.sql.ForeignKey<SQLUserLogin> _userUserloginFk = createInvForeignKey(userId, "userId");
+    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> __4jc28ku9yq01w7fno1yig7nyeFK = createInvForeignKey(userId, "resolverUserId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _porRespondedUserFk = createInvForeignKey(userId, "respondedBy");
+    public final com.mysema.query.sql.ForeignKey<SQLUserLogin> _userUserloginFk = createInvForeignKey(userId, "userId");
 
     public final com.mysema.query.sql.ForeignKey<SQLTicket> _jf247bmk0iqmf67x6btuv5yrlFK = createInvForeignKey(userId, "reporterUserId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLUserPermission> _durpi1ak6uhdfdj9wgv9ppqucFK = createInvForeignKey(userId, "User_userId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLUserRole> __5ban12q0ns21khmjy86hjvvoeFK = createInvForeignKey(userId, "User_userId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _porInitiatedUserFk = createInvForeignKey(userId, "initiatedBy");
-
-    public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> __4jc28ku9yq01w7fno1yig7nyeFK = createInvForeignKey(userId, "resolverUserId");
-
     public final com.mysema.query.sql.ForeignKey<SQLTicket> _pex2v8n74m2im2ir3cb37ju26FK = createInvForeignKey(userId, "createdBy");
+
+    public final com.mysema.query.sql.ForeignKey<SQLUserPermission> _durpi1ak6uhdfdj9wgv9ppqucFK = createInvForeignKey(userId, "User_userId");
 
     public final com.mysema.query.sql.ForeignKey<SQLVendorServiceAsset> __3jyblkqe3x9rcibrjvbtjov5xFK = createInvForeignKey(userId, "userId");
 
     public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> _bjy6xtu2369egiu9cav4aoj4oFK = createInvForeignKey(userId, "reporterUserId");
+
+    public final com.mysema.query.sql.ForeignKey<SQLUserRole> __5ban12q0ns21khmjy86hjvvoeFK = createInvForeignKey(userId, "User_userId");
 
     public final com.mysema.query.sql.ForeignKey<SQLClientUserSite> _en28863xmllp06w0faa0lhqueFK = createInvForeignKey(userId, "userId");
 

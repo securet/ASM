@@ -42,8 +42,6 @@ public class SQLEnumeration extends com.mysema.query.sql.RelationalPathBase<SQLE
 
     public final com.mysema.query.sql.ForeignKey<SQLTicket> _efih1u04786q1c8x27o9wvb3eFK = createInvForeignKey(enumerationId, "statusId");
 
-    public final com.mysema.query.sql.ForeignKey<SQLPartOrderRequest> _porStatusEnumFk = createInvForeignKey(enumerationId, "statusId");
-
     public final com.mysema.query.sql.ForeignKey<SQLTicket> _nvtejdn6nnmtkw52oefub1wnFK = createInvForeignKey(enumerationId, "priority");
 
     public final com.mysema.query.sql.ForeignKey<SQLTicketArchive> _ticketArchiveStatusIdFk = createInvForeignKey(enumerationId, "statusId");

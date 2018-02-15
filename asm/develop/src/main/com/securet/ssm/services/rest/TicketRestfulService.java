@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,13 +30,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.securet.ssm.components.mail.MailService;
 import com.securet.ssm.components.sms.SMSService;
+import com.securet.ssm.persistence.objects.PartOrderRequest;
 import com.securet.ssm.persistence.objects.SecureTObject.SimpleObject;
 import com.securet.ssm.persistence.objects.ServiceType;
 import com.securet.ssm.persistence.objects.Ticket;
+import com.securet.ssm.persistence.views.SimplePartOrderRequest;
 import com.securet.ssm.persistence.views.SimpleSite;
 import com.securet.ssm.persistence.views.SimpleTicket;
 import com.securet.ssm.persistence.views.SimpleTicketArchive;
 import com.securet.ssm.services.ticket.BaseTicketService;
+import com.securet.ssm.services.vo.HPToolInput;
 import com.securet.ssm.services.vo.ListObjects;
 import com.securet.ssm.services.vo.TicketFilter;
 
@@ -280,4 +284,93 @@ public class TicketRestfulService extends BaseTicketService{
 			user.setPermissions(null);
 		}
 	}
+
+	@Transactional
+	@RequestMapping(value="/rest/ticket/hpToolMessage",method=RequestMethod.POST)
+	public Object hpToolMessage(@AuthenticationPrincipal org.springframework.security.core.userdetails.User customUser,@ModelAttribute("hpInput") HPToolInput hpToolInput, BindingResult result){
+		return parseHPToolMessage(customUser, hpToolInput, result);
+	}
+
+	@RequestMapping("/rest/ticket/fetchPORequestsForTicket")
+	public @ResponseBody Object fetchPORequestsForTicket(@AuthenticationPrincipal User loggedInUser,@RequestParam(value="ticketId",required=false) String ticketId){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		if(loggedInUser!=null){
+			if(ticketId==null || ticketId.isEmpty()){
+				messages = new FieldError("ticket", "ticketId", "TicketId cannot be empty");
+			}else{
+				Ticket currentTicket = new Ticket();
+				currentTicket.setTicketId(ticketId);
+				List<SimplePartOrderRequest> partOrderRequests = fetchPORRequestsForTicket(currentTicket);
+				if(partOrderRequests==null){
+					messages  = new FieldError("partOrderRequest", "partOrderRequest", "No Part Order Request Found");
+				}else{
+					status="success";
+					//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
+					data=partOrderRequests;
+				}
+			}
+		}
+		return new SecureTJSONResponse(status, messages, data);
+	}
+	
+	
+	@RequestMapping("/rest/ticket/fetchPORequestForRequestId")
+	public @ResponseBody Object fetchPORequestForRequestId(@AuthenticationPrincipal User loggedInUser,@RequestParam(value="partOrderRequestId",required=false) Integer partOrderRequestId){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		if(loggedInUser!=null){
+			if(partOrderRequestId==null || partOrderRequestId==0){
+				messages = new FieldError("partOrderRequest", "partOrderRequestId", "Invalid Part Order Request Id!");
+			}else{
+				PartOrderRequest partOrderRequest = new PartOrderRequest();
+				partOrderRequest.setPartOrderRequestId(partOrderRequestId);
+				SimplePartOrderRequest simplePartOrderRequest = fetchSimplePartOrderRequestFromId(partOrderRequest);
+				if(simplePartOrderRequest==null){
+					messages  = new FieldError("partOrderRequest", "partOrderRequest", "No Part Order Request Found");
+					
+				}else{
+					status="success";
+					//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
+					data=simplePartOrderRequest;
+				}
+			}
+		}
+		return new SecureTJSONResponse(status, messages, data);
+		
+	}
+	
+	@Transactional
+	@RequestMapping("/rest/ticket/updatePORequestStatusForRequestId")
+	public @ResponseBody Object updatePORequestStatusForRequestId(@AuthenticationPrincipal User loggedInUser,@ModelAttribute("partOrderRequest") PartOrderRequest partOrderRequest,BindingResult result){
+		String status = "error";
+		Object messages = null;
+		Object data = null;
+		if(loggedInUser!=null){
+			if(partOrderRequest==null || partOrderRequest.getPartOrderRequestId()==0){
+				FieldError error = new FieldError("partOrderRequesT", "partOrderRequestId", "Invalid Part Order Request Id!");
+				result.addError(error);
+				messages = simplifyErrorMessages(result.getFieldErrors());
+			}else{
+				partOrderRequest = updatePORequestStatus(loggedInUser, partOrderRequest);
+				if(partOrderRequest==null){
+					FieldError error = new FieldError("partOrderRequest", "partOrderRequest", "No Part Order Request Found");
+					result.addError(error);
+					messages = simplifyErrorMessages(result.getFieldErrors());
+				}else{
+					status="success";
+					FieldError error = new FieldError("partOrderRequest", "partOrderRequest", "Successfully update PO Request:"+partOrderRequest.getPartOrderRequestId());
+					result.addError(error);
+					messages = simplifyErrorMessages(result.getFieldErrors());
+					//remove the fields not necessary - should use jackson mappers - TODO - use jackson mappers!!
+					data=partOrderRequest;
+				}
+			}
+		}
+		return new SecureTJSONResponse(status, messages, data);
+		
+	}
+
 }

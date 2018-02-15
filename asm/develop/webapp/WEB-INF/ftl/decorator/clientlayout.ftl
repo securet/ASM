@@ -51,8 +51,11 @@
 						<a href="<@spring.url relativeUrl="/tickets/listTickets"/>" class="list-group-item ">All Tickets <span class="badge badge-primary">${openTicketsCount?default(0)+work_in_progressTicketsCount?default(0)+resolvedTicketsCount?default(0)+closedTicketsCount?default(0)}</span></a>
 						<@security.authorize access="hasAnyRole('ADMIN','CLIENT_CONTROLLER')">
 							<a href="<@spring.url relativeUrl="/reports/dashboard"/>" class="list-group-item "> <i class="glyphicon glyphicon-dashboard"></i> Dashboard</a>
+							<a href="<@spring.url relativeUrl="/reports/sla/status"/>" class="list-group-item "> <i class="glyphicon glyphicon-hourglass"></i> SLA Status</a>
+							<a href="<@spring.url relativeUrl="/reports/porequests"/>" class="list-group-item "> <i class="glyphicon glyphicon-wrench"></i> PO Request Report</a>
 						</@security.authorize>
 						<@security.authorize access="hasAnyRole('ADMIN')">
+							<a href="<@spring.url relativeUrl="/tickets/hpToolTrigger"/>" class="list-group-item "> <i class="glyphicon glyphicon-flash"></i>HP Tool Trigger</a>
 							<a href="<@spring.url relativeUrl="/admin/"/>" class="list-group-item "> <i class="glyphicon glyphicon-circle-arrow-left"></i> Go to Admin</a>
 						</@security.authorize>
 					</div>

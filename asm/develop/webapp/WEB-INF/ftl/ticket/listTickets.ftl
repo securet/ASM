@@ -1,5 +1,5 @@
 <#assign security=JspTaglibs["http://www.springframework.org/security/tags"] />
-<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","boolean","text"}>
+<#assign fieldTypeMapping = {"int":"text","string":"text","list":"select","file":"file","double":"text","datetime":"datetime","date":"date","boolean","text","bigDecimal":"text"}>
 <html>
 	<head>
 		<title>View Tickets</title>

@@ -9,17 +9,15 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import org.hibernate.validator.constraints.Email;
 
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -61,11 +59,11 @@ public class User extends SecureTObject {
 	@JoinColumn(name="organizationId",referencedColumnName="organizationId")
 	private Organization organization;
 
-	@OneToMany(fetch=FetchType.EAGER)
+	@ManyToMany(fetch=FetchType.EAGER)
 	@JoinTable(name="user_role")
 	private List<RoleType> roles;
 	
-	@OneToMany
+	@ManyToMany
 	@JoinTable(name="user_permission")
 	private List<Permission> permissions;
 	

@@ -24,7 +24,7 @@ public class SQLPartOrderRequest extends com.mysema.query.sql.RelationalPathBase
 
     public static final SQLPartOrderRequest partOrderRequest = new SQLPartOrderRequest("part_order_request");
 
-    public final NumberPath<Double> cost = createNumber("cost", Double.class);
+    public final NumberPath<java.math.BigDecimal> cost = createNumber("cost", java.math.BigDecimal.class);
 
     public final DateTimePath<java.sql.Timestamp> createdTimestamp = createDateTime("createdTimestamp", java.sql.Timestamp.class);
 
@@ -44,15 +44,7 @@ public class SQLPartOrderRequest extends com.mysema.query.sql.RelationalPathBase
 
     public final com.mysema.query.sql.PrimaryKey<SQLPartOrderRequest> primary = createPrimaryKey(partOrderRequestId);
 
-    public final com.mysema.query.sql.ForeignKey<SQLUser> porRespondedUserFk = createForeignKey(respondedBy, "userId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLServiceSparePart> porSspFk = createForeignKey(sparePartId, "sparePartId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLTicket> porTicketFk = createForeignKey(ticketId, "ticketId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLEnumeration> porStatusEnumFk = createForeignKey(statusId, "enumerationId");
-
-    public final com.mysema.query.sql.ForeignKey<SQLUser> porInitiatedUserFk = createForeignKey(initiatedBy, "userId");
+    public final com.mysema.query.sql.ForeignKey<SQLServiceSparePart> k07o4v8bgort6vcepqeoof083FK = createForeignKey(sparePartId, "sparePartId");
 
     public SQLPartOrderRequest(String variable) {
         super(SQLPartOrderRequest.class, forVariable(variable), "null", "part_order_request");
@@ -75,15 +67,15 @@ public class SQLPartOrderRequest extends com.mysema.query.sql.RelationalPathBase
     }
 
     public void addMetadata() {
-        addMetadata(cost, ColumnMetadata.named("cost").withIndex(9).ofType(Types.DECIMAL).withSize(10).withDigits(2).notNull());
-        addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(7).ofType(Types.TIMESTAMP).withSize(19));
-        addMetadata(initiatedBy, ColumnMetadata.named("initiatedBy").withIndex(5).ofType(Types.VARCHAR).withSize(255).notNull());
-        addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(8).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(cost, ColumnMetadata.named("cost").withIndex(4).ofType(Types.DECIMAL).withSize(19).withDigits(2).notNull());
+        addMetadata(createdTimestamp, ColumnMetadata.named("createdTimestamp").withIndex(2).ofType(Types.TIMESTAMP).withSize(19));
+        addMetadata(initiatedBy, ColumnMetadata.named("initiatedBy").withIndex(5).ofType(Types.VARCHAR).withSize(255));
+        addMetadata(lastUpdatedTimestamp, ColumnMetadata.named("lastUpdatedTimestamp").withIndex(3).ofType(Types.TIMESTAMP).withSize(19));
         addMetadata(partOrderRequestId, ColumnMetadata.named("partOrderRequestId").withIndex(1).ofType(Types.INTEGER).withSize(10).notNull());
         addMetadata(respondedBy, ColumnMetadata.named("respondedBy").withIndex(6).ofType(Types.VARCHAR).withSize(255));
-        addMetadata(sparePartId, ColumnMetadata.named("sparePartId").withIndex(3).ofType(Types.INTEGER).withSize(10).notNull());
-        addMetadata(statusId, ColumnMetadata.named("statusId").withIndex(4).ofType(Types.VARCHAR).withSize(255).notNull());
-        addMetadata(ticketId, ColumnMetadata.named("ticketId").withIndex(2).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(sparePartId, ColumnMetadata.named("sparePartId").withIndex(7).ofType(Types.INTEGER).withSize(10).notNull());
+        addMetadata(statusId, ColumnMetadata.named("statusId").withIndex(8).ofType(Types.VARCHAR).withSize(255).notNull());
+        addMetadata(ticketId, ColumnMetadata.named("ticketId").withIndex(9).ofType(Types.VARCHAR).withSize(255).notNull());
     }
 
 }
