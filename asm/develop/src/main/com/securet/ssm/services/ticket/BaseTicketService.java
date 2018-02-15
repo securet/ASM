@@ -252,9 +252,11 @@ public class BaseTicketService extends SecureTService{
 		Map<Expression<?>, ?> result = ticketQuery.uniqueResult(jpaTicketBeanExpr);
 		Ticket ticket = (Ticket) result.get(jpaTicket);
 		if(ticket!=null){
-			ticket.setTat((Integer) result.get(tatExpr));
-			ticket.setActualTat((Integer) result.get(actualTATExpr));
-			ticket.setStopClock((Integer) result.get(stopClockExpr));
+			if(result.get(tatExpr)!=null){
+				ticket.setTat((Integer) result.get(tatExpr));
+				ticket.setActualTat((Integer) result.get(actualTATExpr));
+				ticket.setStopClock((Integer) result.get(stopClockExpr));
+			}
 		}
 		return ticket;
 	}
@@ -558,7 +560,7 @@ public class BaseTicketService extends SecureTService{
 		QBean<IssueType> issueTypeExpr = Projections.bean(IssueType.class, sqlTicket.issueTypeId,sqlIssueType.name);
 		QBean<SimpleUser> clientUserExpr = Projections.bean(SimpleUser.class, sqlTicket.reporterUserId.as("userId"));
 		QBean<SimpleUser> vendorUserExpr = Projections.bean(SimpleUser.class, sqlVendorUser.userId,sqlVendorOrganization.name.as("organizationName"));
-		QBean<SimpleTicket> resultListExpression = Projections.bean(SimpleTicket.class, sqlTicket.ticketId,sqlTicket.shortDesc,sqlStatus.enumerationId.as("statusId"),sqlTicket.ticketType,simpleSiteExpr.as("site"),
+		QBean<SimpleTicket> resultListExpression = Projections.bean(SimpleTicket.class, sqlTicket.ticketId,sqlTicket.shortDesc,sqlTicket.source,sqlStatus.enumDescription.as("statusId"),sqlTicket.ticketType,simpleSiteExpr.as("site"),
 				serviceTypeExpr.as("serviceType"),clientUserExpr.as("clientUser"),vendorUserExpr.as("vendorUser"),issueTypeExpr.as("issueType"),
 				sqlTicket.createdTimestamp,sqlTicket.lastUpdatedTimestamp,tatExpr.as("tat"),
 				actualTATExpr,stopClockExpr);
